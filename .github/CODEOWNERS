@@ -1,0 +1,11 @@
+# Kritva Motion - code owners (D-040)
+# Single owner: GitHub does not count a PR author's own approval, so merging needs a ruleset
+# bypass for the owner or a second reviewer. Add accounts or teams when more reviewers join.
+# An architecture reviewer and a safety reviewer are not yet assigned (program decision PD-007).
+
+*                       @dineshannayya
+
+/.github/               @dineshannayya
+/SECURITY.md            @dineshannayya
+/LICENSE                @dineshannayya
+/ACCEPTANCE_CRITERIA.md @dineshannayya
