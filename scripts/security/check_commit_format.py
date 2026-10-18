@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""Check the V2 commit format (D-044, proposed): Conventional Commits header plus exactly one Task footer.
+"""Check the V2 commit format (D-044, aligned with the raas rules in D-053): Conventional Commits header plus one Task footer.
 
-  header   type(scope): summary      type in feat fix docs refactor test build ci chore perf revert; summary up to 72 chars
-  footer   Task: <TASK-ID>           exactly one, e.g. Task: KOS-SENSE-001 ; ID is upper-case segments joined by hyphens
-  rejects  missing, malformed or duplicated Task lines, AI session trailers (Claude-Session, session links)
-  allows   ordinary Git metadata, Co-Authored-By and Signed-off-by trailers, and merge commits ("Merge ...")
+  header   type(scope): summary [TASK-ID]
+           type in feat fix docs refactor test build ci chore perf revert security; summary up to 90 chars;
+           the trailing [TASK-ID] is optional, and if present it must be one of the footer IDs
+  footer   Task: <TASK-ID>  or  Tasks: <ID>, <ID>   exactly one footer line; IDs are upper-case segments joined by hyphens
+           Tasks: None (reason)   for a docs or chore commit that implements no task (record corrections)
+  rejects  missing, malformed or duplicated Task/Tasks lines, AI session trailers (Claude-Session, session links)
+  allows   ordinary Git metadata, Acceptance/Tests/Security-Gates/Evidence trailers, Co-Authored-By and Signed-off-by,
+           and merge commits ("Merge ...")
 
   --range BASE..HEAD   every non-merge commit in the range
   --file PATH          one message file (commit-msg hook)
@@ -19,10 +23,33 @@ import subprocess
 import sys
 from pathlib import Path
 
-HEADER = re.compile(r"^(feat|fix|docs|refactor|test|build|ci|chore|perf|revert)(\([a-z0-9][a-z0-9._/-]*\))?: \S.{0,71}$")
-TASK = re.compile(r"^Task: [A-Z0-9]+(?:-[A-Z0-9]+)+$")
-TASKISH = re.compile(r"^\s*task\s*:", re.IGNORECASE)
+TYPES = "feat|fix|docs|refactor|test|build|ci|chore|perf|revert|security"
+ID = r"[A-Z0-9]+(?:-[A-Z0-9]+)+"
+HEADER = re.compile(rf"^({TYPES})(\([a-z0-9][a-z0-9._/-]*\))?: \S.{{0,89}}$")
+SUFFIX = re.compile(rf"\s\[({ID})\]$")
+FOOTER = re.compile(rf"^Tasks?: ({ID}(?:, ?{ID})*)$")
+NONE = re.compile(r"^Tasks?: None \(\S.*\)$")
+TASKISH = re.compile(r"^\s*tasks?\s*:", re.IGNORECASE)
+TASK = FOOTER  # kept for callers that match a single footer line
+NONE_TYPES = ("docs", "chore")
 SESSION = (re.compile(r"^\s*claude-session\s*:", re.IGNORECASE | re.MULTILINE), re.compile(r"claude\.ai/code/session", re.IGNORECASE))
+
+
+def _footer_lines(message):
+    return [ln for ln in message.rstrip("\n").split("\n")[1:] if TASKISH.match(ln)]
+
+
+def task_ids(message):
+    """Task IDs named by the footer (empty for a None footer or no footer)."""
+    for ln in _footer_lines(message):
+        m = FOOTER.match(ln)
+        if m:
+            return [x.strip() for x in m.group(1).split(",")]
+    return []
+
+
+def declares_none(message):
+    return any(NONE.match(ln) for ln in _footer_lines(message))
 
 
 def problems(message, registry=None):
@@ -30,21 +57,32 @@ def problems(message, registry=None):
     if lines and lines[0].startswith("Merge "):
         return []
     out = []
-    if not HEADER.match(lines[0] if lines else ""):
-        out.append("header must be type(scope): summary (types: feat fix docs refactor test build ci chore perf revert; summary at most 72 characters)")
-    taskish = [ln for ln in lines[1:] if TASKISH.match(ln)]
-    good = [ln for ln in taskish if TASK.match(ln)]
-    bad = [ln for ln in taskish if not TASK.match(ln)]
+    head = lines[0] if lines else ""
+    sfx = SUFFIX.search(head)
+    core = head[:sfx.start()] if sfx else head
+    if not HEADER.match(core):
+        out.append("header must be type(scope): summary [optional TASK-ID] (types: feat fix docs refactor test build ci chore perf revert security; summary at most 90 characters)")
+    footers = _footer_lines(message)
+    bad = [ln for ln in footers if not FOOTER.match(ln) and not NONE.match(ln)]
     if bad:
         out.append(f"malformed Task footer: {bad[0]!r}")
-    if not taskish:
-        out.append("missing Task: footer")
-    if len(good) > 1:
+    if not footers:
+        out.append("missing Task: footer (use 'Tasks: None (reason)' on a docs or chore commit that implements no task)")
+    if len(footers) > 1:
         out.append("more than one Task: footer")
+    ids = task_ids(message)
+    if declares_none(message):
+        mt = re.match(r"^([a-z]+)", core)
+        if not mt or mt.group(1) not in NONE_TYPES:
+            out.append("'Tasks: None' is only for docs or chore commits")
+        if sfx:
+            out.append("a subject [TASK-ID] cannot go with 'Tasks: None'")
+    if sfx and ids and sfx.group(1) not in ids:
+        out.append(f"subject task {sfx.group(1)} is not in the footer")
     if registry is not None:
-        for ln in good:
-            if ln.split(": ", 1)[1] not in registry:
-                out.append(f"unknown task ID {ln.split(': ', 1)[1]}")
+        for t in ids:
+            if t not in registry:
+                out.append(f"unknown task ID {t}")
     if any(rx.search(message) for rx in SESSION):
         out.append("AI session trailer or link")
     return out

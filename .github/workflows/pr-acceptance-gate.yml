@@ -1,0 +1,48 @@
+# pr-acceptance-gate.yml: report-only check of a pull request against the kritva-program rules (D-045).
+# It approves, merges and changes nothing. REJECT fails the check; NEEDS_HUMAN and APPROVE pass it.
+
+name: pr-acceptance-gate
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  pr-acceptance-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Evaluate the pull request
+        id: gate
+        run: |
+          set +e
+          python3 scripts/pipeline/pr_gate.py static \
+            --gate .github/kritva-gate.json \
+            --base "origin/${{ github.base_ref }}" \
+            --head "${{ github.event.pull_request.head.sha }}" \
+            --markdown gate-report.md --json gate-report.json
+          echo "rc=$?" >> "$GITHUB_OUTPUT"
+          cat gate-report.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Post or update the report comment
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          id=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+            --jq '[.[] | select(.body | contains("<!-- pr-acceptance-gate -->"))][0].id // empty')
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/${{ github.repository }}/issues/comments/$id" -F body=@gate-report.md
+          else
+            gh pr comment "${{ github.event.pull_request.number }}" --body-file gate-report.md
+          fi
+      - name: Fail only on REJECT
+        run: exit ${{ steps.gate.outputs.rc }}
