@@ -7,7 +7,9 @@
 5. Tag only after the approved merge: `git tag -a vX.Y.Z -m "..."`; a tag does not close a milestone.
 
 ```text
-type(scope): summary of at most 72 characters
+type(scope): summary of at most 90 characters [optional KOS-MOTION-NNN]
 
 Task: KOS-MOTION-001
 ```
+
+Several tasks: `Tasks: KOS-MOTION-001, KOS-MOTION-002`. A docs or chore commit that implements no task: `Tasks: None (reason)`. Merge method: merge commit. Use `.github/PULL_REQUEST_TEMPLATE.md` for the PR text.

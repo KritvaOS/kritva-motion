@@ -1,0 +1,39 @@
+{
+  "code": "MOTION",
+  "commit_standard": {
+    "adopted": true,
+    "basis": "D-044 format; new repo or program"
+  },
+  "depends_on": [
+    "kritva-core",
+    "kritvaos-community"
+  ],
+  "github_repo": "KritvaOS/kritva-motion",
+  "kind": "capability",
+  "manifest_id": "KOS-V2-PR-PIPELINE",
+  "manifest_status": "PROPOSED",
+  "protected_paths": [
+    ".github/",
+    "SECURITY.md",
+    "LICENSE",
+    "ACCEPTANCE_CRITERIA.md",
+    "Makefile",
+    "scripts/pipeline/",
+    "scripts/security/"
+  ],
+  "repo_id": "kritva-motion",
+  "required_approvals": [
+    "REPO_CODE_OWNER",
+    "ARCHITECTURE_REVIEWER"
+  ],
+  "required_github_checks": [
+    "secret-scan",
+    "commit-message-check",
+    "pr-acceptance-gate"
+  ],
+  "task_prefix": "KOS-MOTION",
+  "task_registry": {
+    "path": "planning/TASKS.md",
+    "type": "repo-tasks-md"
+  }
+}

@@ -1,7 +1,7 @@
 # Review Checklist: kritva-motion
 
 - [ ] Task ID and acceptance criteria exist and are unchanged by this PR (or changed under change control).
-- [ ] Commit headers follow `type(scope): summary` and each has exactly one `Task:` footer.
+- [ ] Commit headers follow `type(scope): summary` and each has exactly one `Task:` or `Tasks:` footer (`Tasks: None (reason)` only on docs or chore). The PR uses the PR template.
 - [ ] No AI-session trailer, link, secret or production data.
 - [ ] Required checks passed on the exact PR head: secret-scan, commit-message-check, plus the test gates that apply.
 - [ ] No unimplemented gate is reported as a pass.
