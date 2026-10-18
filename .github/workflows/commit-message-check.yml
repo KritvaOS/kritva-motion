@@ -1,0 +1,26 @@
+# commit-message-check.yml: GitHub Actions check that new commits carry no AI session trailers
+# Security control from kritva-program decision D-032 (follow-up).
+
+name: commit-message-check
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  commit-message-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Test the commit message checker
+        run: python3 -m unittest discover -s tests/commit_message_check -v
+      - name: Check commits in this pull request
+        run: python3 scripts/security/check_commit_messages.py --range "origin/${{ github.base_ref }}..HEAD"
