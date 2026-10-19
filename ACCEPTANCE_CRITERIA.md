@@ -52,8 +52,8 @@ As in the program standard section 1: stable task ID, merged through the approve
 ## 9. Known limitations and exclusions
 
 - No implementation exists; criteria are not yet testable by automated gates (gates listed NOT_IMPLEMENTED).
-- No architecture or safety reviewer is assigned (program decision PD-007).
-- Licence for this repository is undecided (program decision PD-013).
+- The architecture and safety reviewer roles are held by the owner on an interim basis (program decision D-047, resolving PD-007); independent review is not yet in place.
+- Licence: Apache-2.0, confirmed by the owner (program decision D-064, closing PD-013).
 
 ## 10. Change control
 

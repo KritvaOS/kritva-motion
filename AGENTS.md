@@ -19,7 +19,7 @@ Kritva Motion owns: the motion command and state contract: command lifecycle, un
 - Exactly one footer line, `Task: KOS-MOTION-NNN` or `Tasks: KOS-MOTION-NNN, KOS-MOTION-NNN`; a docs or chore commit that implements no task uses `Tasks: None (reason)`. Check with `python3 scripts/security/check_commit_format.py --range origin/main..HEAD`.
 - Merge method is a merge commit (kritva-program D-053). PRs use `.github/PULL_REQUEST_TEMPLATE.md`.
 - Never add a `Claude-Session:` trailer or a claude.ai session link to a commit. `commit-message-check` blocks them.
-- Open a PR; do not push to `main`. Required checks: secret-scan, commit-message-check.
+- Open a PR; do not push to `main`. Required checks: secret-scan, commit-message-check and pr-acceptance-gate (D-061).
 
 ## 4. Secrets
 
