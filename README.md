@@ -1,14 +1,14 @@
 # kritva-motion
 
-> Planning and governance repository for the Motion command and state contract of the Kritva OS V2 plan. There is no implementation yet: the repository holds acceptance criteria, planning records, pull-request checks and rules, and no source code. The visibility class of this repository is not yet decided (D-039 recommends private).
+> Planning and governance repository for the Motion command and state contract of the Kritva OS V2 plan. There is no implementation yet: the repository holds acceptance criteria, planning records, pull-request checks and rules, and no source code. The visibility class of this repository is PUBLIC (D-063).
 
 | Property | Value |
 |---|---|
 | Project | KritvaOS (Kritva OS V2) |
 | Repository | `KritvaOS/kritva-motion` |
 | Repository Type | Capability (contract only; planning baseline, no implementation) |
-| Visibility Class | Not yet decided (D-039 in kritva-program recommends PRIVATE; the Apache-2.0 licence file would permit a public release, so a public release needs an owner exception and a release review) |
-| GitHub Setting | PUBLIC, temporary (D-028 and D-037 in kritva-program own the temporary exposure and its return plan); OWNER-ATTESTED: no independent check of the setting and no verification date is recorded here |
+| Visibility Class | PUBLIC (owner decision D-063 in kritva-program; it is an exception to the D-039 recommendation of PRIVATE, and no release review is recorded) |
+| GitHub Setting | PUBLIC, the same as the class (D-063 in kritva-program keeps this repository public and takes it out of the return-to-private plan); OWNER-ATTESTED: no independent check of the setting and no verification date is recorded here |
 | Lifecycle Status | PLANNING (governance baseline only) |
 | Repository Owner | Project owner (role; see section 15) |
 | Security Owner | Security Owner role ([SECURITY.md](SECURITY.md)) |
@@ -66,7 +66,7 @@ Labels: INPUT is edited by hand and read by a tool or review; GENERATED is writt
 | [ACCEPTANCE_CRITERIA.md](ACCEPTANCE_CRITERIA.md) | Criteria and test gates for KOS-MOTION-001 | AUTHORITATIVE; PROPOSED | Accepted criteria are never edited; a change is a new version |
 | [scripts/](scripts/) | `docs_check.py` (link check), `pipeline/pr_gate.py` (PR gate), `security/` (commit checkers), `check_readme.py` (README check) | INPUT; IMPLEMENTED | `pipeline/` and `security/` are protected paths of the gate |
 | [tests/](tests/) | `commit_message_check/` (commit checker tests) and `readme_check/` (README checker tests) | EVIDENCE; IMPLEMENTED | Tests of the checkers only; no test of the contract exists |
-| [.github/](.github/) | CODEOWNERS, pull request template, `kritva-gate.json` and three workflows | AUTHORITATIVE | `kritva-gate.json` configures the PR gate |
+| [.github/](.github/) | CODEOWNERS, pull request template, `kritva-gate.json` and four workflows | AUTHORITATIVE | `kritva-gate.json` configures the PR gate |
 | [Makefile](Makefile) | Check targets; unimplemented gates exit 3 | INPUT; IMPLEMENTED | See section 11 |
 | [AGENTS.md](AGENTS.md), [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), [LICENSE](LICENSE) | Rules, contribution steps, security policy, licence | AUTHORITATIVE | |
 | `src/`, `include/`, `docs/`, `status/`, `examples/` | Source, interfaces, documentation, status report, examples | NOT YET IMPLEMENTED (absent) | Added only when a real task needs them |
@@ -131,12 +131,13 @@ Not yet implemented. This repository has no `status/` directory and generates no
 
 ## 11. Build, Test, Regression and Validation
 
-CI runs three workflows. `make check` is a local command and is not the same as CI.
+CI runs four workflows. `make check` is a local command and is not the same as CI.
 
 | Workflow | Trigger | What it runs |
 |---|---|---|
 | `commit-message-check` | pull requests | the commit checker's unit tests, and the checker on the pull request's commits (rejects AI-session trailers and links only) |
 | `pr-acceptance-gate` | pull requests | `scripts/pipeline/pr_gate.py static` against `.github/kritva-gate.json`: report-only rules R01 commit format, R02 task exists and is open, R03 acceptance criteria changed, R04 protected paths, R05 completion record, R06 required workflows, R07 required approvals, R08 dependencies. REJECT fails the check; NEEDS_HUMAN and APPROVE pass it; it posts or updates a report comment and approves and merges nothing |
+| `readme-check` | pull requests; push to `main` | the README checker's unit tests, then `python3 scripts/check_readme.py README.md` (structure, metadata and local links only; not a required check yet, D-067) |
 | `secret-scan` | push to `main`; pull requests; manual dispatch | gitleaks over the git history |
 
 | Command | Effect | Notes |
@@ -147,7 +148,7 @@ CI runs three workflows. `make check` is a local command and is not the same as 
 | `make lint`, `make test-unit`, `make test-integration`, `make test-regression`, `make test`, `make acceptance` | placeholder | print NOT_IMPLEMENTED and exit 3: they check nothing and are never a pass |
 | `python3 scripts/security/check_commit_format.py --range origin/main..HEAD` | check | the commit format of the commits on a branch (the PR gate runs the same check as rule R01) |
 
-There is nothing to build and no test of the contract, because there is no contract yet. A passing `make check` shows only that the listed files exist and that the commit checker's own tests pass. It does not show that a design is right, that a gate is closed or that anything is safe. `.github/kritva-gate.json` declares three required checks (`secret-scan`, `commit-message-check` and `pr-acceptance-gate`); that list is the gate's own declaration, not the branch ruleset. [AGENTS.md](AGENTS.md) and [CONTRIBUTING.md](CONTRIBUTING.md) name only the first two as required. Which checks the `main` ruleset actually requires has not been verified from this README, and the three documents are not aligned; the owner decides and records it.
+There is nothing to build and no test of the contract, because there is no contract yet. A passing `make check` shows only that the listed files exist and that the commit checker's own tests pass. It does not show that a design is right, that a gate is closed or that anything is safe. `.github/kritva-gate.json` declares three required checks (`secret-scan`, `commit-message-check` and `pr-acceptance-gate`); that list is the gate's own declaration, not the branch ruleset. [AGENTS.md](AGENTS.md) and [CONTRIBUTING.md](CONTRIBUTING.md) now name the same three. The owner decided that `pr-acceptance-gate` is a required check in the `main` ruleset (PD-018, D-061); adding it is a GitHub settings action that this README does not verify, so what the ruleset requires today is UNVERIFIED.
 
 ## 12. Git Workflow and Review
 
@@ -172,7 +173,7 @@ No release exists and no version is defined. The plan is annotated SemVer tags (
 |---|---|
 | Repository owner (Dinesh; `.github/CODEOWNERS`) | Directs the work, decides, approves and merges |
 | Security Owner | Handles vulnerability reports and committed secrets |
-| Architecture reviewer and safety reviewer | Both roles are assigned to the owner on an interim basis (D-047); that is not independent review, and the independence requirement remains unmet; the CODEOWNERS comments still say no reviewer is assigned |
+| Architecture reviewer and safety reviewer | Both roles are assigned to the owner on an interim basis (D-047); that is not independent review, and the independence requirement remains unmet; the CODEOWNERS comments say the same (D-065) |
 | Implementers (people and agents) | Implement approved scope, record evidence and follow `AGENTS.md` |
 
 ## 16. Related Repositories and References
@@ -185,4 +186,4 @@ No release exists and no version is defined. The plan is annotated SemVer tags (
 
 ## 17. License
 
-The [LICENSE](LICENSE) file is the Apache License 2.0. Copyright (c) 2026 KritvaOS. [ACCEPTANCE_CRITERIA.md](ACCEPTANCE_CRITERIA.md) section 9 says that the licence for this repository is undecided (program decision PD-013); the two statements are not reconciled, and the owner decides which stands.
+The [LICENSE](LICENSE) file is the Apache License 2.0. Copyright (c) 2026 KritvaOS. The owner confirmed Apache-2.0 as the licence of this repository (program decision D-064, which closes PD-013), and [ACCEPTANCE_CRITERIA.md](ACCEPTANCE_CRITERIA.md) section 9 says the same.
