@@ -32,3 +32,7 @@ Never commit credentials, tokens, keys or production data. If one is committed b
 ## 6. Tags and milestones
 
 Release tags are annotated SemVer (`vMAJOR.MINOR.PATCH`), created only after the approved merge. A milestone closes only through an approved `COMPLETION_RECORD.md`; a tag or a merge does not close it.
+
+## 7. README changes
+
+Run `make check-readme` after editing README.md. It is a structural check only (metadata fields, topic headings, relative links, placeholders); it does not show that the content is accurate, so review the content against the repository as well.
