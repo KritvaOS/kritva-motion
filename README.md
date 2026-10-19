@@ -54,7 +54,7 @@ Role first, then the status the document declares. A label is a role, not an app
 | 7 | [planning/GIT_COMMIT_STEP.md](planning/GIT_COMMIT_STEP.md) | REFERENCE | How to branch, commit, check, merge and tag |
 | 8 | [planning/CHANGELOG.md](planning/CHANGELOG.md) | REFERENCE | What changed |
 | 9 | [CONTRIBUTING.md](CONTRIBUTING.md) | AUTHORITATIVE for contribution steps | How to contribute |
-| 10 | [SECURITY.md](SECURITY.md) | AUTHORITATIVE for vulnerability reporting (route not yet verified) | How to report a vulnerability |
+| 10 | [SECURITY.md](SECURITY.md) | AUTHORITATIVE for vulnerability reporting (route tested 18 October 2026, owner-attested) | How to report a vulnerability |
 
 ## 5. Repository Structure and File Responsibilities
 
@@ -158,7 +158,7 @@ Controlling statement ([AGENTS.md](AGENTS.md) section 3, the D-053 form): header
 
 No implementation and no safety case exist at this planning stage: the repository contains no software that runs and no hardware, and it makes no safety claim. The planned contract can still influence what other software does, so its safety implications need human review when it is designed. The planning records state that any hardware-in-loop or physical validation claim stays gated on program milestone V2-M6 (HOLD) and that no architecture or safety reviewer was assigned when the criteria were written (program decision PD-007, since resolved on an interim basis by D-047: both roles are assigned to the owner). Software acceptance, tests, simulation and mocks are never described as hardware or safety validation. Motion describes commands and limits for devices that move. The actuator hardware family is on HOLD in the program plan, no actuator is connected to anything in this repository, and nothing here validates physical behaviour: any claim about a physical limit, stop or fault response stays blocked by the program's physical-safety gate (V2-M6) and the human safety reviews recorded in kritva-program.
 
-**Reporting a vulnerability:** follow [SECURITY.md](SECURITY.md). It asks you to tell the Security Owner through an existing Kritva channel and to ask for a private place for details, and it mentions GitHub private vulnerability reporting if enabled. The Security Owner has not yet verified whether private vulnerability reporting is enabled or that the channel is monitored (an owner action pending). Never put details of an unfixed vulnerability in a public issue, pull request or commit message.
+**Reporting a vulnerability:** follow [SECURITY.md](SECURITY.md). It names GitHub private vulnerability reporting as the first route and gives a direct-contact fallback. The Security Owner reports having tested the reporting route on 18 October 2026 (D-068); that is ATTESTED, not independently verified, and nothing here promises a response time. Never put details of an unfixed vulnerability in a public issue, pull request or commit message.
 
 - Never commit secrets, private keys, tokens, passwords or production data. The `secret-scan` workflow runs on pull requests and on pushes to `main`.
 - If a secret is committed by mistake, tell the Security Owner at once; removing it in a later commit does not make it safe.
