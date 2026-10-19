@@ -13,7 +13,7 @@ Please do not put details of an unpatched vulnerability in a public issue, pull 
 
 ## 3. Reporting
 
-Tell the Security Owner directly through your existing Kritva channel and ask for a private place to share the details; do not put details in the first message. If GitHub private vulnerability reporting is enabled for this repository (Security tab, "Report a vulnerability"), you may use it instead.
+Tell the Security Owner directly through your existing Kritva channel and ask for a private place to share the details; do not put details in the first message. If GitHub private vulnerability reporting is enabled for this repository (Security tab, "Report a vulnerability"), you may use it instead. Neither route has been verified as monitored, and whether private vulnerability reporting is enabled has not been verified (owner action pending).
 
 Include the affected file or commit, a description, steps to reproduce, observed and expected behaviour, the potential impact and any mitigation you know of. Leave out personal, customer, credential or production data.
 

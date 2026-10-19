@@ -1,6 +1,6 @@
 # kritva-motion: standard check targets (kritva-program v2/planning/ACCEPTANCE_STANDARD.md).
 # An unimplemented gate exits 3 (NOT_IMPLEMENTED). It is never a pass.
-.PHONY: check lint test-unit test-integration test-regression test docs-check acceptance
+.PHONY: check lint test-unit test-integration test-regression test docs-check acceptance check-readme
 
 REQUIRED := ACCEPTANCE_CRITERIA.md AGENTS.md CONTRIBUTING.md SECURITY.md LICENSE README.md \
   planning/TASKS.md planning/MILESTONE.md planning/MILESTONE_STATUS.md planning/REVIEW_CHECKLIST.md \
@@ -29,3 +29,5 @@ docs-check:
 	@python3 scripts/docs_check.py
 acceptance:
 	$(call not_implemented,acceptance)
+check-readme:
+	@python3 scripts/check_readme.py README.md
