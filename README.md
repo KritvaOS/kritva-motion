@@ -147,7 +147,7 @@ CI runs three workflows. `make check` is a local command and is not the same as 
 | `make lint`, `make test-unit`, `make test-integration`, `make test-regression`, `make test`, `make acceptance` | placeholder | print NOT_IMPLEMENTED and exit 3: they check nothing and are never a pass |
 | `python3 scripts/security/check_commit_format.py --range origin/main..HEAD` | check | the commit format of the commits on a branch (the PR gate runs the same check as rule R01) |
 
-There is nothing to build and no test of the contract, because there is no contract yet. A passing `make check` shows only that the listed files exist and that the commit checker's own tests pass. It does not show that a design is right, that a gate is closed or that anything is safe. The required GitHub checks named in `.github/kritva-gate.json` are `secret-scan`, `commit-message-check` and `pr-acceptance-gate`; whether the `main` ruleset requires all three has not been verified from this README ([AGENTS.md](AGENTS.md) names the first two).
+There is nothing to build and no test of the contract, because there is no contract yet. A passing `make check` shows only that the listed files exist and that the commit checker's own tests pass. It does not show that a design is right, that a gate is closed or that anything is safe. `.github/kritva-gate.json` declares three required checks (`secret-scan`, `commit-message-check` and `pr-acceptance-gate`); that list is the gate's own declaration, not the branch ruleset. [AGENTS.md](AGENTS.md) and [CONTRIBUTING.md](CONTRIBUTING.md) name only the first two as required. Which checks the `main` ruleset actually requires has not been verified from this README, and the three documents are not aligned; the owner decides and records it.
 
 ## 12. Git Workflow and Review
 
@@ -155,7 +155,7 @@ Controlling statement ([AGENTS.md](AGENTS.md) section 3, the D-053 form): header
 
 ## 13. Safety and Security
 
-This repository contains no software that runs and no hardware. It is planning and governance material only, so no safety case applies and none is made. The planning records state that any hardware-in-loop or physical validation claim stays gated on program milestone V2-M6 (HOLD) and that no architecture or safety reviewer was assigned when the criteria were written (program decision PD-007, since resolved on an interim basis by D-047: both roles are assigned to the owner). Software acceptance, tests, simulation and mocks are never described as hardware or safety validation. Motion describes commands and limits for devices that move. The actuator hardware family is on HOLD in the program plan, no actuator is connected to anything in this repository, and nothing here validates physical behaviour: any claim about a physical limit, stop or fault response stays blocked by the program's physical-safety gate (V2-M6) and the human safety reviews recorded in kritva-program.
+No implementation and no safety case exist at this planning stage: the repository contains no software that runs and no hardware, and it makes no safety claim. The planned contract can still influence what other software does, so its safety implications need human review when it is designed. The planning records state that any hardware-in-loop or physical validation claim stays gated on program milestone V2-M6 (HOLD) and that no architecture or safety reviewer was assigned when the criteria were written (program decision PD-007, since resolved on an interim basis by D-047: both roles are assigned to the owner). Software acceptance, tests, simulation and mocks are never described as hardware or safety validation. Motion describes commands and limits for devices that move. The actuator hardware family is on HOLD in the program plan, no actuator is connected to anything in this repository, and nothing here validates physical behaviour: any claim about a physical limit, stop or fault response stays blocked by the program's physical-safety gate (V2-M6) and the human safety reviews recorded in kritva-program.
 
 **Reporting a vulnerability:** follow [SECURITY.md](SECURITY.md). It asks you to tell the Security Owner through an existing Kritva channel and to ask for a private place for details, and it mentions GitHub private vulnerability reporting if enabled. The Security Owner has not yet verified whether private vulnerability reporting is enabled or that the channel is monitored (an owner action pending). Never put details of an unfixed vulnerability in a public issue, pull request or commit message.
 
@@ -172,7 +172,7 @@ No release exists and no version is defined. The plan is annotated SemVer tags (
 |---|---|
 | Repository owner (Dinesh; `.github/CODEOWNERS`) | Directs the work, decides, approves and merges |
 | Security Owner | Handles vulnerability reports and committed secrets |
-| Architecture reviewer | Reviews the contract; assigned to the owner on an interim basis (D-047); CODEOWNERS still says no reviewer is assigned |
+| Architecture reviewer and safety reviewer | Both roles are assigned to the owner on an interim basis (D-047); that is not independent review, and the independence requirement remains unmet; the CODEOWNERS comments still say no reviewer is assigned |
 | Implementers (people and agents) | Implement approved scope, record evidence and follow `AGENTS.md` |
 
 ## 16. Related Repositories and References
