@@ -12,7 +12,7 @@
 | Lifecycle Status | PLANNING (governance baseline only) |
 | Repository Owner | Project owner (role; see section 15) |
 | Security Owner | Security Owner role ([SECURITY.md](SECURITY.md)) |
-| Architecture | Not yet defined: the architecture task KOS-MOTION-001 is proposed and not approved (see [ACCEPTANCE_CRITERIA.md](ACCEPTANCE_CRITERIA.md)) |
+| Architecture | PROPOSED draft, not approved: [architecture/MOTION_ARCHITECTURE.md](architecture/MOTION_ARCHITECTURE.md) and the contract [contract/MOTION_CONTRACT.md](contract/MOTION_CONTRACT.md), task KOS-MOTION-001 (criteria in [ACCEPTANCE_CRITERIA.md](ACCEPTANCE_CRITERIA.md)) |
 | Milestones | [planning/MILESTONE.md](planning/MILESTONE.md) and [planning/MILESTONE_STATUS.md](planning/MILESTONE_STATUS.md) |
 | Tasks | [planning/TASKS.md](planning/TASKS.md) |
 | Acceptance Criteria | [ACCEPTANCE_CRITERIA.md](ACCEPTANCE_CRITERIA.md) |
@@ -29,7 +29,7 @@ Kritva Motion is the part of Kritva OS V2 that will own the Motion command and s
 
 **This repository does not own**: actuator hardware, firmware and transport (kritva-actuator family, on HOLD), sensing (kritva-sense), skill orchestration (kritva-skill), and any physical safety validation.
 
-**Implementation state.** IMPLEMENTED: the governance baseline only: the planning records under [planning/](planning/), the acceptance criteria, the pull-request workflows and their scripts, the commit-message checker with its tests, and the `Makefile` structure check. NOT YET IMPLEMENTED: the contract, any source code, tests of the contract, a `src/` folder, unit, integration and regression gates, status reporting and any release. PROPOSED: the first task KOS-MOTION-001 (Motion command and state contract), which is "NOT_STARTED (proposed, awaiting owner approval)" in [planning/TASKS.md](planning/TASKS.md). Source folders are added only when a real task needs them, so their absence is intended and is not a defect.
+**Implementation state.** IMPLEMENTED: the governance baseline only: the planning records under [planning/](planning/), the acceptance criteria, the pull-request workflows and their scripts, the commit-message checker with its tests, and the `Makefile` structure check. NOT YET IMPLEMENTED: any source code, runtime tests of the contract, a `src/` folder, unit, integration and regression gates, status reporting and any release. PROPOSED: the draft contract package for the first task KOS-MOTION-001 (Motion command and state contract), which is IN_PROGRESS in [planning/TASKS.md](planning/TASKS.md); the documents are drafts for review, not an approved interface. Source folders are added only when a real task needs them, so their absence is intended and is not a defect.
 
 ## 2. Position in the KritvaOS Ecosystem
 
@@ -37,7 +37,7 @@ Kritva Motion is one of the capability repositories planned for Kritva OS V2, ne
 
 ## 3. Architecture
 
-Not yet defined. The architecture and contract are the subject of task KOS-MOTION-001, which is proposed and not approved; its criteria are in [ACCEPTANCE_CRITERIA.md](ACCEPTANCE_CRITERIA.md) section 3. Until that task is approved and accepted there is no architecture document in this repository, and nothing in the planning files is an interface that other repositories may rely on. Interfaces are intended to be contract-first and versioned independently of program phases ([AGENTS.md](AGENTS.md)). Motion describes commands and limits for devices that move. The actuator hardware family is on HOLD in the program plan, no actuator is connected to anything in this repository, and nothing here validates physical behaviour: any claim about a physical limit, stop or fault response stays blocked by the program's physical-safety gate (V2-M6) and the human safety reviews recorded in kritva-program.
+A draft architecture and contract are PROPOSED under task KOS-MOTION-001 and are not approved: [architecture/MOTION_ARCHITECTURE.md](architecture/MOTION_ARCHITECTURE.md), the decision register [architecture/MOTION_DECISIONS.md](architecture/MOTION_DECISIONS.md) and the normative draft contract [contract/MOTION_CONTRACT.md](contract/MOTION_CONTRACT.md) with its schemas, [error codes](contract/ERROR_CODES.md) and [conformance test plan](contract/CONFORMANCE_TEST_PLAN.md). The criteria are in [ACCEPTANCE_CRITERIA.md](ACCEPTANCE_CRITERIA.md) section 3. Until the task is reviewed and accepted, nothing in these documents is an interface that other repositories may rely on, and no runtime, simulator or physical validation exists. Interfaces are intended to be contract-first and versioned independently of program phases ([AGENTS.md](AGENTS.md)). Motion describes commands and limits for devices that move. The actuator hardware family is on HOLD in the program plan, no actuator is connected to anything in this repository, and nothing here validates physical behaviour: any claim about a physical limit, stop or fault response stays blocked by the program's physical-safety gate (V2-M6) and the human safety reviews recorded in kritva-program.
 
 ## 4. Documents to Read First
 
@@ -64,6 +64,9 @@ Labels: INPUT is edited by hand and read by a tool or review; GENERATED is writt
 |---|---|---|---|
 | [planning/](planning/) | Tasks, milestones, milestone status, review checklist, commit step, changelog | MIXED: planning records | Governs execution and acceptance |
 | [ACCEPTANCE_CRITERIA.md](ACCEPTANCE_CRITERIA.md) | Criteria and test gates for KOS-MOTION-001 | AUTHORITATIVE; PROPOSED | Accepted criteria are never edited; a change is a new version |
+| [architecture/](architecture/) | Draft architecture and decision register (MOTION-AD-001 to 044) | INPUT; PROPOSED | Not approved; the contract is the normative text |
+| [contract/](contract/) | Draft Motion contract v0.1.0, five JSON schemas, error codes, conformance test plan | AUTHORITATIVE for the contract once approved; PROPOSED | Schema checks only; no runtime exists |
+| [tasks/](tasks/KOS-MOTION-001/TASK.md) | Task record and proposed acceptance-criteria amendments for KOS-MOTION-001 | INPUT; PROPOSED | Amendments are not adopted |
 | [scripts/](scripts/) | `docs_check.py` (link check), `pipeline/pr_gate.py` (PR gate), `security/` (commit checkers), `check_readme.py` (README check) | INPUT; IMPLEMENTED | `pipeline/` and `security/` are protected paths of the gate |
 | [tests/](tests/) | `commit_message_check/` (commit checker tests) and `readme_check/` (README checker tests) | EVIDENCE; IMPLEMENTED | Tests of the checkers only; no test of the contract exists |
 | [.github/](.github/) | CODEOWNERS, pull request template, `kritva-gate.json` and four workflows | AUTHORITATIVE | `kritva-gate.json` configures the PR gate |
@@ -124,7 +127,7 @@ Not yet implemented. This repository has no `status/` directory and generates no
 
 | Dimension | Source record | Authority |
 |---|---|---|
-| Execution | the task status in [planning/TASKS.md](planning/TASKS.md); KOS-MOTION-001 is NOT_STARTED | The task owner records it |
+| Execution | the task status in [planning/TASKS.md](planning/TASKS.md); KOS-MOTION-001 is IN_PROGRESS | The task owner records it |
 | Evidence | none recorded: no CI run, test result or review record is cited as task evidence | Evidence is recorded at acceptance, by the author, and checked by another reviewer |
 | Acceptance | [ACCEPTANCE_CRITERIA.md](ACCEPTANCE_CRITERIA.md), the review record and the central approvals in kritva-program | The independent reviewer and the owner, never a status report |
 | Release readiness | not defined: no release, tag or completion record exists | The owner, through the central gates |
