@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/KritvaOS/kritva-motion/contract/motion-joint-state.schema.json",
+  "title": "Motion joint state and feedback v0.1.0-draft",
+  "description": "Contract sections 11 and 13. Joint state is two independent dimensions: control_state and health_state. After a fault the record reports last-known values with is_current false when feedback is not valid and fresh.",
+  "type": "object",
+  "required": [
+    "joint_id",
+    "control_state",
+    "health_state",
+    "feedback_status",
+    "is_current",
+    "backend_status",
+    "config_version"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "joint_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+    },
+    "active_command_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+    },
+    "fault_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+      }
+    },
+    "feedback_status": {
+      "enum": [
+        "VALID",
+        "STALE",
+        "INVALID",
+        "MISSING"
+      ]
+    },
+    "is_current": {
+      "type": "boolean"
+    },
+    "measured_position": {
+      "type": "number"
+    },
+    "measured_velocity": {
+      "type": "number"
+    },
+    "position_unit": {
+      "enum": [
+        "rad",
+        "m"
+      ]
+    },
+    "velocity_unit": {
+      "enum": [
+        "rad/s",
+        "m/s"
+      ]
+    },
+    "backend_timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "backend_clock_domain": {
+      "type": "string"
+    },
+    "backend_clock_synchronized": {
+      "type": "boolean"
+    },
+    "received_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_valid_feedback_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "type": "string"
+    },
+    "backend_status": {
+      "enum": [
+        "AVAILABLE",
+        "DEGRADED",
+        "UNAVAILABLE",
+        "FAULTED"
+      ]
+    },
+    "config_version": {
+      "type": "string"
+    },
+    "control_state": {
+      "enum": [
+        "IDLE",
+        "ACTIVE",
+        "HOLDING",
+        "UNKNOWN"
+      ]
+    },
+    "health_state": {
+      "enum": [
+        "READY",
+        "DEGRADED",
+        "FAULTED"
+      ]
+    },
+    "degradation_reasons": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "FEEDBACK_OPTIONAL_UNAVAILABLE",
+          "BACKEND_DEGRADED"
+        ]
+      }
+    },
+    "hold_command_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "health_state": {
+            "const": "FAULTED"
+          }
+        },
+        "required": [
+          "health_state"
+        ]
+      },
+      "then": {
+        "required": [
+          "fault_ids"
+        ],
+        "properties": {
+          "fault_ids": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "health_state": {
+            "const": "DEGRADED"
+          }
+        },
+        "required": [
+          "health_state"
+        ]
+      },
+      "then": {
+        "required": [
+          "degradation_reasons"
+        ],
+        "properties": {
+          "degradation_reasons": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "control_state": {
+            "const": "ACTIVE"
+          }
+        },
+        "required": [
+          "control_state"
+        ]
+      },
+      "then": {
+        "required": [
+          "active_command_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "feedback_status": {
+            "enum": [
+              "STALE",
+              "INVALID",
+              "MISSING"
+            ]
+          }
+        },
+        "required": [
+          "feedback_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "is_current": {
+            "const": false
+          }
+        }
+      }
+    }
+  ]
+}

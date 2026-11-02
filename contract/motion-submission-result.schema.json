@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/KritvaOS/kritva-motion/contract/motion-submission-result.schema.json",
+  "title": "Motion submission result v0.1.0-draft",
+  "description": "Contract section 7.1.",
+  "type": "object",
+  "required": [
+    "result",
+    "idempotent_replay"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "result": {
+      "enum": [
+        "ACCEPTED",
+        "REJECTED"
+      ]
+    },
+    "command_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+    },
+    "error": {
+      "type": "object",
+      "required": [
+        "code",
+        "message"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]+$"
+        },
+        "message": {
+          "type": "string"
+        },
+        "target": {
+          "type": "object"
+        },
+        "command_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+        }
+      }
+    },
+    "config_version": {
+      "type": "string"
+    },
+    "config_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "accepted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "idempotent_replay": {
+      "type": "boolean"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "result": {
+            "const": "ACCEPTED"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "command_id",
+          "config_version",
+          "config_digest",
+          "accepted_at"
+        ],
+        "properties": {
+          "error": false
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "result": {
+            "const": "REJECTED"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "command_id": false
+        }
+      }
+    }
+  ]
+}

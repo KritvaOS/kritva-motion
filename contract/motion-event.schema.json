@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/KritvaOS/kritva-motion/contract/motion-event.schema.json",
+  "title": "Motion event v0.1.0-draft",
+  "description": "Contract section 14. Sequence numbers increase by one within a stream (kind plus id). Transport is not specified.",
+  "type": "object",
+  "required": [
+    "event_id",
+    "stream",
+    "sequence_number",
+    "occurred_at",
+    "event_type"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+    },
+    "stream": {
+      "type": "object",
+      "required": [
+        "kind",
+        "id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "command",
+            "joint",
+            "backend"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+        }
+      }
+    },
+    "sequence_number": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "event_type": {
+      "enum": [
+        "COMMAND_STATE_CHANGED",
+        "COMMAND_PHASE_CHANGED",
+        "JOINT_STATE_CHANGED",
+        "FEEDBACK_STATUS_CHANGED",
+        "JOINT_FAULT_RAISED",
+        "JOINT_FAULT_CLEARED",
+        "BACKEND_HEALTH_CHANGED",
+        "BACKEND_FAULT_RAISED",
+        "BACKEND_FAULT_CLEARED"
+      ]
+    },
+    "client_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+    },
+    "data": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "stream": {
+            "properties": {
+              "kind": {
+                "const": "command"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "event_type": {
+            "enum": [
+              "COMMAND_STATE_CHANGED",
+              "COMMAND_PHASE_CHANGED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "stream": {
+            "properties": {
+              "kind": {
+                "const": "joint"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "event_type": {
+            "enum": [
+              "JOINT_STATE_CHANGED",
+              "FEEDBACK_STATUS_CHANGED",
+              "JOINT_FAULT_RAISED",
+              "JOINT_FAULT_CLEARED"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "stream": {
+            "properties": {
+              "kind": {
+                "const": "backend"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "event_type": {
+            "enum": [
+              "BACKEND_HEALTH_CHANGED",
+              "BACKEND_FAULT_RAISED",
+              "BACKEND_FAULT_CLEARED"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
