@@ -1,0 +1,291 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/KritvaOS/kritva-motion/contract/motion-command-status.schema.json",
+  "title": "Motion command status v0.1.0-draft",
+  "description": "Contract sections 7, 10.6 and 14.1. Public states are exactly the five AC-001 states; phases NONE, DISPATCH_PENDING and TERMINATING are not states.",
+  "type": "object",
+  "required": [
+    "command_id",
+    "operation",
+    "state",
+    "phase",
+    "config_version",
+    "config_digest",
+    "last_sequence_number"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "command_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+    },
+    "client_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+    },
+    "client_request_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+    },
+    "operation": {
+      "enum": [
+        "SET_POSITION",
+        "SET_VELOCITY",
+        "STOP",
+        "HOLD",
+        "CANCEL",
+        "CLEAR_FAULT"
+      ]
+    },
+    "target": {
+      "type": "object"
+    },
+    "state": {
+      "enum": [
+        "ACCEPTED",
+        "RUNNING",
+        "COMPLETED",
+        "CANCELLED",
+        "FAILED"
+      ]
+    },
+    "phase": {
+      "enum": [
+        "NONE",
+        "DISPATCH_PENDING",
+        "TERMINATING"
+      ]
+    },
+    "reason_code": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]+$"
+    },
+    "config_version": {
+      "type": "string"
+    },
+    "config_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "effective_deadline_ms": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "effective_execution_timeout_ms": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "fault_references": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+      }
+    },
+    "backend_reference": {
+      "type": "string"
+    },
+    "accepted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "execution_started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_sequence_number": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "lifecycle_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "state",
+          "at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "state": {
+            "enum": [
+              "ACCEPTED",
+              "RUNNING",
+              "COMPLETED",
+              "CANCELLED",
+              "FAILED"
+            ]
+          },
+          "phase": {
+            "enum": [
+              "NONE",
+              "DISPATCH_PENDING",
+              "TERMINATING"
+            ]
+          },
+          "reason_code": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "termination": {
+      "type": "object",
+      "required": [
+        "causes",
+        "requested_at",
+        "confirm_bound_ms",
+        "outcome"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "causes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "CANCEL_REQUESTED",
+              "STOP_REQUESTED",
+              "EXECUTION_TIMEOUT",
+              "DEADLINE_EXPIRED",
+              "FAULT"
+            ]
+          }
+        },
+        "requested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "confirm_bound_ms": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "outcome": {
+          "enum": [
+            "PENDING",
+            "CONFIRMED",
+            "UNCONFIRMED"
+          ]
+        },
+        "fault_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "enum": [
+              "COMPLETED",
+              "CANCELLED",
+              "FAILED"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "reason_code",
+          "completed_at"
+        ],
+        "properties": {
+          "phase": {
+            "const": "NONE"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "TERMINATING"
+          }
+        },
+        "required": [
+          "phase"
+        ]
+      },
+      "then": {
+        "required": [
+          "termination"
+        ],
+        "properties": {
+          "state": {
+            "enum": [
+              "ACCEPTED",
+              "RUNNING"
+            ]
+          },
+          "termination": {
+            "properties": {
+              "outcome": {
+                "const": "PENDING"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "DISPATCH_PENDING"
+          }
+        },
+        "required": [
+          "phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "state": {
+            "const": "ACCEPTED"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "const": "RUNNING"
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "phase": {
+            "enum": [
+              "NONE",
+              "TERMINATING"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

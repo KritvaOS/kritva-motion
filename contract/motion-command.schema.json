@@ -1,0 +1,300 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/KritvaOS/kritva-motion/contract/motion-command.schema.json",
+  "title": "Motion command envelope v0.1.0-draft",
+  "description": "Machine-readable rendering of MOTION_CONTRACT.md sections 4 to 6. The contract is normative. identity_assertion is intentionally not required here: a missing assertion is rejected UNAUTHENTICATED by the validator (contract 8.4 step 1), not INVALID_SCHEMA. Its format is PROVISIONAL until the Core security interface is pinned.",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "client_request_id",
+    "command_type"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-[0-9A-Za-z.-]+)?$"
+    },
+    "client_request_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+    },
+    "identity_assertion": {
+      "type": "object",
+      "description": "PROVISIONAL: opaque until the Core security contract is pinned."
+    },
+    "command_type": {
+      "enum": [
+        "SET_POSITION",
+        "SET_VELOCITY",
+        "STOP",
+        "HOLD",
+        "CANCEL",
+        "CLEAR_FAULT",
+        "EXECUTE_TRAJECTORY"
+      ],
+      "description": "EXECUTE_TRAJECTORY is reserved and rejected UNSUPPORTED_COMMAND."
+    },
+    "target": {
+      "$ref": "#/$defs/target"
+    },
+    "parameters": {
+      "type": "object"
+    },
+    "constraints": {
+      "$ref": "#/$defs/constraints"
+    },
+    "priority": {
+      "type": "integer",
+      "description": "Only the configured default is accepted in v0.1.0."
+    },
+    "deadline_ms": {
+      "type": "integer",
+      "exclusiveMinimum": 0
+    },
+    "execution_timeout_ms": {
+      "type": "integer",
+      "exclusiveMinimum": 0
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "SET_POSITION"
+          }
+        },
+        "required": [
+          "command_type"
+        ]
+      },
+      "then": {
+        "required": [
+          "target",
+          "parameters"
+        ],
+        "properties": {
+          "parameters": {
+            "$ref": "#/$defs/setPosition"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "SET_VELOCITY"
+          }
+        },
+        "required": [
+          "command_type"
+        ]
+      },
+      "then": {
+        "required": [
+          "target",
+          "parameters"
+        ],
+        "properties": {
+          "parameters": {
+            "$ref": "#/$defs/setVelocity"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "enum": [
+              "STOP",
+              "HOLD"
+            ]
+          }
+        },
+        "required": [
+          "command_type"
+        ]
+      },
+      "then": {
+        "required": [
+          "target"
+        ],
+        "properties": {
+          "parameters": {
+            "type": "object",
+            "maxProperties": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "CANCEL"
+          }
+        },
+        "required": [
+          "command_type"
+        ]
+      },
+      "then": {
+        "required": [
+          "parameters"
+        ],
+        "properties": {
+          "parameters": {
+            "$ref": "#/$defs/cancel"
+          },
+          "target": false
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command_type": {
+            "const": "CLEAR_FAULT"
+          }
+        },
+        "required": [
+          "command_type"
+        ]
+      },
+      "then": {
+        "required": [
+          "target",
+          "parameters"
+        ],
+        "properties": {
+          "parameters": {
+            "$ref": "#/$defs/clearFault"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "target": {
+      "type": "object",
+      "required": [
+        "type",
+        "id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": [
+            "joint",
+            "joint_group",
+            "end_effector",
+            "robot"
+          ],
+          "description": "Only joint is supported; the others are reserved and rejected UNSUPPORTED_TARGET_TYPE."
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max_velocity": {
+          "type": "number",
+          "minimum": 0
+        },
+        "max_acceleration": {
+          "type": "number",
+          "minimum": 0
+        },
+        "position_min": {
+          "type": "number"
+        },
+        "position_max": {
+          "type": "number"
+        },
+        "unit_system": {
+          "const": "SI"
+        }
+      }
+    },
+    "setPosition": {
+      "type": "object",
+      "required": [
+        "target_position",
+        "unit"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "target_position": {
+          "type": "number"
+        },
+        "unit": {
+          "enum": [
+            "rad",
+            "m"
+          ]
+        }
+      }
+    },
+    "setVelocity": {
+      "type": "object",
+      "required": [
+        "target_velocity",
+        "unit"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "target_velocity": {
+          "type": "number"
+        },
+        "unit": {
+          "enum": [
+            "rad/s",
+            "m/s"
+          ]
+        },
+        "duration_ms": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "cancel": {
+      "type": "object",
+      "required": [
+        "command_id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "command_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+        }
+      }
+    },
+    "clearFault": {
+      "type": "object",
+      "required": [
+        "fault_id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "fault_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+        }
+      }
+    }
+  }
+}
