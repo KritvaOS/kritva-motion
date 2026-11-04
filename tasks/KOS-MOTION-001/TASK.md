@@ -1,6 +1,6 @@
 # KOS-MOTION-001: Motion command and state contract
 
-Status (revision 4): owner approval recorded in chat on 2026-11-02 (Dinesh). Start of work is not yet recorded in `planning/TASKS.md` or in kritva-program; see "Records to update". Milestone: V2-M1-MOTION-001 (program target 2026-11-30, a proposed target and not a commitment).
+Status (revision 4): owner approval recorded in chat on 2026-11-02 (Dinesh). Start of work is recorded in `planning/TASKS.md` (IN_PROGRESS); the kritva-program decision records are still to do; see "Records to update". Milestone: V2-M1-MOTION-001 (program target 2026-11-30, a proposed target and not a commitment).
 Task owner: Dinesh (repository owner). Architecture and safety reviewer roles: Dinesh, interim (D-047); independent review is not in place.
 This task earns no program credit: Motion is not in the approved program baseline and this repository reports facts only.
 
@@ -62,10 +62,10 @@ Because no runtime exists, the lifecycle, validation and fault criteria are veri
 
 Required approvals follow `.github/kritva-gate.json`: REPO_CODE_OWNER and ARCHITECTURE_REVIEWER (both Dinesh, interim; with one owner the author cannot self-approve, so the owner bypass or a second reviewer is needed). Required checks on the exact closing commit: secret-scan, commit-message-check, pr-acceptance-gate. Evidence references are commit SHAs and CI run IDs, never branch names. The task is done only under the program Definition of Done (`ACCEPTANCE_CRITERIA.md` section 8).
 
-## 7. Records to update when work starts
+## 7. Records to update
 
-1. `planning/TASKS.md`: set the status of KOS-MOTION-001 from NOT_STARTED to IN_PROGRESS (a change recorded by the task owner).
-2. kritva-program: record the owner's approval and the decisions in `v2/DECISIONS.md`, and reconcile the MOTION workstream registration (`workstreams.json` has `MOTION.repo` null) if the owner wants it.
-3. README sections 1, 3 and 10 currently say no architecture exists; update them when the documents merge and run `make check-readme`.
+1. `planning/TASKS.md`: KOS-MOTION-001 set to IN_PROGRESS in the same change as this package (done).
+2. kritva-program: record the owner's approval and one decision entry pointing to the register (MOTION-AD-001 to 044, PROPOSED) in `v2/DECISIONS.md`, in a separate pull request after merge; reconcile the MOTION workstream registration (`workstreams.json` has `MOTION.repo` null) if the owner wants it.
+3. README sections 1, 3, 5, 10 and the metadata table point to the proposed draft (done); `make check-readme` passes.
 4. Folders `architecture/`, `contract/` and `tasks/KOS-MOTION-001/` are created because this task needs them; the rule against empty folders is respected.
 5. Commit format: `type(scope): summary` with one `Task: KOS-MOTION-001` footer. No AI-session trailer or link (AGENTS.md section 3). Branch, pull request, no push to `main`.
