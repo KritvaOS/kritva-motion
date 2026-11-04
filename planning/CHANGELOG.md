@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Status reporting for the program: `scripts/status/gen_status.py` (generator and checker), `tests/status_gen/`, the vendored `status/status.schema.json` with its recorded SHA-256, and a generated `status/status.json` with no task reported yet (Tasks: None; program decision D-100). No credit, no gate change; `make test-unit` stays NOT_IMPLEMENTED.
 - Registered task KOS-MOTION-002 (Command validation, limit enforcement and fault-path tests) as NOT_STARTED, with proposed acceptance criteria AC-201 to AC-207 and a task record (Task: KOS-MOTION-002; program decision D-100). No implementation, no gate change: `make test-unit` stays NOT_IMPLEMENTED.
 - Contract revision 5 (proposed): acceleration is a declared maximum constraint only and `LIMIT_ACCELERATION` is reserved, because no v0.1.0 command requests an acceleration value (MOTION-AD-045, PROPOSED; contract 8.3, `ERROR_CODES.md`). Schemas and test plan unchanged (Tasks: None, contract clarification).
 - Proposed architecture, decision register (MOTION-AD-001 to 044, all PROPOSED), normative Motion contract v0.1.0-draft, JSON schemas, error codes and conformance test plan (Task: KOS-MOTION-001). Software contract only: no runtime, no simulator, no physical or safety validation. Acceptance criteria AC-001 to AC-005 are unchanged; proposed amendments are in `tasks/KOS-MOTION-001/AC_AMENDMENT_PROPOSALS.md`.
