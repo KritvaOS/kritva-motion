@@ -64,7 +64,7 @@ Labels: INPUT is edited by hand and read by a tool or review; GENERATED is writt
 |---|---|---|---|
 | [planning/](planning/) | Tasks, milestones, milestone status, review checklist, commit step, changelog | MIXED: planning records | Governs execution and acceptance |
 | [ACCEPTANCE_CRITERIA.md](ACCEPTANCE_CRITERIA.md) | Criteria and test gates for KOS-MOTION-001 | AUTHORITATIVE; PROPOSED | Accepted criteria are never edited; a change is a new version |
-| [architecture/](architecture/) | Draft architecture and decision register (MOTION-AD-001 to 044) | INPUT; PROPOSED | Not approved; the contract is the normative text |
+| [architecture/](architecture/) | Draft architecture and decision register (MOTION-AD-001 to 045) | INPUT; PROPOSED | Not approved; the contract is the normative text |
 | [contract/](contract/) | Draft Motion contract v0.1.0, five JSON schemas, error codes, conformance test plan | AUTHORITATIVE for the contract once approved; PROPOSED | Schema checks only; no runtime exists |
 | [tasks/](tasks/KOS-MOTION-001/TASK.md) | Task record and proposed acceptance-criteria amendments for KOS-MOTION-001 | INPUT; PROPOSED | Amendments are not adopted |
 | [scripts/](scripts/) | `docs_check.py` (link check), `pipeline/pr_gate.py` (PR gate), `security/` (commit checkers), `check_readme.py` (README check) | INPUT; IMPLEMENTED | `pipeline/` and `security/` are protected paths of the gate |
