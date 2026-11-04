@@ -1,6 +1,6 @@
 # Motion Architecture Decision Register (KOS-MOTION-001)
 
-Status: DRAFT revision 4 for owner review, after three cross-check reviews (7 blockers, then 2, then 1), now addressed (see "Revision history"). KOS-MOTION-001 was approved by the owner in chat on 2026-11-02. The decisions below stay PROPOSED until the owner approves this register in review; the approval of the task is not an approval of each decision. Interface decisions also need an entry in kritva-program `v2/DECISIONS.md` under the program rules (AGENTS.md section 2).
+Status: DRAFT revision 5 for owner review, after three cross-check reviews (7 blockers, then 2, then 1), now addressed (see "Revision history"). KOS-MOTION-001 was approved by the owner in chat on 2026-11-02. The decisions below stay PROPOSED until the owner approves this register in review; the approval of the task is not an approval of each decision. Interface decisions also need an entry in kritva-program `v2/DECISIONS.md` under the program rules (AGENTS.md section 2).
 
 This register replaces the 25 decisions numbered in the design discussion, whose numbering was inconsistent. IDs below are canonical. The normative text is [MOTION_CONTRACT.md](../contract/MOTION_CONTRACT.md); this register records rationale and origin only.
 
@@ -50,6 +50,7 @@ This register replaces the 25 decisions numbered in the design discussion, whose
 | MOTION-AD-042 | Control state starts UNKNOWN; recovery from UNKNOWN is confirmed STOP then CLEAR_FAULT; no implicit override; admission rejection, unconfirmed termination and lost knowledge are distinct | PROPOSED | 2, 13 |
 | MOTION-AD-043 | `control_state` UNKNOWN independently blocks SET_POSITION, SET_VELOCITY and HOLD (`TARGET_STATE_UNKNOWN`) whatever the health state; initial UNKNOWN is not a fault; recovery without a fault record is authoritative status or a confirmed STOP; CLEAR_FAULT applies only to a recorded fault | PROPOSED | 8, 13 |
 | MOTION-AD-044 | CLEAR_FAULT is a Motion-internal atomic state change whose preconditions are re-evaluated when applied; a new fault or termination in the window fails the clear and clears nothing | PROPOSED | 13 |
+| MOTION-AD-045 | Acceleration is a declared maximum constraint only in v0.1.0; no command requests an acceleration value; `LIMIT_ACCELERATION` is reserved for a later version and is not produced | PROPOSED | 8 |
 
 ## Mapping from the discussion's numbering
 
@@ -68,3 +69,5 @@ Revision 2 applies a cross-check review by ChatGPT (2026-11-02) that returned 7 
 
 Revision 3 applies a second cross-check pass (2026-11-02) that returned 2 blockers, 4 majors and 3 minors: fault propagation across movement and control-operation commands (13.4, 7.8, AD-039), STOP joining an outstanding termination (6.2, AD-040), policy permission versus runtime admissibility for degraded feedback (3.6, 13.8, AD-041), initial control state and UNKNOWN recovery (13.9, AD-042), rejection versus unconfirmed termination (2.4), deterministic termination reasons (10.6), and the is_current definition (13.5). Header status reads revision 3.
 Revision 4 applies the final cross-check pass (2026-11-02): 1 blocker and 2 majors. UNKNOWN control state now blocks SET_POSITION, SET_VELOCITY and HOLD regardless of health, with new code `TARGET_STATE_UNKNOWN` at validation step 10 (8.4, 8.6, AD-043); recovery of an UNKNOWN joint without a fault record by authoritative status or confirmed STOP, initial UNKNOWN stated as not a fault (13.9, AD-043); CLEAR_FAULT acceptance boundary and atomic application (13.4, 13.6, AD-044); live feedback checks retained after configuration validation (13.8).
+
+Revision 5 (2026-11-04) applies one blocker of an external cross-check of the KOS-MOTION-002 proposal: contract 8.3 listed `LIMIT_ACCELERATION` although no v0.1.0 command requests an acceleration, so the code could not be produced. Acceleration is now a declared maximum constraint only, the code is reserved (8.3, `ERROR_CODES.md`, AD-045), and a requested-acceleration command is not added. Schemas and the conformance test plan are unchanged (no test referenced the code). The owner approved the clarification in chat on 2026-11-04 (program decision D-100).

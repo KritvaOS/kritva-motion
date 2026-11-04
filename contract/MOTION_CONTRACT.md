@@ -1,7 +1,7 @@
 # Kritva Motion Contract v0.1.0-draft
 
 Task: KOS-MOTION-001 (approved by the owner in chat on 2026-11-02)
-Status: DRAFT revision 4 (after three cross-check reviews), not independently reviewed, not tagged. Nothing here is accepted, weighted or credited, and no other repository may rely on it until it is reviewed and tagged v0.1.0.
+Status: DRAFT revision 5 (after three cross-check reviews and one scope clarification), not independently reviewed, not tagged. Nothing here is accepted, weighted or credited, and no other repository may rely on it until it is reviewed and tagged v0.1.0.
 Authority: this is the sole normative source for the public command, state, event and backend interfaces. Schemas ([motion-command.schema.json](motion-command.schema.json) and the others) are machine-readable renderings of it; on any conflict this document wins and the schema is corrected. Error codes are defined in [ERROR_CODES.md](ERROR_CODES.md). Rationale is in [MOTION_DECISIONS.md](../architecture/MOTION_DECISIONS.md); architecture is in [MOTION_ARCHITECTURE.md](../architecture/MOTION_ARCHITECTURE.md).
 
 The key words MUST, MUST NOT, SHOULD and MAY are used as in RFC 2119. A section marked PROVISIONAL depends on an unpinned upstream contract and MUST NOT be frozen in a tagged release until that contract is pinned.
@@ -185,7 +185,7 @@ Ownership. A movement command (or a pending `HOLD`) owns its termination record 
 
 8.2 Command constraints MAY narrow but MUST NOT widen configured limits. Backend capabilities MUST NOT widen configured limits. Invalid, contradictory or unavailable limits are rejected with an explicit error. Motion MUST NOT clamp a value and report the command accepted.
 
-8.3 Requested values at a limit boundary are inside the limit (limits are inclusive). Values beyond it are rejected `LIMIT_POSITION`, `LIMIT_VELOCITY` or `LIMIT_ACCELERATION`. `SET_POSITION` on a `continuous` joint is rejected `UNSUPPORTED_MODE` (3.7). Backend numerical limits (17.2) take part in the intersection; a backend that declares no narrower numerical limit says so explicitly, and Motion MUST NOT assume a backend supports the whole configured envelope.
+8.3 Requested values at a limit boundary are inside the limit (limits are inclusive). Requested position and velocity values beyond it are rejected `LIMIT_POSITION` or `LIMIT_VELOCITY`. Acceleration is a declared maximum only: a command carries no requested acceleration value in v0.1.0, so `max_acceleration` in a command is a constraint that can only narrow the configured and backend maximum, and a constraint that widens it is rejected `INVALID_CONSTRAINT`. `LIMIT_ACCELERATION` is reserved for a later contract version that defines a requested acceleration; no v0.1.0 command produces it and an implementation MUST NOT invent that semantics. `SET_POSITION` on a `continuous` joint is rejected `UNSUPPORTED_MODE` (3.7). Backend numerical limits (17.2) take part in the intersection; a backend that declares no narrower numerical limit says so explicitly, and Motion MUST NOT assume a backend supports the whole configured envelope.
 
 8.4 Validation runs in this fixed order and reports the first failure, so results are deterministic:
 

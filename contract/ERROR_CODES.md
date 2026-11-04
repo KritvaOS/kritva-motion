@@ -1,6 +1,6 @@
 # Motion Error and Reason Codes v0.1.0-draft
 
-Status: DRAFT revision 4. Referenced by [MOTION_CONTRACT.md](MOTION_CONTRACT.md), which is normative. Codes are stable strings; changing the meaning of a code is a MAJOR contract change.
+Status: DRAFT revision 5. Referenced by [MOTION_CONTRACT.md](MOTION_CONTRACT.md), which is normative. Codes are stable strings; changing the meaning of a code is a MAJOR contract change.
 
 Retryable means a client may resubmit later without changing the request: it says nothing about whether doing so is safe. Clients decide by the code, never by the message text.
 
@@ -29,7 +29,7 @@ Listed in the order the validator checks them (contract section 8.4). Authorizat
 | `UNIT_MISMATCH` | 7 | Declared unit does not match the joint type | No |
 | `LIMIT_POSITION` | 8 | Position outside the effective limits | No |
 | `LIMIT_VELOCITY` | 8 | Velocity outside the effective limits | No |
-| `LIMIT_ACCELERATION` | 8 | Acceleration outside the effective limits | No |
+| `LIMIT_ACCELERATION` | 8 | RESERVED (not produced in v0.1.0: no command requests an acceleration value; contract 8.3). Acceleration outside the effective limits in a later version | No |
 | `INVALID_CONSTRAINT` | 8 | Constraint widens a configured limit or is contradictory | No |
 | `INVALID_TIMEOUT` | 8 | `deadline_ms` or `execution_timeout_ms` is not a positive integer or exceeds the configured maximum | No |
 | `BACKEND_UNAVAILABLE` | 9 | No available backend for the target | Yes |
