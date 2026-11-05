@@ -4,8 +4,9 @@
 This repository reports facts only (kritva-program D-011). The program decides
 baseline, weights, approvals and credit. The report never says a task is
 accepted: execution comes from the status word in planning/TASKS.md, evidence
-is a criteria reference (never completion proof), and git_sync is SYNCED only
-when git proves it.
+is a criteria reference (never completion proof) until the task is ACCEPTED,
+and then the passing CI runs listed in tasks/<id>/EVIDENCE.json; git_sync is
+SYNCED only when git proves it.
 
   gen_status.py --write            write status/status.json
   gen_status.py --print            print the report, write nothing
@@ -45,6 +46,46 @@ ROW = re.compile(r"^\|\s*(KOS-MOTION-\d{3})\s*\|(.*?)\|(.*?)\|(.*?)\|(.*?)\|\s*$
 
 class StatusError(Exception):
     pass
+
+
+RUN_URL = re.compile(r"^https://github\.com/KritvaOS/kritva-motion/actions/runs/[0-9]+$")
+SHA40 = re.compile(r"^[0-9a-f]{40}$")
+EV_FIELDS = {"type", "uri", "description", "commit", "ci_run", "report_sha256", "result"}
+
+
+def load_evidence(root, tid):
+    """Evidence of an ACCEPTED task, from tasks/<id>/EVIDENCE.json. Fails closed."""
+    path = Path(root) / "tasks" / tid / "EVIDENCE.json"
+    if not path.is_file():
+        raise StatusError(f"{tid} is ACCEPTED but tasks/{tid}/EVIDENCE.json is missing")
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+    except ValueError as e:
+        raise StatusError(f"{tid}: EVIDENCE.json is not valid JSON: {e}")
+    if not isinstance(doc, dict) or doc.get("task_id") != tid:
+        raise StatusError(f"{tid}: EVIDENCE.json task_id does not match")
+    items = doc.get("evidence")
+    if not isinstance(items, list) or not items:
+        raise StatusError(f"{tid}: EVIDENCE.json lists no evidence")
+    for i, e in enumerate(items):
+        w = f"{tid}: EVIDENCE.json evidence[{i}]"
+        if not isinstance(e, dict) or set(e) != EV_FIELDS:
+            raise StatusError(f"{w} must have exactly the fields {sorted(EV_FIELDS)}")
+        if e["type"] != "software":
+            raise StatusError(f"{w}: type must be software")
+        if not (isinstance(e["description"], str) and e["description"].strip()):
+            raise StatusError(f"{w}: description required")
+        if not (isinstance(e["commit"], str) and SHA40.match(e["commit"])):
+            raise StatusError(f"{w}: commit must be a full 40-character SHA")
+        if e["result"] != "PASS":
+            raise StatusError(f"{w}: result must be PASS")
+        if not (isinstance(e["ci_run"], str) and RUN_URL.match(e["ci_run"])):
+            raise StatusError(f"{w}: ci_run must be a kritva-motion Actions run URL")
+        if e["uri"] != e["ci_run"]:
+            raise StatusError(f"{w}: uri must equal ci_run")
+        if e["report_sha256"] is not None:
+            raise StatusError(f"{w}: report_sha256 must be null")
+    return items
 
 
 def parse_tasks(tasks_md: str):
@@ -111,6 +152,13 @@ def build(root: Path, reported=None):
         if tid not in rows:
             raise StatusError(f"{tid} is reported but not in planning/TASKS.md")
         rec = task_record(tid, rows[tid])
+        if rec["execution"] == "COMPLETE":
+            rec["evidence"] = load_evidence(root, tid)
+            for e in rec["evidence"]:
+                anc = subprocess.run(["git", "-C", str(root), "merge-base", "--is-ancestor", e["commit"], "HEAD"],
+                                     capture_output=True)
+                if anc.returncode != 0:
+                    raise StatusError(f"{tid}: evidence commit {e['commit']} is not an ancestor of HEAD")
         rec["git_sync"] = sync
         tasks.append(rec)
     branch = "main"  # the report describes the main line; the commit below is the exact source
@@ -229,6 +277,12 @@ def check(root: Path):
             problems.append(f"{tid}: unrecognised status {rows[tid]!r}")
         elif EXECUTION[rows[tid]] != t.get("execution"):
             problems.append(f"{tid}: execution {t.get('execution')} differs from TASKS.md ({rows[tid]})")
+        elif t.get("execution") == "COMPLETE":
+            try:
+                if load_evidence(root, tid) != t.get("evidence"):
+                    problems.append(f"{tid}: evidence differs from tasks/{tid}/EVIDENCE.json")
+            except StatusError as e:
+                problems.append(str(e))
     return problems
 
 

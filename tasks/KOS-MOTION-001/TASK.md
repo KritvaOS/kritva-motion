@@ -1,8 +1,8 @@
 # KOS-MOTION-001: Motion command and state contract
 
-Status (revision 4): owner approval recorded in chat on 2026-11-02 (Dinesh). Start of work is recorded in `planning/TASKS.md` (IN_PROGRESS); the kritva-program decision records are still to do; see "Records to update". Milestone: V2-M1-MOTION-001 (program target 2026-11-30, a proposed target and not a commitment).
+Status (revision 5): ACCEPTED by the owner on 2026-11-05; see `REVIEW.md` and `EVIDENCE.json` in this folder. The contract stays draft and untagged (section 16 PROVISIONAL, review not independent). The text below is the original task record. Earlier status (revision 4): owner approval recorded in chat on 2026-11-02 (Dinesh). Start of work is recorded in `planning/TASKS.md` (IN_PROGRESS); the kritva-program decision records are still to do; see "Records to update". Milestone: V2-M1-MOTION-001 (program target 2026-11-30, a proposed target and not a commitment).
 Task owner: Dinesh (repository owner). Architecture and safety reviewer roles: Dinesh, interim (D-047); independent review is not in place.
-This task earns no program credit: Motion is not in the approved program baseline and this repository reports facts only.
+Credit is decided only by the central kritva-program approval; this repository reports facts only.
 
 ## 1. Scope
 

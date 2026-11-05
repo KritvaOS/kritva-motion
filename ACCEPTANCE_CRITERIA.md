@@ -1,6 +1,6 @@
 # Acceptance Criteria: kritva-motion
 
-Standard: kritva-program `v2/planning/ACCEPTANCE_STANDARD.md` (proposed; approval pending PD-005, PD-006). Criteria below are for tasks KOS-MOTION-001 (Motion command and state contract, section 3) and KOS-MOTION-002 (Command validation, limit enforcement and fault-path tests, section 3A) and are proposed until the owner approves each task's acceptance. Nothing here is accepted, weighted or credited.
+Standard: kritva-program `v2/planning/ACCEPTANCE_STANDARD.md` (proposed; approval pending PD-005, PD-006). Criteria below are for tasks KOS-MOTION-001 (Motion command and state contract, section 3) and KOS-MOTION-002 (Command validation, limit enforcement and fault-path tests, section 3A) and are proposed until the owner approves each task's acceptance. KOS-MOTION-001 (AC-001 to AC-005) was accepted by the owner on 2026-11-05; the record is `tasks/KOS-MOTION-001/REVIEW.md`. Section 3A (KOS-MOTION-002) is still proposed. Acceptance here is not weighting or credit, which the program decides centrally.
 
 ## 1. Purpose and scope
 

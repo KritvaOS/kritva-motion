@@ -4,31 +4,49 @@
   "repo": "KritvaOS/kritva-motion",
   "source": {
     "branch": "main",
-    "commit": "1e832cea63862270c510c70edd640682d6d23fca",
+    "commit": "5fbb2004efd65084f54dbdd9b21c4bc1821794c0",
     "tag": null
   },
   "tasks": [
     {
       "task_id": "KOS-MOTION-001",
-      "execution": "IN_PROGRESS",
-      "git_sync": "SYNCED",
+      "execution": "COMPLETE",
+      "git_sync": "NOT_SYNCED",
       "readiness": "IMPLEMENTABLE",
       "evidence": [
         {
           "type": "software",
-          "uri": "ACCEPTANCE_CRITERIA.md",
-          "description": "Criteria reference only (not completion proof); planning status text: 'IN_PROGRESS'",
-          "commit": null,
-          "ci_run": null,
+          "uri": "https://github.com/KritvaOS/kritva-motion/actions/runs/41876610087",
+          "description": "secret-scan: PASS on the closing commit of pull request 11 (contract revision 5)",
+          "commit": "3b9e12b7c8f2e752968d4d80e3b5efb73f28fb27",
+          "ci_run": "https://github.com/KritvaOS/kritva-motion/actions/runs/41876610087",
           "report_sha256": null,
-          "result": null
+          "result": "PASS"
+        },
+        {
+          "type": "software",
+          "uri": "https://github.com/KritvaOS/kritva-motion/actions/runs/41876610409",
+          "description": "commit-message-check: PASS on the closing commit of pull request 11 (contract revision 5)",
+          "commit": "3b9e12b7c8f2e752968d4d80e3b5efb73f28fb27",
+          "ci_run": "https://github.com/KritvaOS/kritva-motion/actions/runs/41876610409",
+          "report_sha256": null,
+          "result": "PASS"
+        },
+        {
+          "type": "software",
+          "uri": "https://github.com/KritvaOS/kritva-motion/actions/runs/41876610404",
+          "description": "pr-acceptance-gate: PASS on the closing commit of pull request 11 (contract revision 5)",
+          "commit": "3b9e12b7c8f2e752968d4d80e3b5efb73f28fb27",
+          "ci_run": "https://github.com/KritvaOS/kritva-motion/actions/runs/41876610404",
+          "report_sha256": null,
+          "result": "PASS"
         }
       ]
     },
     {
       "task_id": "KOS-MOTION-002",
       "execution": "NOT_STARTED",
-      "git_sync": "SYNCED",
+      "git_sync": "NOT_SYNCED",
       "readiness": "IMPLEMENTABLE",
       "evidence": [
         {
@@ -43,5 +61,5 @@
       ]
     }
   ],
-  "updated_at": "2026-11-05T22:23:45+05:30"
+  "updated_at": "2026-11-05T22:49:54+05:30"
 }

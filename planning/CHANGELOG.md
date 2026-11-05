@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- KOS-MOTION-001 accepted by the owner (2026-11-05): `tasks/KOS-MOTION-001/REVIEW.md`, `EVIDENCE.json` (three passing checks on 3b9e12b7), TASKS.md status ACCEPTED, and the generator now reports evidence for an ACCEPTED task and fails closed without it (Task: KOS-MOTION-001). The review is not independent (D-047), the contract stays draft and untagged (section 16 PROVISIONAL), and nothing is physical or safety validation. Credit is a central program decision.
+
 - Status report now lists KOS-MOTION-001 and KOS-MOTION-002, which the program baseline v9 contains (Tasks: None; program decision D-100). Execution only; no evidence of acceptance, no credit.
 - Status reporting for the program: `scripts/status/gen_status.py` (generator and checker), `tests/status_gen/`, the vendored `status/status.schema.json` with its recorded SHA-256, and a generated `status/status.json` with no task reported yet (Tasks: None; program decision D-100). No credit, no gate change; `make test-unit` stays NOT_IMPLEMENTED.
 - Registered task KOS-MOTION-002 (Command validation, limit enforcement and fault-path tests) as NOT_STARTED, with proposed acceptance criteria AC-201 to AC-207 and a task record (Task: KOS-MOTION-002; program decision D-100). No implementation, no gate change: `make test-unit` stays NOT_IMPLEMENTED.
