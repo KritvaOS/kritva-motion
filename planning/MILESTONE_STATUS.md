@@ -5,7 +5,7 @@ As of the governance baseline commit. No milestone is closed and no completion r
 | Milestone | Status | Evidence |
 |---|---|---|
 | V2-M0-MOTION-001 | IN_REVIEW (this change) | review REV-005 (kritva-program v2/planning/PENDING_REVIEWS.md) |
-| V2-M1-MOTION-001 | PROPOSED | none |
+| V2-M1-MOTION-001 | KOS-MOTION-001 ACCEPTED by the owner 2026-11-05 (interim, not independent); contract draft and untagged | tasks/KOS-MOTION-001/REVIEW.md, EVIDENCE.json |
 | V2-M2-MOTION-001 | PROPOSED | none |
 | V2-M5-MOTION-001 | PROPOSED | none |
 | V2-M8-MOTION-001 | PROPOSED | none |

@@ -90,6 +90,64 @@ class TestBuild(Repo):
         self.assertIsNone(ev["commit"])
 
 
+class TestAcceptedEvidence(Repo):
+    def accept(self, **over):
+        head = subprocess.run(["git", "-C", str(self.root), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+        url = "https://github.com/KritvaOS/kritva-motion/actions/runs/123"
+        ev = {"type": "software", "uri": url, "description": "secret-scan: PASS", "commit": head,
+              "ci_run": url, "report_sha256": None, "result": "PASS"}
+        ev.update(over)
+        d = self.root / "tasks" / "KOS-MOTION-001"
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "EVIDENCE.json").write_text(json.dumps({"task_id": "KOS-MOTION-001", "evidence": [ev]}))
+        (self.root / "planning" / "TASKS.md").write_text(TASKS.replace("IN_PROGRESS (owner approved)", "ACCEPTED (owner)"))
+        run(self.root, "add", "-A")
+        run(self.root, "commit", "-q", "-m", "accept")
+        return head
+
+    def test_accepted_reports_complete_with_evidence(self):
+        self.accept()
+        t = g.build(self.root, ["KOS-MOTION-001"])["tasks"][0]
+        self.assertEqual(t["execution"], "COMPLETE")
+        self.assertEqual(t["evidence"][0]["result"], "PASS")
+        self.assertTrue(t["evidence"][0]["ci_run"].endswith("/123"))
+        self.assertEqual(g.validate(g.build(self.root, ["KOS-MOTION-001"])), [])
+
+    def test_accepted_without_evidence_file_fails_closed(self):
+        (self.root / "planning" / "TASKS.md").write_text(TASKS.replace("IN_PROGRESS (owner approved)", "ACCEPTED (owner)"))
+        with self.assertRaises(g.StatusError):
+            g.build(self.root, ["KOS-MOTION-001"])
+
+    def test_short_sha_fails_closed(self):
+        self.accept(commit="abc")
+        with self.assertRaises(g.StatusError):
+            g.build(self.root, ["KOS-MOTION-001"])
+
+    def test_non_pass_fails_closed(self):
+        self.accept(result="FAIL")
+        with self.assertRaises(g.StatusError):
+            g.build(self.root, ["KOS-MOTION-001"])
+
+    def test_pass_without_run_url_fails_closed(self):
+        self.accept(ci_run=None)
+        with self.assertRaises(g.StatusError):
+            g.build(self.root, ["KOS-MOTION-001"])
+
+    def test_commit_not_in_history_fails_closed(self):
+        self.accept(commit="b" * 40)
+        with self.assertRaises(g.StatusError):
+            g.build(self.root, ["KOS-MOTION-001"])
+
+    def test_check_detects_evidence_drift(self):
+        self.accept()
+        doc = g.build(self.root, ["KOS-MOTION-001", "KOS-MOTION-002"])
+        (self.root / "status" / "status.json").write_text(json.dumps(doc))
+        self.assertEqual(g.check(self.root), [])
+        doc["tasks"][0]["evidence"][0]["description"] = "edited"
+        (self.root / "status" / "status.json").write_text(json.dumps(doc))
+        self.assertTrue(any("differs from tasks/KOS-MOTION-001/EVIDENCE.json" in p for p in g.check(self.root)))
+
+
 class TestValidate(unittest.TestCase):
     def good(self):
         return {"schema_version": "2.0", "workstream_id": "MOTION", "repo": "KritvaOS/kritva-motion",
