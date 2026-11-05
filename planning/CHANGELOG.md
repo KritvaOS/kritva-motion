@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Schema tests for the five contract schemas (`tests/schema/test_schemas.py`, 42 example documents, conformance IDs CT-SCH-01 to 09 all covered) and the pinned test-only dependency list `requirements-test.txt` (Task: KOS-MOTION-002, AC-205). Run with `python3 -m unittest discover -s tests/schema`; `make test-unit` stays NOT_IMPLEMENTED until step 7. Software evidence only.
+
 - Started KOS-MOTION-002 (status IN_PROGRESS; delivery plan in its task record). Records only: no source code, no gate change, `make test-unit` stays NOT_IMPLEMENTED (Task: KOS-MOTION-002).
 
 - KOS-MOTION-001 accepted by the owner (2026-11-05): `tasks/KOS-MOTION-001/REVIEW.md`, `EVIDENCE.json` (three passing checks on 3b9e12b7), TASKS.md status ACCEPTED, and the generator now reports evidence for an ACCEPTED task and fails closed without it (Task: KOS-MOTION-001). The review is not independent (D-047), the contract stays draft and untagged (section 16 PROVISIONAL), and nothing is physical or safety validation. Credit is a central program decision.
