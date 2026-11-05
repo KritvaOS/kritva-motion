@@ -211,6 +211,32 @@ class TestCases(unittest.TestCase):
                 self.assertIn(False, [c[4] for c in CASES if ct in c[1]])
 
 
+class TestConformanceIds(unittest.TestCase):
+    """One dedicated test per CT-SCH id, named in tests/manifest/conformance_manifest.json (AC-206)."""
+
+    def _run(self, ct):
+        cases = [c for c in CASES if ct in c[1]]
+        self.assertTrue(cases, f"no example document for {ct}")
+        for case_id, _ids, key, doc, ok in cases:
+            with self.subTest(case=case_id):
+                errors = list(validator(key).iter_errors(doc))
+                if ok:
+                    self.assertEqual(errors, [], [e.message for e in errors])
+                else:
+                    self.assertTrue(errors, "the document was expected to be refused")
+        if ct != "CT-SCH-01":
+            self.assertIn(False, [c[4] for c in cases], f"{ct} needs a refused document")
+
+
+def _make_ct_test(ct):
+    return lambda self: self._run(ct)
+
+
+for _n in range(1, 10):
+    setattr(TestConformanceIds, f"test_CT_SCH_{_n:02d}", _make_ct_test(f"CT-SCH-{_n:02d}"))
+del _n
+
+
 class TestEvidenceReport(unittest.TestCase):
     def test_report_counts_are_separate(self):
         docs = len(CASES)
