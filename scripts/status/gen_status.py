@@ -12,9 +12,9 @@ when git proves it.
   gen_status.py --check            validate status/status.json against the vendored
                                    schema and compare its task facts with planning/TASKS.md
 
-Which tasks are reported is the constant REPORTED_TASKS below. It is empty
-until the approved program baseline contains the tasks (program ONBOARDING.md,
-D-077, D-100); adding an ID is a reviewed change. A task listed there that is
+Which tasks are reported is the constant REPORTED_TASKS below. It lists only
+tasks the approved program baseline contains (baseline v9, D-100); adding an
+ID is a reviewed change. A task listed there that is
 missing from TASKS.md, a duplicate row or an unrecognised status fails closed.
 Stdlib only.
 """
@@ -28,7 +28,7 @@ from pathlib import Path
 
 WORKSTREAM_ID = "MOTION"
 REPO = "KritvaOS/kritva-motion"
-REPORTED_TASKS = []  # e.g. ["KOS-MOTION-001", "KOS-MOTION-002"] once baselined by the program
+REPORTED_TASKS = ["KOS-MOTION-001", "KOS-MOTION-002"]  # baselined by the program in v9 (D-100)
 
 # planning/TASKS.md status word -> schema execution value
 EXECUTION = {

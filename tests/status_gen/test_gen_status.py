@@ -60,8 +60,8 @@ class TestParse(unittest.TestCase):
 
 
 class TestBuild(Repo):
-    def test_empty_report_by_default(self):
-        doc = g.build(self.root)
+    def test_empty_report_when_no_task_is_reported(self):
+        doc = g.build(self.root, [])
         self.assertEqual(doc["tasks"], [])
         self.assertEqual(doc["workstream_id"], "MOTION")
         self.assertEqual(g.validate(doc), [])
@@ -117,7 +117,11 @@ class TestCheck(Repo):
     def write(self, doc):
         (self.root / "status" / "status.json").write_text(json.dumps(doc))
 
-    def test_check_passes_for_generated_empty_report(self):
+    def test_default_reports_the_baselined_tasks(self):
+        self.assertEqual(g.REPORTED_TASKS, ["KOS-MOTION-001", "KOS-MOTION-002"])
+        self.assertEqual([x["task_id"] for x in g.build(self.root)["tasks"]], g.REPORTED_TASKS)
+
+    def test_check_passes_for_generated_report(self):
         self.write(g.build(self.root))
         self.assertEqual(g.check(self.root), [])
 
