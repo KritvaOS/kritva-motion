@@ -2,8 +2,7 @@
 
 Fixtures are plain data. The tests are deterministic and offline: no clock, no randomness, no
 network. Passing them is software evidence only, never physical or safety validation. Steps 10 and
-11 are delivered by later changes of KOS-MOTION-002, so adjacent-pair fixtures run for the pairs
-(1,2) to (8,9) here.
+11 are tested in test_admission_state.py, which also runs the adjacent pairs (9,10) and (10,11).
 """
 import ast
 import copy
@@ -40,6 +39,8 @@ def joint(**over):
 CONTINUOUS = joint(joint_id="joint-c", continuous=True, modes=["velocity"])
 del CONTINUOUS["position_min"], CONTINUOUS["position_max"]
 PRISMATIC = joint(joint_id="joint-p", joint_type="prismatic", position_min=0.0, position_max=0.5, velocity_max=0.2)
+SNAPSHOT = {"joint_id": "joint-1", "control_state": "IDLE", "health_state": "READY", "feedback_status": "VALID",
+            "is_current": True, "measured_position": 0.0, "backend_status": "AVAILABLE", "config_version": "1"}
 CONFIG = {"config_version": "1", "joints": [joint(), CONTINUOUS, PRISMATIC]}
 LIMITS = {"joint-1": {"no_narrower_limit": True}, "joint-c": {"no_narrower_limit": True}, "joint-p": {"no_narrower_limit": True}}
 BACKEND = {"health": "AVAILABLE", "capabilities": CAPS, "joint_limits": LIMITS}
@@ -61,7 +62,8 @@ def ctx(cmd=None, **over):
     base = dict(
         command=cmd if cmd is not None else env(), active_config=copy.deepcopy(CONFIG), backend=copy.deepcopy(BACKEND),
         commands={"cmd-1": {"operation": "SET_POSITION", "state": "RUNNING", "visible": True}},
-        faults={"fault-1": {"joint_id": "joint-1", "visible": True}})
+        faults={"fault-1": {"joint_id": "joint-1", "visible": True, "code": "FEEDBACK_LOST", "cause_resolved": True}},
+        joint_state=copy.deepcopy(SNAPSHOT), feedback_received_monotonic_ms=1000.0, reference_time_ms=1100.0)
     base.update(over)
     return ad.AdmissionContext(**base)
 
@@ -235,11 +237,9 @@ class TestOrder(unittest.TestCase):
         self.assertIsNone(fail(mutate(9, ctx()), through=8))
         self.assertEqual(fail(mutate(9, ctx()), through=9).step, 9)
 
-    def test_steps_above_9_are_not_implemented_and_admit_fails_closed(self):
-        with self.assertRaises(NotImplementedError):
-            ad.admit(ctx())
-        with self.assertRaises(NotImplementedError):
-            fail(ctx(), through=10)
+    def test_a_valid_context_is_accepted_by_admit(self):
+        r = ad.admit(ctx())
+        self.assertEqual((r.accepted, r.code, r.step, r.replay), (True, None, None, False))
 
 
 class TestSubOrder(unittest.TestCase):
@@ -396,7 +396,7 @@ class TestIdempotencyReplay(unittest.TestCase):
 class TestResultAndPurity(unittest.TestCase):
     def test_rejection_result_shape_has_no_command_id_or_state(self):
         r = ad.admit(ctx(identity="MISSING"))
-        self.assertEqual({f.name for f in dataclasses.fields(r)}, {"accepted", "code", "step", "field", "message", "replay"})
+        self.assertEqual({f.name for f in dataclasses.fields(r)}, {"accepted", "code", "step", "field", "message", "replay", "conflict"})
         self.assertEqual((r.accepted, r.code, r.step), (False, "UNAUTHENTICATED", 1))
 
     def test_inputs_are_not_modified(self):
