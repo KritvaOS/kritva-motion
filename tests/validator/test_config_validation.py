@@ -99,7 +99,7 @@ class TestPolicyRules(unittest.TestCase):
     def test_unknown_degradation_reason_and_operation(self):
         j = joint(degradation_policy={"WEATHER": ["SET_VELOCITY"], "BACKEND_DEGRADED": ["JUMP"]})
         r = cv.validate_configuration(config(j), caps())
-        self.assertEqual(rules(r), ["CFG_UNKNOWN_POLICY", "CFG_UNKNOWN_POLICY"] if False else ["CFG_UNKNOWN_POLICY"] * 2)
+        self.assertEqual(rules(r), ["CFG_UNKNOWN_POLICY"] * 2)
 
     def test_continuous_joint_with_position_mode(self):  # CT-CFG-07
         j = drop(joint(continuous=True), "position_min", "position_max")
@@ -223,6 +223,31 @@ class TestCompletenessAndConsistency(unittest.TestCase):  # CT-CFG-02
     def test_missing_capabilities_do_not_hide_other_violations(self):
         r = cv.validate_configuration(config(joint(feedback_timeout_policy="IGNORE")), None)
         self.assertEqual(sorted(rules(r)), ["CFG_CAPABILITIES_INVALID", "CFG_UNKNOWN_POLICY"])
+
+
+class TestOptionalMaximumsAndPriority(unittest.TestCase):
+    """Task decision (TASK.md section 10): optional maximums and a default priority."""
+
+    def test_valid_maximums_and_priority(self):
+        j = joint(max_deadline_ms=20000, max_execution_timeout_ms=10000, default_priority=0)
+        self.assertTrue(cv.validate_configuration(config(j), caps()).valid)
+
+    def test_bad_values(self):
+        for field in ("max_deadline_ms", "max_execution_timeout_ms"):
+            for bad in (0, -1, 1.5, "1", True):
+                with self.subTest(field=field, bad=bad):
+                    self.assertEqual(rules(cv.validate_configuration(config(joint(**{field: bad})), caps())), ["CFG_BAD_VALUE"])
+        for bad in (1.5, "0", True, None):
+            with self.subTest(priority=bad):
+                self.assertEqual(rules(cv.validate_configuration(config(joint(default_priority=bad)), caps())), ["CFG_BAD_VALUE"])
+
+    def test_default_must_not_exceed_its_maximum(self):
+        r = cv.validate_configuration(config(joint(max_deadline_ms=5000)), caps())  # default_deadline_ms is 10000
+        self.assertEqual(rules(r), ["CFG_BAD_VALUE"])
+        self.assertEqual(r.violations[0].path, "joints[0].default_deadline_ms")
+        r = cv.validate_configuration(config(joint(max_execution_timeout_ms=1000)), caps())
+        self.assertEqual(r.violations[0].path, "joints[0].default_execution_timeout_ms")
+        self.assertTrue(cv.validate_configuration(config(joint(max_deadline_ms=10000)), caps()).valid)
 
 
 class TestSeveralViolationsAndDeterminism(unittest.TestCase):

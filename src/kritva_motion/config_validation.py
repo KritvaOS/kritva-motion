@@ -23,6 +23,8 @@ Configuration shape::
                  "max_feedback_age_ms": ..., "feedback_required": ...,
                  "feedback_timeout_policy": "STOP_AND_FAULT" | "DEGRADE",
                  "termination_confirm_timeout_ms": ...,
+                 "max_deadline_ms": ..., "max_execution_timeout_ms": ...,   # optional (task decision)
+                 "default_priority": 0,                                    # optional, default 0 (5.6)
                  "degradation_policy": {"FEEDBACK_OPTIONAL_UNAVAILABLE": ["SET_VELOCITY"], ...},
                  "position_tolerance": ..., "settling_duration_ms": ...,
                  "default_execution_timeout_ms": ..., "default_deadline_ms": ...,
@@ -58,7 +60,7 @@ JOINT_REQUIRED = (
 )
 JOINT_OPTIONAL = (
     "position_min", "position_max", "continuous", "acceleration_max",
-    "degradation_policy", "fault_clearance",
+    "degradation_policy", "fault_clearance", "max_deadline_ms", "max_execution_timeout_ms", "default_priority",
 )
 CAPABILITY_FIELDS = ("controlled_stop", "position_hold", "supported_modes", "supported_joint_types")
 
@@ -202,6 +204,15 @@ def _check_joint(j, i, caps, caps_ok, out):
     for f in ("max_feedback_age_ms", "termination_confirm_timeout_ms", "default_execution_timeout_ms", "default_deadline_ms"):
         if f in j:
             _positive_number(j, f, p, out, integer=True)
+    # Optional maximums and the default priority (a task decision: contract 5.6 and ERROR_CODES INVALID_TIMEOUT
+    # refer to a configured maximum and a configured default that section 3.1 does not list).
+    for f_, d_ in (("max_deadline_ms", "default_deadline_ms"), ("max_execution_timeout_ms", "default_execution_timeout_ms")):
+        if f_ in j:
+            _positive_number(j, f_, p, out, integer=True)
+            if _is_int(j[f_]) and _is_int(j.get(d_)) and j[f_] > 0 and j[d_] > j[f_]:
+                out.add("CFG_BAD_VALUE", "3.1", f"{p}.{d_}", f"must not exceed {f_}")
+    if "default_priority" in j and not _is_int(j["default_priority"]):
+        out.add("CFG_BAD_VALUE", "5.6", f"{p}.default_priority", "must be an integer")
     if "settling_duration_ms" in j:
         _positive_number(j, "settling_duration_ms", p, out, integer=True, minimum_zero=True)
 
