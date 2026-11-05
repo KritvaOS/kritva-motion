@@ -2,9 +2,8 @@
 
 `first_failure(context, through_step)` runs the fixed validation order of contract 8.4 on one
 read-only `AdmissionContext` and stops at the first failure, so the result is deterministic.
-`admit(context)` is the public entry. In this change it covers steps 1 to 9; steps 10 (joint state
-and preconditions) and 11 (arbitration) arrive in later changes of KOS-MOTION-002, and until then
-`admit` raises NotImplementedError instead of accepting a command that passed only steps 1 to 9.
+`admit(context)` is the public entry and covers all eleven steps. Queries are not commands: they
+use the separate `admit_query` path (contract 6.4 and 16.3), which never looks at joint health.
 
 The validator judges a supplied, structurally valid context. It reads no clock, no file, no network
 and no backend; authentication, authorization, the idempotency lookup, the active configuration, the
@@ -18,7 +17,11 @@ Sub-order inside a step (a task decision, recorded in tasks/KOS-MOTION-002/TASK.
   step 7: mode, priority, unit (the order of 8.4);
   step 8: INVALID_CONSTRAINT (a constraint that widens, is contradictory or leaves an empty range),
           LIMIT_POSITION, LIMIT_VELOCITY, then INVALID_TIMEOUT;
-  step 9: BACKEND_UNAVAILABLE, then BACKEND_CAPABILITY_UNSUPPORTED.
+  step 9: BACKEND_UNAVAILABLE, then BACKEND_CAPABILITY_UNSUPPORTED;
+  step 10: TARGET_STATE_UNKNOWN, TARGET_FAULTED, TARGET_DEGRADED, FEEDBACK_UNAVAILABLE,
+          FEEDBACK_STALE (8.4 and 8.6); for CLEAR_FAULT: FAULT_NOT_CLEARABLE, then
+          HUMAN_CONFIRMATION_REQUIRED (the order of ERROR_CODES.md);
+  step 11: TARGET_BUSY, naming the first conflicting command by sorted command ID.
 """
 import math
 import re
@@ -31,7 +34,7 @@ STEP_NAMES = {
     6: "type and references", 7: "mode, priority and unit", 8: "limits and constraints",
     9: "backend health and capability", 10: "joint state", 11: "arbitration",
 }
-IMPLEMENTED_THROUGH_STEP = 9
+IMPLEMENTED_THROUGH_STEP = 11
 
 # Copied from contract/motion-command.schema.json; tests compare them with the schema.
 VERSION_PATTERN = r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-[0-9A-Za-z.-]+)?$"
@@ -76,8 +79,16 @@ class AdmissionContext:
                              "joint_limits": {joint_id: {"no_narrower_limit": true} or
                                               {"position_min", "position_max", "velocity_max",
                                                "acceleration_max" (optional)}}} or None
-    joint_state             the supplied joint-state snapshot (used from step 10, a later change)
-    reference_time_ms       the supplied monotonic reference time (used from step 10)
+    commands/faults records also carry "joint_id"; commands carry "phase" (NONE, DISPATCH_PENDING,
+                            TERMINATING); faults carry "code" and "cause_resolved"
+    joint_state             the supplied joint-state snapshot of the target joint (the schema
+                            document motion-joint-state.schema.json); a snapshot of another joint is
+                            treated as absent
+    feedback_received_monotonic_ms  Motion's monotonic receipt time of that snapshot's feedback (11.1)
+    reference_time_ms       the supplied monotonic reference time, in the same clock; the validator
+                            never reads the system clock
+    human_operator_attested supplied result: the identity assertion carries a human-operator
+                            attribute (13.6)
     """
     command: Any
     identity: str = "VALID"
@@ -89,7 +100,9 @@ class AdmissionContext:
     faults: dict = dc_field(default_factory=dict)
     backend: Optional[dict] = None
     joint_state: Optional[dict] = None
+    feedback_received_monotonic_ms: Optional[float] = None
     reference_time_ms: Optional[float] = None
+    human_operator_attested: bool = False
 
 
 @dataclass(frozen=True)
@@ -105,6 +118,7 @@ class AdmissionResult:
     field: Optional[str] = None
     message: Optional[str] = None
     replay: bool = False
+    conflict: Optional[dict] = None   # TARGET_BUSY: {"target": {...}, "command_id": ...} of the conflicting command
 
 
 @dataclass(frozen=True)
@@ -113,6 +127,7 @@ class Failure:
     step: int
     field: str
     message: str
+    conflict: Optional[dict] = None
 
 
 @dataclass(frozen=True)
@@ -529,12 +544,131 @@ def _step9(ctx):
         return Failure("BACKEND_CAPABILITY_UNSUPPORTED", 9, "backend.joint_limits", "the backend declared neither numerical limits nor that it has no narrower limit")
 
 
+CONTROL_STATES = ("IDLE", "ACTIVE", "HOLDING", "UNKNOWN")
+HEALTH_STATES = ("READY", "DEGRADED", "FAULTED")
+MOVEMENT_OPERATIONS = ("SET_POSITION", "SET_VELOCITY")
+
+
+def _snapshot(ctx, joint_id):
+    """The supplied joint-state snapshot as (control_state, health_state, record), or None when it is
+    absent or not bound to this joint. A value outside the schema enums fails closed: the control
+    state reads UNKNOWN and the health reads FAULTED."""
+    s = ctx.joint_state
+    if not isinstance(s, dict) or s.get("joint_id") != joint_id:
+        return None
+    control = s.get("control_state") if s.get("control_state") in CONTROL_STATES else "UNKNOWN"
+    health = s.get("health_state") if s.get("health_state") in HEALTH_STATES else "FAULTED"
+    return control, health, s
+
+
+def _feedback_problem(ctx, j, s, need_position):
+    """None when the feedback is valid and fresh, else FEEDBACK_UNAVAILABLE or FEEDBACK_STALE.
+
+    Freshness compares the supplied monotonic receipt time with the supplied monotonic reference
+    time: the feedback is stale when it is older than max_feedback_age_ms (11.3). A receipt time
+    after the reference time is not believed and counts as stale."""
+    st = s.get("feedback_status")
+    recv, ref = ctx.feedback_received_monotonic_ms, ctx.reference_time_ms
+    if st not in ("VALID", "STALE"):
+        return "FEEDBACK_UNAVAILABLE", "feedback is missing or invalid"
+    if need_position and not _finite(s.get("measured_position")):
+        return "FEEDBACK_UNAVAILABLE", "no measured position"
+    if not (_finite(recv) and _finite(ref)):
+        return "FEEDBACK_UNAVAILABLE", "feedback receipt time or reference time not supplied"
+    if st == "STALE" or s.get("is_current") is not True:
+        return "FEEDBACK_STALE", "feedback is not current"
+    age = ref - recv
+    if age < 0 or age > j["max_feedback_age_ms"]:
+        return "FEEDBACK_STALE", "feedback is older than max_feedback_age_ms"
+    return None
+
+
+def _joint_executions(ctx, joint_id):
+    """Sorted IDs of non-terminal command records on the joint, split into (movement slot, terminating)."""
+    slot, terminating = [], []
+    for cid in sorted(ctx.commands, key=str):
+        r = ctx.commands[cid]
+        if not isinstance(r, dict) or r.get("joint_id") != joint_id or r.get("state") in TERMINAL_STATES:
+            continue
+        op = r.get("operation")
+        if op in MOVEMENT_OPERATIONS or (op == "HOLD" and r.get("hold_engaged") is not True):
+            slot.append(cid)
+        if r.get("phase") == "TERMINATING":
+            terminating.append(cid)
+    return slot, terminating
+
+
+def _clear_fault(ctx, j, snap):
+    cmd = ctx.command
+    rec = ctx.faults[cmd["parameters"]["fault_id"]]
+    jid = j["joint_id"]
+    why = None
+    if rec.get("cause_resolved") is not True:
+        why = "the cause of the fault is not resolved"
+    elif not (isinstance(ctx.backend, dict) and ctx.backend.get("health") == "AVAILABLE"):
+        why = "the backend is not AVAILABLE"
+    elif snap is None or snap[0] == "UNKNOWN":
+        why = "the control state is UNKNOWN"
+    elif j["feedback_required"] is True and _feedback_problem(ctx, j, snap[2], False):
+        why = "required feedback is not valid and fresh"
+    else:
+        slot, terminating = _joint_executions(ctx, jid)
+        if slot or terminating or snap[0] == "ACTIVE":
+            why = "a movement or termination is active on the joint"
+    if why:
+        return Failure("FAULT_NOT_CLEARABLE", 10, "parameters.fault_id", why)
+    policy = j.get("fault_clearance", {}).get(rec.get("code"), "HUMAN_REQUIRED")
+    if policy == "HUMAN_REQUIRED" and ctx.human_operator_attested is not True:
+        return Failure("HUMAN_CONFIRMATION_REQUIRED", 10, "identity_assertion", "the fault needs a human-operator attribute")
+    return None
+
+
 def _step10(ctx):
-    raise NotImplementedError("step 10 (joint state and preconditions) is delivered by a later change of KOS-MOTION-002")
+    cmd = ctx.command
+    ct = cmd["command_type"]
+    if ct in ("STOP", "CANCEL"):
+        return None  # exempt on every control and health state (8.6); authorization and backend capability ran earlier
+    j = _joint_of(ctx)
+    if j is None:
+        return None
+    snap = _snapshot(ctx, j["joint_id"])
+    if ct == "CLEAR_FAULT":
+        return _clear_fault(ctx, j, snap)
+    # SET_POSITION, SET_VELOCITY, HOLD
+    if snap is None or snap[0] == "UNKNOWN":
+        return Failure("TARGET_STATE_UNKNOWN", 10, "joint_state", "the control state of the joint is not established")
+    control, health, s = snap
+    if health == "FAULTED":
+        return Failure("TARGET_FAULTED", 10, "joint_state.health_state", "the joint is FAULTED")
+    if health == "DEGRADED":
+        reasons = s.get("degradation_reasons") or []
+        policy = j.get("degradation_policy", {})
+        if not reasons or any(ct not in policy.get(r, []) for r in reasons):
+            return Failure("TARGET_DEGRADED", 10, "joint_state.degradation_reasons", "degradation_policy does not permit the operation")
+    need = ct in ("SET_POSITION", "HOLD") or j["feedback_required"] is True
+    if need:
+        p = _feedback_problem(ctx, j, s, ct in ("SET_POSITION", "HOLD"))
+        if p:
+            return Failure(p[0], 10, "joint_state.feedback_status", p[1])
+    return None
 
 
 def _step11(ctx):
-    raise NotImplementedError("step 11 (arbitration) is delivered by a later change of KOS-MOTION-002")
+    cmd = ctx.command
+    ct = cmd["command_type"]
+    j = _joint_of(ctx)
+    if j is None or ct not in ("SET_POSITION", "SET_VELOCITY", "HOLD"):
+        return None  # STOP, CANCEL, CLEAR_FAULT never take the movement slot (9.3, 9.4)
+    target = dict(cmd["target"])
+    slot, _ = _joint_executions(ctx, j["joint_id"])
+    if slot:
+        return Failure("TARGET_BUSY", 11, "target", "the joint has an active conflicting command",
+                       {"target": target, "command_id": slot[0]})
+    snap = _snapshot(ctx, j["joint_id"])
+    if snap is not None and snap[0] == "ACTIVE":
+        return Failure("TARGET_BUSY", 11, "target", "the joint is ACTIVE",
+                       {"target": target, "command_id": snap[2].get("active_command_id")})
+    return None
 
 
 STEPS = [(1, _step1), (2, _step2), (3, _step3), (4, _step4), (5, _step5), (6, _step6), (7, _step7),
@@ -543,8 +677,7 @@ STEPS = [(1, _step1), (2, _step2), (3, _step3), (4, _step4), (5, _step5), (6, _s
 
 def first_failure(ctx, through_step=11):
     """Run steps 1 to `through_step` in the fixed order; return the first Failure, a replay
-    marker for a stored decision, or None when no step failed. Steps above
-    IMPLEMENTED_THROUGH_STEP raise NotImplementedError."""
+    marker for a stored decision, or None when no step failed."""
     for n, fn in STEPS:
         if n > through_step:
             break
@@ -563,4 +696,61 @@ def admit(ctx):
                                "stored decision of an identical request", True)
     if r is None:
         return AdmissionResult(True)
-    return AdmissionResult(False, r.code, r.step, r.field, r.message)
+    return AdmissionResult(False, r.code, r.step, r.field, r.message, False, r.conflict)
+
+
+# ---------------------------------------------------------------- queries (6.4, 16.3): a separate path
+
+QUERY_TYPES = ("GET_COMMAND_STATUS", "GET_JOINT_STATE", "GET_COMMAND_HISTORY", "GET_FAULTS")
+
+
+@dataclass(frozen=True)
+class QueryContext:
+    """A read request. It has no joint-state, feedback or backend input on purpose: queries stay
+    available in every joint health and control state (6.4).
+
+    query_type    one of QUERY_TYPES
+    argument      the command_id (GET_COMMAND_STATUS) or the joint_id (GET_JOINT_STATE); ignored by
+                  the filter queries
+    identity      supplied identity result: VALID, MISSING, INVALID or EXPIRED
+    permission_granted  supplied read authorization for the query and its scope
+    active_config the validated active configuration or None
+    commands      known commands by command_id: {"visible": bool}
+    """
+    query_type: str
+    argument: Any = None
+    identity: str = "VALID"
+    permission_granted: bool = True
+    active_config: Optional[dict] = None
+    commands: dict = dc_field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class QueryResult:
+    allowed: bool
+    code: Optional[str] = None
+    field: Optional[str] = None
+    message: Optional[str] = None
+
+
+def admit_query(q):
+    """Authorize and resolve one query: identity, then authorization, then (for a joint query) the
+    active configuration and the target, or (for a command query) the visible command. Joint health and
+    control state are never consulted. A command the client may not see is COMMAND_NOT_FOUND, not
+    PERMISSION_DENIED (8.4 step 3)."""
+    if q.query_type not in QUERY_TYPES:
+        return QueryResult(False, "INVALID_SCHEMA", "query_type", "unknown query")
+    if q.identity != "VALID":
+        return QueryResult(False, "UNAUTHENTICATED", "identity_assertion", f"identity result is {q.identity}")
+    if not q.permission_granted:
+        return QueryResult(False, "PERMISSION_DENIED", "query_type", "the client lacks read permission")
+    if q.query_type == "GET_COMMAND_STATUS":
+        rec = q.commands.get(q.argument) if isinstance(q.argument, str) else None
+        if not isinstance(rec, dict) or rec.get("visible") is not True:
+            return QueryResult(False, "COMMAND_NOT_FOUND", "argument", "unknown or invisible command")
+    if q.query_type == "GET_JOINT_STATE":
+        if not isinstance(q.active_config, dict):
+            return QueryResult(False, "CONFIG_NOT_ACTIVE", "active_config", "no validated active configuration")
+        if not any(j.get("joint_id") == q.argument for j in q.active_config.get("joints", [])):
+            return QueryResult(False, "UNKNOWN_TARGET", "argument", "the joint is not in the active configuration")
+    return QueryResult(True)
