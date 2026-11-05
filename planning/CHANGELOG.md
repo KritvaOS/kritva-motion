@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Admission validator steps 1 to 9 (`src/kritva_motion/admission.py`, standard library only): fixed order of contract 8.4, first failure only, deterministic sub-order, effective limits as the intersection of backend, configuration and command limits, `AdmissionContext`, a result with no command ID. 43 more validator tests (every admission code of steps 1 to 9 with a fixture, adjacent-step pairs, limits) and an envelope-mirror test that compares the hand-written envelope check with the schema on 4029 documents. Optional configuration fields `max_deadline_ms`, `max_execution_timeout_ms`, `default_priority` (owner decision, task record section 10). Steps 10 and 11 are later changes; `admit()` fails closed until then (Task: KOS-MOTION-002, AC-202, AC-203).
+
 - Configuration validator `src/kritva_motion/config_validation.py` (standard library only) and 38 tests in `tests/validator/` for contract section 3: unknown policy values, a continuous joint with position mode, `DEGRADE` with required feedback, `SET_POSITION` or `HOLD` under `FEEDBACK_OPTIONAL_UNAVAILABLE`, backend capabilities that cannot satisfy a policy, completeness and consistency; several violations are reported in a fixed order (Task: KOS-MOTION-002, AC-201). No activation runtime; `make test-unit` stays NOT_IMPLEMENTED until step 7.
 
 - Schema tests for the five contract schemas (`tests/schema/test_schemas.py`, 42 example documents, conformance IDs CT-SCH-01 to 09 all covered) and the pinned test-only dependency list `requirements-test.txt` (Task: KOS-MOTION-002, AC-205). Run with `python3 -m unittest discover -s tests/schema`; `make test-unit` stays NOT_IMPLEMENTED until step 7. Software evidence only.

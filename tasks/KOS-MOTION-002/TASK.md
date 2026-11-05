@@ -77,3 +77,26 @@ Code: `src/kritva_motion/config_validation.py`; tests: `tests/validator/test_con
 - Violations carry a `rule` name, the contract section, the path and a message. The contract defines no error code for configuration activation (3.2), so these names are not contract error codes. `ERROR_CODES.md` is unchanged.
 - Interpretations for owner review (not stated in the contract text): (a) unknown fields are refused, to catch misspelled settings; (b) a joint mode or joint type the declared backend capabilities do not list is a policy the backend cannot satisfy; (c) listing `HOLD` in a degradation policy when the backend declares no position hold is refused as a policy that can never be used (13.8 also checks hold support on every admission); (d) a non-continuous joint needs `position_min` below `position_max`; `continuous: true` is refused for a prismatic joint and with position limits; (e) `settling_duration_ms` may be zero, the other durations must be positive.
 - The validator checks the configuration only. It does not activate, version-bind or digest a configuration: there is no activation runtime in this task.
+
+## 10. Admission validator, steps 1 to 9: decisions and findings (step 4)
+
+Code: `src/kritva_motion/admission.py` (standard library only); tests: `tests/validator/test_admission.py` and, with the test-only `jsonschema` dependency, `tests/schema/test_envelope_mirror.py`. Steps 10 (joint state and preconditions) and 11 (arbitration) are later changes: until then `admit()` raises `NotImplementedError` for a command that passed steps 1 to 9, so nothing is accepted by a partial check.
+
+Owner decision (2026-11-05, chat): the contract mentions a configured maximum for `deadline_ms` and `execution_timeout_ms` (ERROR_CODES `INVALID_TIMEOUT`) and a configured default priority (5.6) but section 3.1 lists neither. The configuration validator therefore accepts three optional per-joint fields: `max_deadline_ms`, `max_execution_timeout_ms` and `default_priority` (default 0). A contract clarification is to be proposed later; the contract is not changed here.
+
+Sub-order inside a step (deterministic, not stated in the contract): step 2 INVALID_SCHEMA, NON_FINITE_VALUE, UNSUPPORTED_CONTRACT_VERSION; step 6 command type, target type, target ID, then the referenced command (not found, already terminal, not cancellable) or fault; step 7 mode, priority, unit; step 8 INVALID_CONSTRAINT, LIMIT_POSITION, LIMIT_VELOCITY, INVALID_TIMEOUT (a constraint must be valid before it can define a limit); step 9 BACKEND_UNAVAILABLE, then BACKEND_CAPABILITY_UNSUPPORTED. Unknown fields are reported in sorted order.
+
+Interpretations for owner review:
+
+- A supplied idempotency lookup of status IDENTICAL returns the stored decision with `replay` true and no command ID, after steps 1 to 3 (an unauthenticated or unauthorized client never gets a stored result). DIFFERENT is REQUEST_ID_CONFLICT.
+- BACKEND_UNAVAILABLE for health UNAVAILABLE or FAULTED, or no backend supplied; DEGRADED is available at step 9. Step 9 does not apply to CANCEL and CLEAR_FAULT (the CLEAR_FAULT backend checks belong to 13.6 at step 10).
+- A backend that declares neither numerical joint limits nor an explicit "no narrower limit" for a joint is refused BACKEND_CAPABILITY_UNSUPPORTED for movement commands (8.3: Motion must not assume the whole configured envelope); at step 8 an undeclared limit narrows nothing.
+- An empty effective position range (for example a backend range outside the configured one) is INVALID_CONSTRAINT. A position constraint on a joint without position limits is INVALID_CONSTRAINT.
+- Constraints on STOP, HOLD, CANCEL and CLEAR_FAULT are ignored (no limit applies to them); their timeouts are still checked against the maximums.
+- The standard-library envelope check mirrors `motion-command.schema.json`; a test compares the two on a fixed corpus of mutated documents. `format` keywords (`date-time`) are annotations and are not asserted.
+
+Findings for a later contract clarification (nothing changed here):
+
+1. `deadline_ms` or `execution_timeout_ms` of zero or below is rejected INVALID_SCHEMA at step 2 by the schema (`exclusiveMinimum`), although `ERROR_CODES.md` lists a non-positive value under INVALID_TIMEOUT (step 8). INVALID_TIMEOUT is therefore reachable only for a value above the configured maximum.
+2. The identifier pattern `^[A-Za-z0-9._:-]{1,128}$` also accepts one trailing newline, because `$` matches before it in common regular-expression engines; contract 1.4 says only the listed characters are allowed.
+3. LIMIT_ACCELERATION stays reserved (MOTION-AD-045): the effective acceleration maximum is computed as the intersection but no command value is compared with it.
