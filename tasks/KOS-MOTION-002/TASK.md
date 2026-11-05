@@ -1,8 +1,8 @@
 # KOS-MOTION-002: Command validation, limit enforcement and fault-path tests
 
-Status: NOT_STARTED. Owner approval recorded in chat on 2026-11-04 (Dinesh), program decision D-100. Milestone: V2-M2-MOTION-001. Acceptance begins after KOS-MOTION-001 is accepted; the program baseline has no dependency field, so the dependency is enforced here.
+Status (revision 2): IN_PROGRESS since 2026-11-05; KOS-MOTION-001 was accepted the same day, so the dependency is met. Work proceeds in small pull requests (see section 8). Owner approval recorded in chat on 2026-11-04 (Dinesh), program decision D-100. Milestone: V2-M2-MOTION-001. Acceptance begins after KOS-MOTION-001 is accepted; the program baseline has no dependency field, so the dependency is enforced here.
 Task owner: Dinesh (repository owner). Architecture and safety reviewer roles: Dinesh, interim (D-047); independent review is not in place.
-This task earns no program credit until it is in the approved baseline and has approved passing evidence. Motion reports facts only.
+The task is in program baseline v9 (weight 5) and earns credit only through a central approval with passing evidence. Motion reports facts only.
 
 ## 1. Scope
 
@@ -49,6 +49,21 @@ Criteria AC-201 to AC-207 are in [ACCEPTANCE_CRITERIA.md](../../ACCEPTANCE_CRITE
 ## 6. Review and evidence
 
 Required approvals follow `.github/kritva-gate.json` (REPO_CODE_OWNER and ARCHITECTURE_REVIEWER, both Dinesh, interim). Required checks on the exact closing commit: secret-scan, commit-message-check, pr-acceptance-gate, plus `unit-tests` once added. Evidence references are commit SHAs and CI run IDs, never branch names. Closure needs an approved completion record and an annotated SemVer tag per the program acceptance standard.
+
+## 8. Delivery plan (proposed, small pull requests)
+
+Each step is its own pull request with one `Task: KOS-MOTION-002` footer. The plan is a working order and is not an acceptance record; steps may be merged or split during review.
+
+| Step | Content | Notes |
+|---|---|---|
+| 1 | Start of work (this change) | Status IN_PROGRESS only |
+| 2 | Test scaffolding: pinned test-only dependency list, schema tests (AC-205) | No `Makefile` change; run with `python3 -m unittest` |
+| 3 | Configuration validator and tests (AC-201) | Contract section 3 |
+| 4 | Admission validator, `AdmissionContext`, limits and sub-order (AC-202, AC-203) | Contract 8.3 and 8.4; sub-order documented here |
+| 5 | State preconditions and the read and query path (AC-204) | Contract 8.6 and 13.6 |
+| 6 | Test manifest and mapping (AC-206) | Every conformance ID marked |
+| 7 | `make test-unit` and the `unit-tests` workflow (AC-205, AC-206 gate) | `Makefile` and `.github/` are protected paths: owner-merged; the central required-check decision follows (as D-097) |
+| 8 | Documentation of the software-evidence limit and acceptance (AC-207) | Owner review, not independent (D-047) |
 
 ## 7. Commit rules
 
