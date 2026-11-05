@@ -110,7 +110,7 @@ Proposed milestones, from [planning/MILESTONE.md](planning/MILESTONE.md) (genera
 |---|---|---|---|
 | V2-M0-MOTION-001 | V2-M0 FOUNDATION | IN_REVIEW (this change) | Repository governance baseline merged: acceptance criteria, CI checks, CODEOWNERS, AGENTS.md. |
 | V2-M1-MOTION-001 | V2-M1 STUDIO | PROPOSED | Motion command and state contract (task 001) reviewed and tagged v0.1.0. |
-| V2-M2-MOTION-001 | V2-M2 BUILD & ARTIFACT | PROPOSED | Command validation, limit enforcement and fault-path tests pass; gates implemented. |
+| V2-M2-MOTION-001 | V2-M2 BUILD & ARTIFACT | PROPOSED | Command and configuration validation, limit enforcement and admission-time fault-path tests pass; unit, integration and regression gates implemented. The runtime lifecycle, termination and fault state machine is a separate task. |
 | V2-M5-MOTION-001 | V2-M5 EXECUTION | PROPOSED | Motion commands validated against a simulated actuator interface. |
 | V2-M8-MOTION-001 | V2-M8 PRODUCTION | PROPOSED | Release and security review complete. |
 
