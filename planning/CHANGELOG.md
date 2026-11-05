@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Configuration validator `src/kritva_motion/config_validation.py` (standard library only) and 38 tests in `tests/validator/` for contract section 3: unknown policy values, a continuous joint with position mode, `DEGRADE` with required feedback, `SET_POSITION` or `HOLD` under `FEEDBACK_OPTIONAL_UNAVAILABLE`, backend capabilities that cannot satisfy a policy, completeness and consistency; several violations are reported in a fixed order (Task: KOS-MOTION-002, AC-201). No activation runtime; `make test-unit` stays NOT_IMPLEMENTED until step 7.
+
 - Schema tests for the five contract schemas (`tests/schema/test_schemas.py`, 42 example documents, conformance IDs CT-SCH-01 to 09 all covered) and the pinned test-only dependency list `requirements-test.txt` (Task: KOS-MOTION-002, AC-205). Run with `python3 -m unittest discover -s tests/schema`; `make test-unit` stays NOT_IMPLEMENTED until step 7. Software evidence only.
 
 - Started KOS-MOTION-002 (status IN_PROGRESS; delivery plan in its task record). Records only: no source code, no gate change, `make test-unit` stays NOT_IMPLEMENTED (Task: KOS-MOTION-002).
