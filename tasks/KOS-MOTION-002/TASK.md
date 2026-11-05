@@ -50,6 +50,10 @@ Criteria AC-201 to AC-207 are in [ACCEPTANCE_CRITERIA.md](../../ACCEPTANCE_CRITE
 
 Required approvals follow `.github/kritva-gate.json` (REPO_CODE_OWNER and ARCHITECTURE_REVIEWER, both Dinesh, interim). Required checks on the exact closing commit: secret-scan, commit-message-check, pr-acceptance-gate, plus `unit-tests` once added. Evidence references are commit SHAs and CI run IDs, never branch names. Closure needs an approved completion record and an annotated SemVer tag per the program acceptance standard.
 
+## 7. Commit rules
+
+`type(scope): summary` with one `Task: KOS-MOTION-002` footer. No AI-session trailer or link (AGENTS.md section 3). Branch and pull request; no push to `main`.
+
 ## 8. Delivery plan (proposed, small pull requests)
 
 Each step is its own pull request with one `Task: KOS-MOTION-002` footer. The plan is a working order and is not an acceptance record; steps may be merged or split during review.
@@ -65,6 +69,11 @@ Each step is its own pull request with one `Task: KOS-MOTION-002` footer. The pl
 | 7 | `make test-unit` and the `unit-tests` workflow (AC-205, AC-206 gate) | `Makefile` and `.github/` are protected paths: owner-merged; the central required-check decision follows (as D-097) |
 | 8 | Documentation of the software-evidence limit and acceptance (AC-207) | Owner review, not independent (D-047) |
 
-## 7. Commit rules
+## 9. Configuration validator: shape and interpretations (step 3)
 
-`type(scope): summary` with one `Task: KOS-MOTION-002` footer. No AI-session trailer or link (AGENTS.md section 3). Branch and pull request; no push to `main`.
+Code: `src/kritva_motion/config_validation.py`; tests: `tests/validator/test_config_validation.py`. Run: `python3 -m unittest discover -s tests/validator`.
+
+- The contract lists the configuration fields (3.1) but defines no serialization. The validator takes plain data (dicts and lists) in the shape documented at the top of the module. This shape is a task decision, not a contract rule.
+- Violations carry a `rule` name, the contract section, the path and a message. The contract defines no error code for configuration activation (3.2), so these names are not contract error codes. `ERROR_CODES.md` is unchanged.
+- Interpretations for owner review (not stated in the contract text): (a) unknown fields are refused, to catch misspelled settings; (b) a joint mode or joint type the declared backend capabilities do not list is a policy the backend cannot satisfy; (c) listing `HOLD` in a degradation policy when the backend declares no position hold is refused as a policy that can never be used (13.8 also checks hold support on every admission); (d) a non-continuous joint needs `position_min` below `position_max`; `continuous: true` is refused for a prismatic joint and with position limits; (e) `settling_duration_ms` may be zero, the other durations must be positive.
+- The validator checks the configuration only. It does not activate, version-bind or digest a configuration: there is no activation runtime in this task.
