@@ -4,9 +4,44 @@
   "repo": "KritvaOS/kritva-motion",
   "source": {
     "branch": "main",
-    "commit": "a0066d453950acbf20223eee48791d56c3bda117",
+    "commit": "1e832cea63862270c510c70edd640682d6d23fca",
     "tag": null
   },
-  "tasks": [],
-  "updated_at": "2026-11-04T23:21:29+05:30"
+  "tasks": [
+    {
+      "task_id": "KOS-MOTION-001",
+      "execution": "IN_PROGRESS",
+      "git_sync": "SYNCED",
+      "readiness": "IMPLEMENTABLE",
+      "evidence": [
+        {
+          "type": "software",
+          "uri": "ACCEPTANCE_CRITERIA.md",
+          "description": "Criteria reference only (not completion proof); planning status text: 'IN_PROGRESS'",
+          "commit": null,
+          "ci_run": null,
+          "report_sha256": null,
+          "result": null
+        }
+      ]
+    },
+    {
+      "task_id": "KOS-MOTION-002",
+      "execution": "NOT_STARTED",
+      "git_sync": "SYNCED",
+      "readiness": "IMPLEMENTABLE",
+      "evidence": [
+        {
+          "type": "software",
+          "uri": "ACCEPTANCE_CRITERIA.md",
+          "description": "Criteria reference only (not completion proof); planning status text: 'NOT_STARTED'",
+          "commit": null,
+          "ci_run": null,
+          "report_sha256": null,
+          "result": null
+        }
+      ]
+    }
+  ],
+  "updated_at": "2026-11-05T22:23:45+05:30"
 }
