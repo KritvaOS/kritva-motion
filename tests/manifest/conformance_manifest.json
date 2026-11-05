@@ -1,0 +1,757 @@
+{
+  "_note": "Conformance test manifest for KOS-MOTION-002 (AC-206). Status per contract/CONFORMANCE_TEST_PLAN.md ID: IN_SCOPE (exactly one executable test, run by make test-unit), DEFERRED (needs a later task, never reported as implemented or passed) or OUT_OF_SCOPE (outside this task). Software evidence only; never physical or safety validation.",
+  "plan": "contract/CONFORMANCE_TEST_PLAN.md",
+  "entries": [
+    {
+      "id": "CT-SCH-01",
+      "status": "IN_SCOPE",
+      "contract_sections": "5",
+      "test": "test_schemas.TestConformanceIds.test_CT_SCH_01"
+    },
+    {
+      "id": "CT-SCH-02",
+      "status": "IN_SCOPE",
+      "contract_sections": "4, 5",
+      "test": "test_schemas.TestConformanceIds.test_CT_SCH_02"
+    },
+    {
+      "id": "CT-SCH-03",
+      "status": "IN_SCOPE",
+      "contract_sections": "5, 6",
+      "test": "test_schemas.TestConformanceIds.test_CT_SCH_03"
+    },
+    {
+      "id": "CT-SCH-04",
+      "status": "IN_SCOPE",
+      "contract_sections": "7",
+      "test": "test_schemas.TestConformanceIds.test_CT_SCH_04"
+    },
+    {
+      "id": "CT-SCH-05",
+      "status": "IN_SCOPE",
+      "contract_sections": "11, 13",
+      "test": "test_schemas.TestConformanceIds.test_CT_SCH_05"
+    },
+    {
+      "id": "CT-SCH-06",
+      "status": "IN_SCOPE",
+      "contract_sections": "14",
+      "test": "test_schemas.TestConformanceIds.test_CT_SCH_06"
+    },
+    {
+      "id": "CT-SCH-07",
+      "status": "IN_SCOPE",
+      "contract_sections": "7",
+      "test": "test_schemas.TestConformanceIds.test_CT_SCH_07"
+    },
+    {
+      "id": "CT-SCH-08",
+      "status": "IN_SCOPE",
+      "contract_sections": "7.6, 10.6",
+      "test": "test_schemas.TestConformanceIds.test_CT_SCH_08"
+    },
+    {
+      "id": "CT-SCH-09",
+      "status": "IN_SCOPE",
+      "contract_sections": "5, 13.6",
+      "test": "test_schemas.TestConformanceIds.test_CT_SCH_09"
+    },
+    {
+      "id": "CT-LC-01",
+      "status": "DEFERRED",
+      "contract_sections": "7.5",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-LC-02",
+      "status": "DEFERRED",
+      "contract_sections": "7.5",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-LC-03",
+      "status": "DEFERRED",
+      "contract_sections": "7.5",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-LC-04",
+      "status": "DEFERRED",
+      "contract_sections": "7.2",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-LC-05",
+      "status": "DEFERRED",
+      "contract_sections": "7.3, 15",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-LC-06",
+      "status": "DEFERRED",
+      "contract_sections": "7.6",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-VAL-01",
+      "status": "IN_SCOPE",
+      "contract_sections": "8.4, ERROR_CODES",
+      "test": "test_conformance.TestConformance.test_CT_VAL_01",
+      "note": "Every admission code of ERROR_CODES.md section 1 is produced by its defined cause except LIMIT_ACCELERATION, which is reserved in contract 8.3 (MOTION-AD-045)."
+    },
+    {
+      "id": "CT-VAL-02",
+      "status": "IN_SCOPE",
+      "contract_sections": "8.4",
+      "test": "test_conformance.TestConformance.test_CT_VAL_02"
+    },
+    {
+      "id": "CT-VAL-03",
+      "status": "IN_SCOPE",
+      "contract_sections": "8.3",
+      "test": "test_conformance.TestConformance.test_CT_VAL_03",
+      "note": "Position and velocity at the limit are accepted and just beyond are rejected. Acceleration is a declared maximum only (contract rev 5, MOTION-AD-045): a constraint equal to the maximum is accepted and one beyond it is rejected INVALID_CONSTRAINT, not LIMIT_ACCELERATION. The plan row predates revision 5."
+    },
+    {
+      "id": "CT-VAL-04",
+      "status": "IN_SCOPE",
+      "contract_sections": "8.2",
+      "test": "test_conformance.TestConformance.test_CT_VAL_04"
+    },
+    {
+      "id": "CT-VAL-05",
+      "status": "IN_SCOPE",
+      "contract_sections": "3.5, 8.1",
+      "test": "test_conformance.TestConformance.test_CT_VAL_05"
+    },
+    {
+      "id": "CT-VAL-06",
+      "status": "IN_SCOPE",
+      "contract_sections": "8.2",
+      "test": "test_conformance.TestConformance.test_CT_VAL_06"
+    },
+    {
+      "id": "CT-VAL-07",
+      "status": "IN_SCOPE",
+      "contract_sections": "1.3",
+      "test": "test_conformance.TestConformance.test_CT_VAL_07"
+    },
+    {
+      "id": "CT-VAL-08",
+      "status": "IN_SCOPE",
+      "contract_sections": "5.3",
+      "test": "test_conformance.TestConformance.test_CT_VAL_08"
+    },
+    {
+      "id": "CT-VAL-09",
+      "status": "IN_SCOPE",
+      "contract_sections": "4.2, 5.6, 18",
+      "test": "test_conformance.TestConformance.test_CT_VAL_09"
+    },
+    {
+      "id": "CT-VAL-10",
+      "status": "IN_SCOPE",
+      "contract_sections": "5.7",
+      "test": "test_conformance.TestConformance.test_CT_VAL_10"
+    },
+    {
+      "id": "CT-VAL-11",
+      "status": "DEFERRED",
+      "contract_sections": "5.4, 5.5",
+      "reason": "Execution semantics (absolute position, signed velocity). Admission treats a zero velocity as a movement command and compares absolute positions with the limits, but that is not reported as this ID."
+    },
+    {
+      "id": "CT-CFG-01",
+      "status": "DEFERRED",
+      "contract_sections": "3.2",
+      "reason": "Needs a configuration activation runtime (version and digest binding, update and rollback); none is built in KOS-MOTION-002. Only the admission rejection CONFIG_NOT_ACTIVE for an absent configuration is tested; that is not reported as this ID."
+    },
+    {
+      "id": "CT-CFG-02",
+      "status": "IN_SCOPE",
+      "contract_sections": "3.2",
+      "test": "test_conformance.TestConformance.test_CT_CFG_02",
+      "note": "Validation only: there is no activation runtime, so 'not activated' means the validator reports the configuration as not valid for activation."
+    },
+    {
+      "id": "CT-CFG-03",
+      "status": "DEFERRED",
+      "contract_sections": "3.3",
+      "reason": "Needs a configuration activation runtime (version and digest binding, update and rollback); none is built in KOS-MOTION-002."
+    },
+    {
+      "id": "CT-CFG-04",
+      "status": "DEFERRED",
+      "contract_sections": "3.3, 3.4",
+      "reason": "Needs a configuration activation runtime (version and digest binding, update and rollback); none is built in KOS-MOTION-002."
+    },
+    {
+      "id": "CT-CFG-05",
+      "status": "DEFERRED",
+      "contract_sections": "3.4",
+      "reason": "Needs a configuration activation runtime (version and digest binding, update and rollback); none is built in KOS-MOTION-002."
+    },
+    {
+      "id": "CT-CFG-06",
+      "status": "DEFERRED",
+      "contract_sections": "3.4",
+      "reason": "Needs a configuration activation runtime (version and digest binding, update and rollback); none is built in KOS-MOTION-002."
+    },
+    {
+      "id": "CT-ID-01",
+      "status": "DEFERRED",
+      "contract_sections": "7.4",
+      "reason": "Needs the idempotency store and lookup (content comparison, client scoping, retention); the validator evaluates a supplied lookup result only."
+    },
+    {
+      "id": "CT-ID-02",
+      "status": "DEFERRED",
+      "contract_sections": "7.4",
+      "reason": "Needs the idempotency store and lookup (content comparison, client scoping, retention); the validator evaluates a supplied lookup result only."
+    },
+    {
+      "id": "CT-ID-03",
+      "status": "DEFERRED",
+      "contract_sections": "7.4",
+      "reason": "Needs the idempotency store and lookup (content comparison, client scoping, retention); the validator evaluates a supplied lookup result only."
+    },
+    {
+      "id": "CT-ID-04",
+      "status": "DEFERRED",
+      "contract_sections": "7.3",
+      "reason": "Needs the idempotency store and lookup (content comparison, client scoping, retention); the validator evaluates a supplied lookup result only."
+    },
+    {
+      "id": "CT-ID-05",
+      "status": "DEFERRED",
+      "contract_sections": "7.4",
+      "reason": "Needs the idempotency store and lookup (content comparison, client scoping, retention); the validator evaluates a supplied lookup result only."
+    },
+    {
+      "id": "CT-ARB-01",
+      "status": "IN_SCOPE",
+      "contract_sections": "9.1",
+      "test": "test_conformance.TestConformance.test_CT_ARB_01"
+    },
+    {
+      "id": "CT-ARB-02",
+      "status": "DEFERRED",
+      "contract_sections": "9.2",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-ARB-03",
+      "status": "DEFERRED",
+      "contract_sections": "9.3",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered). The admission-level part, if any, is tested but not reported as this ID."
+    },
+    {
+      "id": "CT-ARB-04",
+      "status": "DEFERRED",
+      "contract_sections": "6.2",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered). The admission-level part, if any, is tested but not reported as this ID."
+    },
+    {
+      "id": "CT-ARB-05",
+      "status": "IN_SCOPE",
+      "contract_sections": "6.1",
+      "test": "test_conformance.TestConformance.test_CT_ARB_05"
+    },
+    {
+      "id": "CT-ARB-06",
+      "status": "IN_SCOPE",
+      "contract_sections": "6.3",
+      "test": "test_conformance.TestConformance.test_CT_ARB_06"
+    },
+    {
+      "id": "CT-ARB-07",
+      "status": "DEFERRED",
+      "contract_sections": "9.5",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-ARB-08",
+      "status": "IN_SCOPE",
+      "contract_sections": "5.6",
+      "test": "test_conformance.TestConformance.test_CT_ARB_08"
+    },
+    {
+      "id": "CT-TMO-01",
+      "status": "DEFERRED",
+      "contract_sections": "10.3",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-TMO-02",
+      "status": "DEFERRED",
+      "contract_sections": "10.4, 10.6",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-TMO-03",
+      "status": "DEFERRED",
+      "contract_sections": "10.6",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-TMO-04",
+      "status": "DEFERRED",
+      "contract_sections": "10.5, 10.6",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-TMO-05",
+      "status": "DEFERRED",
+      "contract_sections": "10.3, 10.4",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-TMO-06",
+      "status": "DEFERRED",
+      "contract_sections": "10.1",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-TMO-07",
+      "status": "DEFERRED",
+      "contract_sections": "7.2",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-FB-01",
+      "status": "IN_SCOPE",
+      "contract_sections": "10.1, 10.2",
+      "test": "test_conformance.TestConformance.test_CT_FB_01"
+    },
+    {
+      "id": "CT-FB-02",
+      "status": "DEFERRED",
+      "contract_sections": "10.2, 17.2",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-FB-03",
+      "status": "DEFERRED",
+      "contract_sections": "11.2, 11.3",
+      "reason": "Needs feedback status reporting; admission rejects FEEDBACK_UNAVAILABLE and FEEDBACK_STALE distinctly, which is not reported as this ID."
+    },
+    {
+      "id": "CT-FB-04",
+      "status": "DEFERRED",
+      "contract_sections": "11.5",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-FB-05",
+      "status": "DEFERRED",
+      "contract_sections": "11.5",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-CMP-01",
+      "status": "DEFERRED",
+      "contract_sections": "12.2",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-CMP-02",
+      "status": "DEFERRED",
+      "contract_sections": "12.1",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-CMP-03",
+      "status": "DEFERRED",
+      "contract_sections": "12.2",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-FLT-01",
+      "status": "DEFERRED",
+      "contract_sections": "13.4",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-FLT-02",
+      "status": "DEFERRED",
+      "contract_sections": "13.4",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-FLT-03",
+      "status": "DEFERRED",
+      "contract_sections": "13.5",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-FLT-04",
+      "status": "IN_SCOPE",
+      "contract_sections": "13.4",
+      "test": "test_conformance.TestConformance.test_CT_FLT_04"
+    },
+    {
+      "id": "CT-FLT-05",
+      "status": "DEFERRED",
+      "contract_sections": "13.4",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-FLT-06",
+      "status": "IN_SCOPE",
+      "contract_sections": "13.6",
+      "test": "test_conformance.TestConformance.test_CT_FLT_06"
+    },
+    {
+      "id": "CT-FLT-07",
+      "status": "DEFERRED",
+      "contract_sections": "13.3",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-FLT-08",
+      "status": "DEFERRED",
+      "contract_sections": "13.1",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-EV-01",
+      "status": "DEFERRED",
+      "contract_sections": "14.4",
+      "reason": "Needs an event stream and publisher (contract section 14); none is built."
+    },
+    {
+      "id": "CT-EV-02",
+      "status": "DEFERRED",
+      "contract_sections": "14.4",
+      "reason": "Needs an event stream and publisher (contract section 14); none is built."
+    },
+    {
+      "id": "CT-EV-03",
+      "status": "DEFERRED",
+      "contract_sections": "14.2",
+      "reason": "Needs an event stream and publisher (contract section 14); none is built."
+    },
+    {
+      "id": "CT-EV-04",
+      "status": "DEFERRED",
+      "contract_sections": "14.3",
+      "reason": "Needs an event stream and publisher (contract section 14); none is built."
+    },
+    {
+      "id": "CT-HIS-01",
+      "status": "DEFERRED",
+      "contract_sections": "15",
+      "reason": "Needs command history storage (contract section 15); none is built."
+    },
+    {
+      "id": "CT-AUTH-01",
+      "status": "DEFERRED",
+      "contract_sections": "16.2",
+      "reason": "Needs the Core security interface, which is not pinned; the validator only evaluates supplied identity and authorization results."
+    },
+    {
+      "id": "CT-AUTH-02",
+      "status": "DEFERRED",
+      "contract_sections": "16.3, 16.4",
+      "reason": "Needs the Core security interface, which is not pinned; the validator only evaluates supplied identity and authorization results."
+    },
+    {
+      "id": "CT-AUTH-03",
+      "status": "DEFERRED",
+      "contract_sections": "16.4",
+      "reason": "Needs the Core security interface, which is not pinned; the validator only evaluates supplied identity and authorization results."
+    },
+    {
+      "id": "CT-AUTH-04",
+      "status": "DEFERRED",
+      "contract_sections": "16.3",
+      "reason": "Needs the Core security interface, which is not pinned; the validator only evaluates supplied identity and authorization results."
+    },
+    {
+      "id": "CT-BE-01",
+      "status": "OUT_OF_SCOPE",
+      "contract_sections": "17.2",
+      "reason": "Execution Backend Interface implementation or a simulator, out of scope for KOS-MOTION-002 (task record section 2)."
+    },
+    {
+      "id": "CT-BE-02",
+      "status": "DEFERRED",
+      "contract_sections": "17.3",
+      "reason": "Needs dispatch to a backend; admission-time refusal of an undeclared capability (BACKEND_CAPABILITY_UNSUPPORTED) is tested but is not reported as this ID."
+    },
+    {
+      "id": "CT-BE-03",
+      "status": "OUT_OF_SCOPE",
+      "contract_sections": "4.1, 17",
+      "reason": "Execution Backend Interface implementation or a simulator, out of scope for KOS-MOTION-002 (task record section 2)."
+    },
+    {
+      "id": "CT-BE-04",
+      "status": "OUT_OF_SCOPE",
+      "contract_sections": "17.4",
+      "reason": "Execution Backend Interface implementation or a simulator, out of scope for KOS-MOTION-002 (task record section 2)."
+    },
+    {
+      "id": "CT-BE-05",
+      "status": "IN_SCOPE",
+      "contract_sections": "3.5",
+      "test": "test_conformance.TestConformance.test_CT_BE_05"
+    },
+    {
+      "id": "CT-BE-06",
+      "status": "OUT_OF_SCOPE",
+      "contract_sections": "17.1",
+      "reason": "Execution Backend Interface implementation or a simulator, out of scope for KOS-MOTION-002 (task record section 2)."
+    },
+    {
+      "id": "CT-DET-01",
+      "status": "DEFERRED",
+      "contract_sections": "7, 10, 14",
+      "reason": "Needs the runtime and a simulated monotonic clock; admission determinism is tested separately and is not reported as this ID."
+    },
+    {
+      "id": "CT-DET-02",
+      "status": "DEFERRED",
+      "contract_sections": "3.3, 15",
+      "reason": "Needs the runtime and a simulated monotonic clock; admission determinism is tested separately and is not reported as this ID."
+    },
+    {
+      "id": "CT-LC-07",
+      "status": "DEFERRED",
+      "contract_sections": "7.6",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-LC-08",
+      "status": "DEFERRED",
+      "contract_sections": "7.5, 7.6",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-ARB-09",
+      "status": "DEFERRED",
+      "contract_sections": "6.2, 8.6",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered). The admission-level part, if any, is tested but not reported as this ID."
+    },
+    {
+      "id": "CT-ARB-10",
+      "status": "DEFERRED",
+      "contract_sections": "6.2",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered). The admission-level part, if any, is tested but not reported as this ID."
+    },
+    {
+      "id": "CT-ARB-11",
+      "status": "DEFERRED",
+      "contract_sections": "6.2, 9.5",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered). The admission-level part, if any, is tested but not reported as this ID."
+    },
+    {
+      "id": "CT-ARB-12",
+      "status": "IN_SCOPE",
+      "contract_sections": "9.1",
+      "test": "test_conformance.TestConformance.test_CT_ARB_12"
+    },
+    {
+      "id": "CT-ARB-13",
+      "status": "DEFERRED",
+      "contract_sections": "6.3",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered). The admission-level part, if any, is tested but not reported as this ID."
+    },
+    {
+      "id": "CT-ARB-14",
+      "status": "IN_SCOPE",
+      "contract_sections": "6.1",
+      "test": "test_conformance.TestConformance.test_CT_ARB_14"
+    },
+    {
+      "id": "CT-ARB-15",
+      "status": "DEFERRED",
+      "contract_sections": "9.5",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-TMO-08",
+      "status": "DEFERRED",
+      "contract_sections": "10.6",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-TMO-09",
+      "status": "DEFERRED",
+      "contract_sections": "10.3",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-AUTH-05",
+      "status": "IN_SCOPE",
+      "contract_sections": "8.4",
+      "test": "test_conformance.TestConformance.test_CT_AUTH_05",
+      "note": "Evaluated on the supplied identity and authorization results; Core is not involved."
+    },
+    {
+      "id": "CT-AUTH-06",
+      "status": "DEFERRED",
+      "contract_sections": "7.4, 8.4",
+      "reason": "Needs the Core security interface, which is not pinned; the validator only evaluates supplied identity and authorization results."
+    },
+    {
+      "id": "CT-FLT-09",
+      "status": "DEFERRED",
+      "contract_sections": "13.2, 13.3",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-FLT-10",
+      "status": "DEFERRED",
+      "contract_sections": "13.3, 13.6",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-FLT-11",
+      "status": "DEFERRED",
+      "contract_sections": "13.6",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-FLT-12",
+      "status": "IN_SCOPE",
+      "contract_sections": "8.6",
+      "test": "test_conformance.TestConformance.test_CT_FLT_12"
+    },
+    {
+      "id": "CT-FLT-13",
+      "status": "IN_SCOPE",
+      "contract_sections": "13.8",
+      "test": "test_conformance.TestConformance.test_CT_FLT_13"
+    },
+    {
+      "id": "CT-CFG-07",
+      "status": "IN_SCOPE",
+      "contract_sections": "3.6, 3.7",
+      "test": "test_conformance.TestConformance.test_CT_CFG_07",
+      "note": "Validation only (no activation runtime)."
+    },
+    {
+      "id": "CT-VAL-12",
+      "status": "IN_SCOPE",
+      "contract_sections": "3.7, 8.3",
+      "test": "test_conformance.TestConformance.test_CT_VAL_12"
+    },
+    {
+      "id": "CT-VAL-13",
+      "status": "IN_SCOPE",
+      "contract_sections": "8.3, 17.2",
+      "test": "test_conformance.TestConformance.test_CT_VAL_13",
+      "note": "Evaluated on a supplied backend declaration."
+    },
+    {
+      "id": "CT-BE-07",
+      "status": "OUT_OF_SCOPE",
+      "contract_sections": "17.5",
+      "reason": "Execution Backend Interface implementation or a simulator, out of scope for KOS-MOTION-002 (task record section 2)."
+    },
+    {
+      "id": "CT-EV-05",
+      "status": "DEFERRED",
+      "contract_sections": "14.4",
+      "reason": "Needs an event stream and publisher (contract section 14); none is built."
+    },
+    {
+      "id": "CT-FLT-14",
+      "status": "DEFERRED",
+      "contract_sections": "7.8, 13.4",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-FLT-15",
+      "status": "DEFERRED",
+      "contract_sections": "6.2, 10.6",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-FLT-16",
+      "status": "DEFERRED",
+      "contract_sections": "13.9",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-FLT-17",
+      "status": "DEFERRED",
+      "contract_sections": "13.6, 13.9",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-FLT-18",
+      "status": "DEFERRED",
+      "contract_sections": "13.8",
+      "reason": "The second half (SET_VELOCITY accepted only with its completion evidence) is a runtime completion matter. The admission part (degradation permission does not waive feedback for SET_POSITION and HOLD) is tested but not reported as this ID."
+    },
+    {
+      "id": "CT-CFG-08",
+      "status": "IN_SCOPE",
+      "contract_sections": "3.6, 13.8",
+      "test": "test_conformance.TestConformance.test_CT_CFG_08",
+      "note": "Validation only (no activation runtime)."
+    },
+    {
+      "id": "CT-TMO-10",
+      "status": "DEFERRED",
+      "contract_sections": "6.2, 10.6",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-TMO-11",
+      "status": "DEFERRED",
+      "contract_sections": "10.6",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-ARB-16",
+      "status": "DEFERRED",
+      "contract_sections": "2.4, 6.2",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-FB-06",
+      "status": "DEFERRED",
+      "contract_sections": "13.5",
+      "reason": "Needs the runtime that computes is_current; the schema rule and the admission use of a supplied is_current are tested but are not reported as this ID."
+    },
+    {
+      "id": "CT-VAL-14",
+      "status": "IN_SCOPE",
+      "contract_sections": "8.4, 8.6",
+      "test": "test_conformance.TestConformance.test_CT_VAL_14"
+    },
+    {
+      "id": "CT-FLT-19",
+      "status": "DEFERRED",
+      "contract_sections": "13.9",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-FLT-20",
+      "status": "DEFERRED",
+      "contract_sections": "13.9",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-FLT-21",
+      "status": "DEFERRED",
+      "contract_sections": "13.9, 13.6",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-FLT-22",
+      "status": "DEFERRED",
+      "contract_sections": "13.4, 13.6",
+      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+    },
+    {
+      "id": "CT-FLT-23",
+      "status": "IN_SCOPE",
+      "contract_sections": "13.6",
+      "test": "test_conformance.TestConformance.test_CT_FLT_23"
+    }
+  ]
+}

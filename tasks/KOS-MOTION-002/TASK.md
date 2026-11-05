@@ -80,7 +80,7 @@ Code: `src/kritva_motion/config_validation.py`; tests: `tests/validator/test_con
 
 ## 10. Admission validator, steps 1 to 9: decisions and findings (step 4)
 
-Code: `src/kritva_motion/admission.py` (standard library only); tests: `tests/validator/test_admission.py` and, with the test-only `jsonschema` dependency, `tests/schema/test_envelope_mirror.py`. Steps 10 (joint state and preconditions) and 11 (arbitration) are later changes: until then `admit()` raises `NotImplementedError` for a command that passed steps 1 to 9, so nothing is accepted by a partial check.
+Code: `src/kritva_motion/admission.py` (standard library only); tests: `tests/validator/test_admission.py`, `tests/validator/test_admission_state.py` and, with the test-only `jsonschema` dependency, `tests/schema/test_envelope_mirror.py`. Steps 1 to 9 were delivered first; steps 10 and 11 and the query path are in section 11.
 
 Owner decision (2026-11-05, chat): the contract mentions a configured maximum for `deadline_ms` and `execution_timeout_ms` (ERROR_CODES `INVALID_TIMEOUT`) and a configured default priority (5.6) but section 3.1 lists neither. The configuration validator therefore accepts three optional per-joint fields: `max_deadline_ms`, `max_execution_timeout_ms` and `default_priority` (default 0). A contract clarification is to be proposed later; the contract is not changed here.
 
@@ -100,3 +100,34 @@ Findings for a later contract clarification (nothing changed here):
 1. `deadline_ms` or `execution_timeout_ms` of zero or below is rejected INVALID_SCHEMA at step 2 by the schema (`exclusiveMinimum`), although `ERROR_CODES.md` lists a non-positive value under INVALID_TIMEOUT (step 8). INVALID_TIMEOUT is therefore reachable only for a value above the configured maximum.
 2. The identifier pattern `^[A-Za-z0-9._:-]{1,128}$` also accepts one trailing newline, because `$` matches before it in common regular-expression engines; contract 1.4 says only the listed characters are allowed.
 3. LIMIT_ACCELERATION stays reserved (MOTION-AD-045): the effective acceleration maximum is computed as the intersection but no command value is compared with it.
+
+## 11. Joint-state preconditions, arbitration and queries (step 5)
+
+Steps 10 (joint state and preconditions) and 11 (arbitration) complete the fixed order of contract 8.4; `admit()` now covers all eleven steps. The context gains `feedback_received_monotonic_ms`, `reference_time_ms` (both supplied, in one monotonic clock; the validator never reads the system clock) and `human_operator_attested` (the supplied result of the human-operator attribute of the identity assertion, 13.6). Command records carry `joint_id` and `phase`; fault records carry `code` and `cause_resolved`. A rejection for `TARGET_BUSY` carries `conflict` (the conflicting target and command ID); the result still carries no ID for the new command.
+
+Queries are authorized on a separate path, `admit_query`, with its own context that has no joint-state, feedback or backend input (6.4): identity, then authorization, then the active configuration and the target or visible command. An unseen command is `COMMAND_NOT_FOUND`, not `PERMISSION_DENIED`.
+
+Interpretations for owner review:
+
+- Step 10 order: control state first (8.6), then health (`TARGET_FAULTED`, `TARGET_DEGRADED`), then feedback (`FEEDBACK_UNAVAILABLE` before `FEEDBACK_STALE`). `STOP` and `CANCEL` have no step 10 precondition on any state. A missing, unbound (other joint) or out-of-enum snapshot fails closed: control state reads `UNKNOWN`, health reads `FAULTED`. The snapshot's `config_version` is not compared with the active configuration.
+- Feedback: `SET_POSITION` and `HOLD` always need valid, fresh feedback with a measured position (completion and hold both depend on it, 6.3 and 13.8); `SET_VELOCITY` needs it when `feedback_required` is true. Fresh means status VALID, `is_current` true and the supplied receipt time not older than `max_feedback_age_ms` before the reference time (equal is fresh); a receipt time after the reference time, or a missing receipt or reference time, counts as stale or unavailable, never as fresh.
+- A degraded joint accepts an operation only when every active degradation reason lists it in `degradation_policy`; with no reasons it fails closed `TARGET_DEGRADED`. The feedback checks still run afterwards (13.8: permission in principle only).
+- `CLEAR_FAULT` (13.6): `FAULT_NOT_CLEARABLE` covers an unresolved cause, a backend that is not `AVAILABLE`, an `UNKNOWN` or missing control state, required feedback that is not valid and fresh, and an active movement, pending `HOLD`, termination or `ACTIVE` control state. Then `HUMAN_CONFIRMATION_REQUIRED` when the fault's clearance is `HUMAN_REQUIRED` (the default, also for a fault with no code) and no human-operator attribute was supplied. The order follows `ERROR_CODES.md`.
+- Arbitration: a non-terminal `SET_POSITION`, `SET_VELOCITY` or pending (not engaged) `HOLD` on the joint, or an `ACTIVE` snapshot, makes `SET_*` and `HOLD` `TARGET_BUSY`; an unknown record state counts as active. An engaged `HOLD` does not occupy the slot, so a movement or a new `HOLD` is accepted on a `HOLDING` joint (9.5, 6.3). The first conflicting command by sorted command ID is named.
+- Not covered, by design: that a snapshot is current beyond the supplied times, races between concurrent submissions, backend authority, that termination occurs, and the atomic re-evaluation of `CLEAR_FAULT` at the moment of clearing (13.6 acceptance boundary), which needs a runtime.
+
+## 12. Conformance manifest and the test gate (step 6)
+
+`tests/manifest/conformance_manifest.json` lists all 124 IDs of `contract/CONFORMANCE_TEST_PLAN.md` with a status and the contract sections copied from the plan row: 39 IN_SCOPE, 80 DEFERRED and 5 OUT_OF_SCOPE. `scripts/test_gate.py` (not a protected path) runs the unit tests of `tests/schema`, `tests/validator`, `tests/gate` and `tests/status_gen` and checks the manifest against the plan. It fails on: no tests, any failure, error or skip (an expected failure is not a pass); a manifest ID missing from, extra to or duplicated against the plan; an unknown status; changed contract sections; an IN_SCOPE entry without exactly one test id, with a test that was not discovered, that did not pass, or that another ID also uses; a DEFERRED or OUT_OF_SCOPE entry without a reason or that names a test. Its own failure cases are proven on temporary trees in `tests/gate/test_test_gate.py`.
+
+Each IN_SCOPE ID has one dedicated method: `test_conformance.TestConformance.test_CT_<GROUP>_<NN>` (30 IDs, `tests/validator/test_conformance.py`) and `test_schemas.TestConformanceIds.test_CT_SCH_<NN>` (9 IDs). The methods are written for the ID and run their own cases; the broader unit tests stay as they are.
+
+Interpretations for owner review:
+
+- IN_SCOPE means the validator behaviour the ID describes is tested on supplied data. It does not mean the runtime, the activation path, the idempotency store, events or history exist. Where an ID has a validator part and a runtime part (for example CT-VAL-11, CT-FB-03, CT-FB-06, CT-FLT-18, CT-ARB-13, CT-CFG-01) it is DEFERRED, the reason names the part that is tested, and the ID is not counted.
+- CT-CFG-02, 07 and 08 are IN_SCOPE for validation only ("not activated" is shown as `valid = False`); no activation happens in this task.
+- CT-VAL-01 is IN_SCOPE with `LIMIT_ACCELERATION` reserved (MOTION-AD-045). CT-VAL-03 follows contract 8.3 revision 5: an acceleration constraint above the configured maximum is `INVALID_CONSTRAINT`; the plan row predates that revision.
+- CT-AUTH-05 shows the order of steps 3 and 4 for a supplied idempotency status; the store itself is DEFERRED.
+- CT-BE-01, 03, 04, 06 and 07 (backend interface and simulator) are OUT_OF_SCOPE; CT-BE-02 is DEFERRED.
+- The gate output is one evidence line with counts per status. A passing gate is software evidence for the IN_SCOPE IDs only; it is never physical or safety validation (gate V2-M6 stays HOLD).
+- `make test-unit` and the `unit-tests` workflow call the gate in step 7.
