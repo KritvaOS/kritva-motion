@@ -128,7 +128,7 @@ The target dates are in [planning/MILESTONE.md](planning/MILESTONE.md); they are
 
 | Dimension | Source record | Authority |
 |---|---|---|
-| Execution | the task status in [planning/TASKS.md](planning/TASKS.md); KOS-MOTION-001 is ACCEPTED (owner, 2026-11-05) and KOS-MOTION-002 is NOT_STARTED | The task owner records it |
+| Execution | the task status in [planning/TASKS.md](planning/TASKS.md); KOS-MOTION-001 is ACCEPTED (owner, 2026-11-05) and KOS-MOTION-002 is IN_PROGRESS (started 2026-11-05) | The task owner records it |
 | Evidence | KOS-MOTION-001: [tasks/KOS-MOTION-001/EVIDENCE.json](tasks/KOS-MOTION-001/EVIDENCE.json) cites three passing repository checks on the reviewed commit, and [REVIEW.md](tasks/KOS-MOTION-001/REVIEW.md) is the owner review. They are not runtime tests. | Evidence is recorded at acceptance, by the author; the review is the owner's and is not independent |
 | Acceptance | [ACCEPTANCE_CRITERIA.md](ACCEPTANCE_CRITERIA.md), the review record and the central approvals in kritva-program | The independent reviewer and the owner, never a status report |
 | Release readiness | not defined: no release, tag or completion record exists | The owner, through the central gates |
