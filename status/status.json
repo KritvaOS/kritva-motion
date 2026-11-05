@@ -1,0 +1,12 @@
+{
+  "schema_version": "2.0",
+  "workstream_id": "MOTION",
+  "repo": "KritvaOS/kritva-motion",
+  "source": {
+    "branch": "main",
+    "commit": "a0066d453950acbf20223eee48791d56c3bda117",
+    "tag": null
+  },
+  "tasks": [],
+  "updated_at": "2026-11-04T23:21:29+05:30"
+}

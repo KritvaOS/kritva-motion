@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Kritva Engineering Status (task level)",
+  "description": "Published by each engineering repo at status/status.json. Schema 2.0. Repos report facts only; review/acceptance live in kritva-program approvals.json (D-011).",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "workstream_id",
+    "repo",
+    "source",
+    "tasks",
+    "updated_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "2.0"
+    },
+    "workstream_id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$"
+    },
+    "repo": {
+      "type": "string",
+      "description": "owner/repository"
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "commit"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "branch": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "tag": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "task_id",
+          "execution",
+          "git_sync",
+          "readiness",
+          "evidence"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "Stable ID owned by the approved baseline in kritva-program"
+          },
+          "execution": {
+            "enum": [
+              "NOT_STARTED",
+              "IN_PROGRESS",
+              "BLOCKED",
+              "COMPLETE"
+            ]
+          },
+          "git_sync": {
+            "enum": [
+              "NOT_COMMITTED",
+              "COMMITTED",
+              "NOT_SYNCED",
+              "SYNCED"
+            ]
+          },
+          "readiness": {
+            "enum": [
+              "PLANNABLE",
+              "IMPLEMENTABLE",
+              "HARDWARE-BLOCKED"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "type",
+                "uri",
+                "description"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "type": {
+                  "enum": [
+                    "software",
+                    "simulation",
+                    "physical"
+                  ]
+                },
+                "uri": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": {
+                  "type": "string"
+                },
+                "commit": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^[0-9a-f]{40}$"
+                },
+                "ci_run": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "CI run URL or ID for this commit"
+                },
+                "report_sha256": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "result": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
