@@ -128,7 +128,7 @@ The target dates are in [planning/MILESTONE.md](planning/MILESTONE.md); they are
 
 | Dimension | Source record | Authority |
 |---|---|---|
-| Execution | the task status in [planning/TASKS.md](planning/TASKS.md); KOS-MOTION-001 is ACCEPTED (owner, 2026-11-05) and KOS-MOTION-002 is IN_PROGRESS (started 2026-11-05) | The task owner records it |
+| Execution | the task status in [planning/TASKS.md](planning/TASKS.md); KOS-MOTION-001 is ACCEPTED (owner, 2026-11-05) and KOS-MOTION-002 is NOT_STARTED | The task owner records it |
 | Evidence | KOS-MOTION-001: [tasks/KOS-MOTION-001/EVIDENCE.json](tasks/KOS-MOTION-001/EVIDENCE.json) cites three passing repository checks on the reviewed commit, and [REVIEW.md](tasks/KOS-MOTION-001/REVIEW.md) is the owner review. They are not runtime tests. | Evidence is recorded at acceptance, by the author; the review is the owner's and is not independent |
 | Acceptance | [ACCEPTANCE_CRITERIA.md](ACCEPTANCE_CRITERIA.md), the review record and the central approvals in kritva-program | The independent reviewer and the owner, never a status report |
 | Release readiness | not defined: no release, tag or completion record exists | The owner, through the central gates |
@@ -149,7 +149,8 @@ CI runs four workflows. `make check` is a local command and is not the same as C
 | `make check` | check | required planning files exist; the commit-message checker's unit tests run; it does not run `docs-check`, the PR gate or any contract test |
 | `make docs-check` | check | every relative Markdown link points to an existing file (not an anchor check) |
 | `make check-readme` | check | structural check of this README only (metadata, topics, relative links, placeholders); a PASS does not show the content is accurate; not part of `make check` or CI |
-| `make lint`, `make test-unit`, `make test-integration`, `make test-regression`, `make test`, `make acceptance` | placeholder | print NOT_IMPLEMENTED and exit 3: they check nothing and are never a pass |
+| `make test-unit` | check | runs the unit tests (schemas, validators, gate, status generator) and checks the conformance manifest against the plan (`scripts/test_gate.py`); needs `requirements-test.txt` installed (`PYTHON=...` selects the interpreter); software evidence only, never physical or safety validation |
+| `make lint`, `make test-integration`, `make test-regression`, `make test`, `make acceptance` | placeholder | print NOT_IMPLEMENTED and exit 3: they check nothing and are never a pass |
 | `python3 scripts/security/check_commit_format.py --range origin/main..HEAD` | check | the commit format of the commits on a branch (the PR gate runs the same check as rule R01) |
 
 There is nothing to build and no test of the contract, because there is no contract yet. A passing `make check` shows only that the listed files exist and that the commit checker's own tests pass. It does not show that a design is right, that a gate is closed or that anything is safe. `.github/kritva-gate.json` declares three required checks (`secret-scan`, `commit-message-check` and `pr-acceptance-gate`); that list is the gate's own declaration, not the branch ruleset. [AGENTS.md](AGENTS.md) and [CONTRIBUTING.md](CONTRIBUTING.md) now name the same three. The owner decided that `pr-acceptance-gate` is a required check in the `main` ruleset (PD-018, D-061); the owner states that it has been added to the `main` ruleset (D-069); that is OWNER-ATTESTED and not independently verified from this README.

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `make test-unit` now runs the unit tests and the conformance manifest gate (`scripts/test_gate.py`), and a `unit-tests` workflow runs it on pull requests and pushes to `main` with the pinned test dependencies. The other gate targets stay NOT_IMPLEMENTED. `unit-tests` is not yet a required check; that is a central decision (Task: KOS-MOTION-002, AC-206). Protected paths (`Makefile`, `.github/`): owner merge with bypass.
+
 - Conformance manifest and test gate (`tests/manifest/conformance_manifest.json`, `scripts/test_gate.py`): all 124 conformance IDs marked (39 IN_SCOPE, 80 DEFERRED, 5 OUT_OF_SCOPE), each IN_SCOPE ID mapped to exactly one dedicated test (30 in `tests/validator/test_conformance.py`, 9 in `tests/schema/test_schemas.py`); the gate fails on no tests, a failed or skipped test, or a missing, duplicated or unmapped ID, and its failure cases are tested (24 tests in `tests/gate/`). DEFERRED IDs are never reported as passed (Task: KOS-MOTION-002, AC-206). `make test-unit` stays NOT_IMPLEMENTED until step 7; software evidence only.
 
 - Admission steps 10 and 11 (`src/kritva_motion/admission.py`): joint-state preconditions with the exemption matrix of contract 8.6, feedback freshness against a supplied monotonic reference time, the `CLEAR_FAULT` checks of 13.6, arbitration (`TARGET_BUSY` with the conflicting command), and a separate query authorization path (`admit_query`). `admit()` now covers all eleven steps. 48 more validator tests (132 in all), including the exemption matrix, every adjacent step pair (1,2) to (10,11) and a fixture for every admission code (Task: KOS-MOTION-002, AC-202, AC-204). Software evidence only; no runtime, no race or termination claim.
