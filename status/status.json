@@ -4,7 +4,7 @@
   "repo": "KritvaOS/kritva-motion",
   "source": {
     "branch": "main",
-    "commit": "808ca37ca645747960ce66e81e872c39dfaea2c9",
+    "commit": "7436042ccd62fa882abf55c0188be1b324191907",
     "tag": null
   },
   "tasks": [
@@ -45,21 +45,39 @@
     },
     {
       "task_id": "KOS-MOTION-002",
-      "execution": "IN_PROGRESS",
+      "execution": "COMPLETE",
       "git_sync": "NOT_SYNCED",
       "readiness": "IMPLEMENTABLE",
       "evidence": [
         {
           "type": "software",
-          "uri": "ACCEPTANCE_CRITERIA.md",
-          "description": "Criteria reference only (not completion proof); planning status text: 'IN_PROGRESS'",
-          "commit": null,
-          "ci_run": null,
+          "uri": "https://github.com/KritvaOS/kritva-motion/actions/runs/42252338614",
+          "description": "secret-scan: PASS on main commit 77319b46 (KOS-MOTION-002 reference validator, tests, manifest and documentation merged)",
+          "commit": "77319b460d01436c7c70a40af8163bde287dfeb7",
+          "ci_run": "https://github.com/KritvaOS/kritva-motion/actions/runs/42252338614",
           "report_sha256": null,
-          "result": null
+          "result": "PASS"
+        },
+        {
+          "type": "software",
+          "uri": "https://github.com/KritvaOS/kritva-motion/actions/runs/42252338615",
+          "description": "readme-check: PASS on main commit 77319b46 (KOS-MOTION-002 reference validator, tests, manifest and documentation merged)",
+          "commit": "77319b460d01436c7c70a40af8163bde287dfeb7",
+          "ci_run": "https://github.com/KritvaOS/kritva-motion/actions/runs/42252338615",
+          "report_sha256": null,
+          "result": "PASS"
+        },
+        {
+          "type": "software",
+          "uri": "https://github.com/KritvaOS/kritva-motion/actions/runs/42252338541",
+          "description": "unit-tests: PASS on main commit 77319b46 (KOS-MOTION-002 reference validator, tests, manifest and documentation merged)",
+          "commit": "77319b460d01436c7c70a40af8163bde287dfeb7",
+          "ci_run": "https://github.com/KritvaOS/kritva-motion/actions/runs/42252338541",
+          "report_sha256": null,
+          "result": "PASS"
         }
       ]
     }
   ],
-  "updated_at": "2026-11-05T22:59:11+05:30"
+  "updated_at": "2026-11-06T21:58:47+05:30"
 }

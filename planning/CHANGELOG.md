@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- README, task record and acceptance-criteria gate table updated for KOS-MOTION-002: what the reference validator is and is not, `make test-unit` marked implemented, five workflows, and the statement that a pass is software evidence only (never physical or safety validation) with DEFERRED IDs never counted as passed (Task: KOS-MOTION-002, AC-207). Criteria text AC-201 to AC-207 unchanged. `ACCEPTANCE_CRITERIA.md` is a protected path: owner merge with bypass.
+- KOS-MOTION-002 accepted by the owner (2026-11-06): `tasks/KOS-MOTION-002/REVIEW.md`, `EVIDENCE.json` (three passing runs on main commit 77319b46: secret-scan, readme-check, unit-tests), TASKS.md status ACCEPTED, regenerated `status/status.json` (Task: KOS-MOTION-002). The review is not independent (D-047), 80 conformance IDs stay DEFERRED, nothing is physical or safety validation, no tag is created and `unit-tests` is not yet a required check. Credit is a central program decision.
 
 - `make test-unit` now runs the unit tests and the conformance manifest gate (`scripts/test_gate.py`), and a `unit-tests` workflow runs it on pull requests and pushes to `main` with the pinned test dependencies. The other gate targets stay NOT_IMPLEMENTED. `unit-tests` is not yet a required check; that is a central decision (Task: KOS-MOTION-002, AC-206). Protected paths (`Makefile`, `.github/`): owner merge with bypass.
 

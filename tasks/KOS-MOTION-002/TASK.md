@@ -1,6 +1,6 @@
 # KOS-MOTION-002: Command validation, limit enforcement and fault-path tests
 
-Status (revision 2): IN_PROGRESS since 2026-11-05; KOS-MOTION-001 was accepted the same day, so the dependency is met. Work proceeds in small pull requests (see section 8). Owner approval recorded in chat on 2026-11-04 (Dinesh), program decision D-100. Milestone: V2-M2-MOTION-001. Acceptance begins after KOS-MOTION-001 is accepted; the program baseline has no dependency field, so the dependency is enforced here.
+Status (revision 3): ACCEPTED by the owner on 2026-11-06 (review record `REVIEW.md`, evidence `EVIDENCE.json`; interim review, not independent; software evidence only). Before that, status (revision 2): IN_PROGRESS since 2026-11-05; KOS-MOTION-001 was accepted the same day, so the dependency is met. Work proceeds in small pull requests (see section 8). Owner approval recorded in chat on 2026-11-04 (Dinesh), program decision D-100. Milestone: V2-M2-MOTION-001. Acceptance begins after KOS-MOTION-001 is accepted; the program baseline has no dependency field, so the dependency is enforced here.
 Task owner: Dinesh (repository owner). Architecture and safety reviewer roles: Dinesh, interim (D-047); independent review is not in place.
 The task is in program baseline v9 (weight 5) and earns credit only through a central approval with passing evidence. Motion reports facts only.
 
@@ -139,11 +139,3 @@ Interpretations for owner review:
 - `unit-tests` is not added to `required_github_checks` in `.github/kritva-gate.json` here. Whether it becomes a required check, in the repository and in the `main` ruleset, is a central kritva-program decision (as D-097 did for the earlier checks). Until then a red `unit-tests` run is visible but does not block a merge.
 - Dependencies are pinned by exact version in `requirements-test.txt` without hashes; hash pinning is not done in this task.
 - The `ACCEPTANCE_CRITERIA.md` gate table still lists `make test-unit` as NOT_IMPLEMENTED; it is a protected path and is updated at acceptance (step 8).
-
-## 14. Documentation and the software-evidence statement (step 8, AC-207)
-
-The README now states what exists (the reference validator under `src/kritva_motion/`, the tests, the manifest, `make test-unit`) and what does not (runtime, activation path, idempotency store, events, history, backend interface, integration and regression gates). It states that a passing `make test-unit` is software evidence for the IN_SCOPE conformance IDs only, never physical or safety validation, and that DEFERRED and OUT_OF_SCOPE IDs are never counted as passed. The gate table in `ACCEPTANCE_CRITERIA.md` section 5 marks `make test-unit` as implemented; the criteria text of AC-201 to AC-207 is unchanged.
-
-AC-207 basis: the no-I/O property is checked by an AST test of `admission.py` (imports limited to `math`, `re`, `dataclasses` and `typing`, no file, network or clock calls); `config_validation.py` is standard library only. Review status for the acceptance that follows: owner-reviewed, interim architecture and safety reviewer, not independent (D-047, D-065). This task is not a safety case.
-
-Acceptance is a separate change after this one: a review record, `EVIDENCE.json` with the CI run links of the merged commit (secret-scan, commit-message-check, pr-acceptance-gate, unit-tests), the status change in `planning/TASKS.md`, and then the central approval in kritva-program. A tag is decided with the owner: the Motion contract stays draft (section 16 PROVISIONAL), so no `v0.1.0` tag exists, and credit does not need one.
