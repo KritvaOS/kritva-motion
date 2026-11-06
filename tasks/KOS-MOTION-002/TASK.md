@@ -131,3 +131,11 @@ Interpretations for owner review:
 - CT-BE-01, 03, 04, 06 and 07 (backend interface and simulator) are OUT_OF_SCOPE; CT-BE-02 is DEFERRED.
 - The gate output is one evidence line with counts per status. A passing gate is software evidence for the IN_SCOPE IDs only; it is never physical or safety validation (gate V2-M6 stays HOLD).
 - `make test-unit` and the `unit-tests` workflow call the gate in step 7.
+
+## 13. `make test-unit` and the `unit-tests` workflow (step 7)
+
+`make test-unit` now runs `scripts/test_gate.py` (`PYTHON=` selects the interpreter; default `python3`, which needs `requirements-test.txt` installed). `.github/workflows/unit-tests.yml` installs the pinned test dependencies and runs `make test-unit` on pull requests and on pushes to `main`. `make lint`, `make test-integration`, `make test-regression`, `make test` and `make acceptance` stay NOT_IMPLEMENTED (exit 3). `Makefile` and `.github/` are protected paths, so this change is owner-merged with bypass.
+
+- `unit-tests` is not added to `required_github_checks` in `.github/kritva-gate.json` here. Whether it becomes a required check, in the repository and in the `main` ruleset, is a central kritva-program decision (as D-097 did for the earlier checks). Until then a red `unit-tests` run is visible but does not block a merge.
+- Dependencies are pinned by exact version in `requirements-test.txt` without hashes; hash pinning is not done in this task.
+- The `ACCEPTANCE_CRITERIA.md` gate table still lists `make test-unit` as NOT_IMPLEMENTED; it is a protected path and is updated at acceptance (step 8).

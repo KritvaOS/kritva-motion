@@ -1,0 +1,26 @@
+# unit-tests.yml: GitHub Actions run of `make test-unit` (KOS-MOTION-002, AC-206).
+# Installs only the pinned test-only dependencies; no secrets, no network use by the tests.
+# Not yet a required check: that is a central kritva-program decision.
+name: unit-tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install the pinned test dependencies
+        run: python3 -m pip install -r requirements-test.txt
+      - name: Unit tests and conformance manifest gate
+        run: make test-unit

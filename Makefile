@@ -31,14 +31,15 @@ check-readme: ## Structural check of README.md (metadata, topics, relative links
 
 ##@ Gates (unimplemented gates exit 3)
 .PHONY: lint test-unit test-integration test-regression test acceptance
+PYTHON ?= python3
 define not_implemented
 	@echo "NOT_IMPLEMENTED: $(1) has no tests yet; this is not a pass"; exit 3
 endef
 
 lint: ## Static analysis and lint (NOT_IMPLEMENTED: exits 3)
 	$(call not_implemented,lint)
-test-unit: ## Unit tests (NOT_IMPLEMENTED: exits 3)
-	$(call not_implemented,test-unit)
+test-unit: ## Unit tests and conformance manifest gate (PYTHON=... selects the interpreter)
+	@$(PYTHON) scripts/test_gate.py
 test-integration: ## Integration tests (NOT_IMPLEMENTED: exits 3)
 	$(call not_implemented,test-integration)
 test-regression: ## Regression tests (NOT_IMPLEMENTED: exits 3)
