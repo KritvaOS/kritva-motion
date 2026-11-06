@@ -29,7 +29,9 @@
   "required_github_checks": [
     "secret-scan",
     "commit-message-check",
-    "pr-acceptance-gate"
+    "pr-acceptance-gate",
+    "unit-tests",
+    "readme-check"
   ],
   "task_prefix": "KOS-MOTION",
   "task_registry": {

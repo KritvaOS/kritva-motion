@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `.github/kritva-gate.json` now declares five required checks, matching the `main` ruleset (read back on 2026-11-06), AGENTS.md, CONTRIBUTING.md and README.md: `unit-tests` (D-104) was missing from the file after the milestone closure change, and `readme-check` (D-106) was required by the ruleset but not declared. D-067 had kept `readme-check` out of every ruleset until a later owner decision (Tasks: None; program decisions D-104 and D-106). Protected path `.github/`: owner merge with bypass.
+
 - Ruleset read-back on 2026-11-06: the `main` ruleset requires `unit-tests` (and `readme-check`, which the manifest does not list). README, completion record and task record say verified instead of owner-attested for `unit-tests`; the `readme-check` difference is recorded and not decided (Tasks: None; program decision D-104).
 
 - `unit-tests` is now a required check of kritva-motion (`.github/kritva-gate.json`, AGENTS.md, CONTRIBUTING.md, README.md; program decision D-104), and milestone V2-M2-MOTION-001 is closed by `COMPLETION_RECORD.md` with the outcome narrowed to what exists (D-105). The `main` ruleset setting is an owner action, OWNER-ATTESTED until read back. Restores the README, task record section 14 and changelog text of the documentation change (step 8) that the acceptance pull request overwrote with older copies. Integration and regression gates stay NOT_IMPLEMENTED and are deferred work (Task: None; program decisions D-104 and D-105). Protected path `.github/`: owner merge with bypass.
