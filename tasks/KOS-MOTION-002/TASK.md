@@ -139,3 +139,18 @@ Interpretations for owner review:
 - `unit-tests` is not added to `required_github_checks` in `.github/kritva-gate.json` here. Whether it becomes a required check, in the repository and in the `main` ruleset, is a central kritva-program decision (as D-097 did for the earlier checks). Until then a red `unit-tests` run is visible but does not block a merge.
 - Dependencies are pinned by exact version in `requirements-test.txt` without hashes; hash pinning is not done in this task.
 - The `ACCEPTANCE_CRITERIA.md` gate table still lists `make test-unit` as NOT_IMPLEMENTED; it is a protected path and is updated at acceptance (step 8).
+
+## 14. Documentation and the software-evidence statement (step 8, AC-207)
+
+The README now states what exists (the reference validator under `src/kritva_motion/`, the tests, the manifest, `make test-unit`) and what does not (runtime, activation path, idempotency store, events, history, backend interface, integration and regression gates). It states that a passing `make test-unit` is software evidence for the IN_SCOPE conformance IDs only, never physical or safety validation, and that DEFERRED and OUT_OF_SCOPE IDs are never counted as passed. The gate table in `ACCEPTANCE_CRITERIA.md` section 5 marks `make test-unit` as implemented; the criteria text of AC-201 to AC-207 is unchanged.
+
+AC-207 basis: the no-I/O property is checked by an AST test of `admission.py` (imports limited to `math`, `re`, `dataclasses` and `typing`, no file, network or clock calls); `config_validation.py` is standard library only. Review status for the acceptance that follows: owner-reviewed, interim architecture and safety reviewer, not independent (D-047, D-065). This task is not a safety case.
+
+Acceptance is a separate change after this one: a review record, `EVIDENCE.json` with the CI run links of the merged commit (secret-scan, commit-message-check, pr-acceptance-gate, unit-tests), the status change in `planning/TASKS.md`, and then the central approval in kritva-program. A tag is decided with the owner: the Motion contract stays draft (section 16 PROVISIONAL), so no `v0.1.0` tag exists, and credit does not need one.
+
+## 15. Required check and closure of V2-M2-MOTION-001
+
+Program decision D-104: `unit-tests` becomes the fourth required check of kritva-motion (`.github/kritva-gate.json`, `AGENTS.md`, `CONTRIBUTING.md`, `README.md` and the central `repo-pipeline.json`). That the `main` ruleset requires it was a GitHub settings action by the owner and is verified: a read-back on 2026-11-06 lists `unit-tests` among the required status checks of the `main` ruleset.
+
+Program decision D-105: the outcome of V2-M2-MOTION-001 is narrowed to what this task delivered (configuration and command validation, limit enforcement, admission-time and joint-state fault-path tests, the `make test-unit` gate), because KOS-MOTION-002 implements `make test-unit` only. The integration and regression gates and the runtime lifecycle, termination and fault state machine are deferred work, not waived and not counted as passed. The milestone is closed by `COMPLETION_RECORD.md`.
+

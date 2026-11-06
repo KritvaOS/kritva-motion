@@ -1,0 +1,36 @@
+cd ~/workarea/kritvaOS/kritva-program && git switch main && git pull --ff-only && git checkout -b chore/close-v2-m2-motion-001 && python3 - <<'PYEOF'
+import json
+# 1. repo-pipeline.json: unit-tests becomes a required check of kritva-motion (D-104)
+p = "v2/planning/repo-pipeline.json"
+d = json.load(open(p))
+r = next(x for x in d["repositories"] if x["repo_id"] == "kritva-motion")
+assert "unit-tests" in d["known_github_checks"] and "unit-tests" not in r["required_github_checks"]
+r["required_github_checks"].append("unit-tests")
+raw = open(p).read()
+open(p, "w").write(json.dumps(d, indent=2, ensure_ascii=False) + "\n")
+# 2. milestones.json: narrow the outcome and close V2-M2-MOTION-001 (D-105)
+p = "v2/planning/milestones.json"
+m = json.load(open(p))
+x = next(s for s in m["repo_milestones"] if s["id"] == "V2-M2-MOTION-001")
+x["outcome"] = "Command and configuration validation, limit enforcement and admission-time and joint-state fault-path tests pass as a software-only reference validator, with the `make test-unit` gate and a conformance manifest. The integration and regression gates and the runtime lifecycle, termination and fault state machine are separate, later work."
+x["status"] = "CLOSED"
+open(p, "w").write(json.dumps(m, indent=2, ensure_ascii=False) + "\n")
+# 3. DECISIONS.md: D-104 and D-105 after D-103
+d3 = open("v2/DECISIONS.md").read()
+assert "| D-104 |" not in d3
+row104 = ("| D-104 | `unit-tests` becomes a required GitHub check for kritva-motion (Dinesh, chat, 2026-11-06: \"Make unit-tests a required check\", and \"Consider all the task as approved\"; carries out the open point recorded in D-103) "
+          "| The kritva-motion `unit-tests` workflow runs `make test-unit` (the unit tests and the conformance manifest gate of KOS-MOTION-002) on every pull request and push to `main`, and is the only run of the code tests there. As with kritva-sense (D-097), the repository declaration and the central manifest should agree "
+          "| `unit-tests` is added to the required checks of kritva-motion in `v2/planning/repo-pipeline.json` (it is already a known check) and in kritva-motion `.github/kritva-gate.json`, `AGENTS.md`, `CONTRIBUTING.md` and `README.md` (a protected-path pull request, owner-merged); `V2_REPO_PLAN.md` is regenerated. That the kritva-motion `main` ruleset requires `unit-tests` is a GitHub settings action by the owner: this repository cannot read the ruleset, so it is OWNER-ATTESTED, not independently verified, until the ruleset is read back "
+          "| Approved; manifest change in this pull request; ruleset setting owner-attested |\n")
+row105 = ("| D-105 | Milestone V2-M2-MOTION-001 closed with its outcome narrowed to what exists (Dinesh, chat, 2026-11-06: \"Consider all the task as approved and once implementation completed close the record, there is no repeated Approval is not required\"; chosen from the options: narrow the outcome, waive the two gates, or draft only) "
+          "| The outcome promised \"unit, integration and regression gates implemented\", but KOS-MOTION-002 implements `make test-unit` only: `make test-integration` and `make test-regression` still exit 3 (NOT_IMPLEMENTED), as the KOS-MOTION-002 proposal recorded in advance. Closing with a waiver would leave the stated outcome unmet; keeping the milestone open for gates no task is registered to build would hold it open indefinitely "
+          "| The outcome in `v2/planning/milestones.json` is narrowed to command and configuration validation, limit enforcement, admission-time and joint-state fault-path tests, the `make test-unit` gate and a conformance manifest. The integration and regression gates and the runtime lifecycle, termination and fault state machine are deferred work: not waived, not counted as passed, and no task is registered for them yet. The repo milestone status becomes CLOSED, backed by `COMPLETION_RECORD.md` in kritva-motion (criteria AC-201 to AC-207 PASS, D-103). It does not close the program milestone V2-M2, whose exit conditions cover every capability repository, and it earns no credit of its own: credit stays per task. It is software evidence only, the review is the interim D-047 role and is not independent, no tag is created (contract section 16 is PROVISIONAL) and nothing is physical or safety validation (gate V2-M6, HOLD) "
+          "| Approved; applied by pull request |\n")
+i = d3.index("| D-103 |"); j = d3.index("\n", i) + 1
+open("v2/DECISIONS.md", "w").write(d3[:j] + row104 + row105 + d3[j:])
+PYEOF
+git diff --stat && python3 tools/planning.py && python3 tools/planning.py --check \
+&& git -C ../kritva-motion fetch origin && (python3 tools/refresh_sources.py; true) \
+&& python3 tools/consolidate_status.py --sources-dir sources --verify-runs >/tmp/verify.out 2>&1; echo "verify rc=$?"; \
+python3 tools/consolidate_status.py --sources-dir sources --check >/tmp/check.out 2>&1; echo "check rc=$?"; \
+python3 -m unittest discover -s tests -q >/tmp/ut.out 2>&1; rc=$?; echo "unittest rc=$rc"; grep -E '^(Ran |OK|FAILED|FAIL:|ERROR:)' /tmp/ut.out; git status --short
