@@ -29,7 +29,7 @@ Kritva Motion is the part of Kritva OS V2 that will own the Motion command and s
 
 **This repository does not own**: actuator hardware, firmware and transport (kritva-actuator family, on HOLD), sensing (kritva-sense), skill orchestration (kritva-skill), and any physical safety validation.
 
-**Implementation state.** IMPLEMENTED: the governance baseline (planning records, acceptance criteria, pull-request workflows and scripts, the commit-message checker, the `Makefile` structure check), status reporting, and for task KOS-MOTION-002 a software-only reference validator of the Motion contract under [src/kritva_motion/](src/kritva_motion/) (configuration validation and command admission, standard library only, no I/O toward a backend or device), the schema, validator, gate and conformance tests under [tests/](tests/), a conformance manifest and `make test-unit` with its `unit-tests` workflow. NOT YET IMPLEMENTED: a Motion runtime, an activation path, an idempotency store, events and history, a backend interface or simulator, integration and regression gates, and any release. 80 of the 124 conformance IDs are DEFERRED to later tasks and 5 are out of scope ([manifest](tests/manifest/conformance_manifest.json)); they are never counted as passed. PROPOSED: the draft contract package of KOS-MOTION-001, which the owner accepted on 2026-11-05 ([planning/TASKS.md](planning/TASKS.md), [review record](tasks/KOS-MOTION-001/REVIEW.md)); the contract stays a draft and is untagged, so it is not yet an interface other repositories may rely on. Passing tests is software evidence only, never physical or safety validation.
+**Implementation state.** IMPLEMENTED: the governance baseline only: the planning records under [planning/](planning/), the acceptance criteria, the pull-request workflows and their scripts, the commit-message checker with its tests, and the `Makefile` structure check. NOT YET IMPLEMENTED: any source code, runtime tests of the contract, a `src/` folder, unit, integration and regression gates, status reporting and any release. PROPOSED: the draft contract package for the first task KOS-MOTION-001 (Motion command and state contract), which the owner accepted on 2026-11-05 ([planning/TASKS.md](planning/TASKS.md), [review record](tasks/KOS-MOTION-001/REVIEW.md)); KOS-MOTION-002 was accepted by the owner on 2026-11-06 ([review record](tasks/KOS-MOTION-002/REVIEW.md); software evidence only); the contract stays a draft and is untagged, so it is not yet an interface other repositories may rely on. Source folders are added only when a real task needs them, so their absence is intended and is not a defect.
 
 ## 2. Position in the KritvaOS Ecosystem
 
@@ -63,18 +63,17 @@ Labels: INPUT is edited by hand and read by a tool or review; GENERATED is writt
 | Path | Content | Label, status | Notes |
 |---|---|---|---|
 | [planning/](planning/) | Tasks, milestones, milestone status, review checklist, commit step, changelog | MIXED: planning records | Governs execution and acceptance |
-| [ACCEPTANCE_CRITERIA.md](ACCEPTANCE_CRITERIA.md) | Criteria and test gates for KOS-MOTION-001 (section 3) and KOS-MOTION-002 (section 3A) | AUTHORITATIVE; PROPOSED | Accepted criteria are never edited; a change is a new version |
+| [ACCEPTANCE_CRITERIA.md](ACCEPTANCE_CRITERIA.md) | Criteria and test gates for KOS-MOTION-001 | AUTHORITATIVE; PROPOSED | Accepted criteria are never edited; a change is a new version |
 | [architecture/](architecture/) | Draft architecture and decision register (MOTION-AD-001 to 045) | INPUT; PROPOSED | Not approved; the contract is the normative text |
 | [contract/](contract/) | Draft Motion contract v0.1.0, five JSON schemas, error codes, conformance test plan | AUTHORITATIVE for the contract once approved; PROPOSED | Schema checks only; no runtime exists |
 | [tasks/](tasks/KOS-MOTION-001/TASK.md) | Task record and proposed acceptance-criteria amendments for KOS-MOTION-001 | INPUT; PROPOSED | Amendments are not adopted |
-| [scripts/](scripts/) | `docs_check.py` (link check), `pipeline/pr_gate.py` (PR gate), `security/` (commit checkers), `check_readme.py` (README check), `status/gen_status.py` (status generator and checker), `test_gate.py` (unit-test gate and conformance manifest check) | INPUT; IMPLEMENTED | `pipeline/` and `security/` are protected paths of the gate |
-| [tests/](tests/) | `commit_message_check/`, `readme_check/` and `status_gen/` (tooling tests), `schema/` (the five contract schemas), `validator/` (reference validator and one conformance test per IN_SCOPE ID), `gate/` (the test gate's own tests) and `manifest/conformance_manifest.json` | EVIDENCE; IMPLEMENTED | Software evidence only; deterministic, offline; DEFERRED IDs have no test |
-| [.github/](.github/) | CODEOWNERS, pull request template, `kritva-gate.json` and five workflows | AUTHORITATIVE | `kritva-gate.json` configures the PR gate |
+| [scripts/](scripts/) | `docs_check.py` (link check), `pipeline/pr_gate.py` (PR gate), `security/` (commit checkers), `check_readme.py` (README check), `status/gen_status.py` (status generator and checker) | INPUT; IMPLEMENTED | `pipeline/` and `security/` are protected paths of the gate |
+| [tests/](tests/) | `commit_message_check/` (commit checker tests), `readme_check/` (README checker tests) and `status_gen/` (status generator tests) | EVIDENCE; IMPLEMENTED | Tests of the tooling only; no test of the contract exists |
+| [.github/](.github/) | CODEOWNERS, pull request template, `kritva-gate.json` and four workflows | AUTHORITATIVE | `kritva-gate.json` configures the PR gate |
 | [Makefile](Makefile) | Check targets; unimplemented gates exit 3 | INPUT; IMPLEMENTED | See section 11 |
 | [AGENTS.md](AGENTS.md), [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), [LICENSE](LICENSE) | Rules, contribution steps, security policy, licence | AUTHORITATIVE | |
 | [status/](status/) | `status.json` (GENERATED report, schema 2.0), the vendored `status.schema.json` and its recorded SHA-256 | GENERATED; IMPLEMENTED | Reports facts only; never edit `status.json` by hand |
-| [src/kritva_motion/](src/kritva_motion/) | Reference validator: `config_validation.py`, `admission.py` (standard library only) | IMPLEMENTED | Validates supplied data only; no runtime, no I/O toward a backend or device |
-| `include/`, `docs/`, `examples/` | Interfaces, documentation, examples | NOT YET IMPLEMENTED (absent) | Added only when a real task needs them |
+| `src/`, `include/`, `docs/`, `examples/` | Source, interfaces, documentation, examples | NOT YET IMPLEMENTED (absent) | Added only when a real task needs them |
 
 ## 6. Toolchain and Development Workflow
 
@@ -129,21 +128,20 @@ The target dates are in [planning/MILESTONE.md](planning/MILESTONE.md); they are
 
 | Dimension | Source record | Authority |
 |---|---|---|
-| Execution | the task status in [planning/TASKS.md](planning/TASKS.md); KOS-MOTION-001 is ACCEPTED (owner, 2026-11-05) and KOS-MOTION-002 is NOT_STARTED | The task owner records it |
-| Evidence | KOS-MOTION-001: [tasks/KOS-MOTION-001/EVIDENCE.json](tasks/KOS-MOTION-001/EVIDENCE.json) cites three passing repository checks on the reviewed commit, and [REVIEW.md](tasks/KOS-MOTION-001/REVIEW.md) is the owner review. They are not runtime tests. | Evidence is recorded at acceptance, by the author; the review is the owner's and is not independent |
+| Execution | the task status in [planning/TASKS.md](planning/TASKS.md); KOS-MOTION-001 is ACCEPTED (owner, 2026-11-05) and KOS-MOTION-002 is ACCEPTED (owner, 2026-11-06) | The task owner records it |
+| Evidence | KOS-MOTION-001: [tasks/KOS-MOTION-001/EVIDENCE.json](tasks/KOS-MOTION-001/EVIDENCE.json) cites three passing repository checks on the reviewed commit, and [REVIEW.md](tasks/KOS-MOTION-001/REVIEW.md) is the owner review; KOS-MOTION-002: [EVIDENCE.json](tasks/KOS-MOTION-002/EVIDENCE.json) cites three passing repository checks (including `unit-tests`) and [REVIEW.md](tasks/KOS-MOTION-002/REVIEW.md) is the owner review. They are not runtime tests. | Evidence is recorded at acceptance, by the author; the review is the owner's and is not independent |
 | Acceptance | [ACCEPTANCE_CRITERIA.md](ACCEPTANCE_CRITERIA.md), the review record and the central approvals in kritva-program | The independent reviewer and the owner, never a status report |
 | Release readiness | not defined: no release, tag or completion record exists | The owner, through the central gates |
 
 ## 11. Build, Test, Regression and Validation
 
-CI runs five workflows. `make check` is a local command and is not the same as CI.
+CI runs four workflows. `make check` is a local command and is not the same as CI.
 
 | Workflow | Trigger | What it runs |
 |---|---|---|
 | `commit-message-check` | pull requests | the commit checker's unit tests, and the checker on the pull request's commits (rejects AI-session trailers and links only) |
 | `pr-acceptance-gate` | pull requests | `scripts/pipeline/pr_gate.py static` against `.github/kritva-gate.json`: report-only rules R01 commit format, R02 task exists and is open, R03 acceptance criteria changed, R04 protected paths, R05 completion record, R06 required workflows, R07 required approvals, R08 dependencies. REJECT fails the check; NEEDS_HUMAN and APPROVE pass it; it posts or updates a report comment and approves and merges nothing |
 | `readme-check` | pull requests; push to `main` | the README checker's unit tests, then `python3 scripts/check_readme.py README.md` (structure, metadata and local links only; not a required check yet, D-067) |
-| `unit-tests` | pull requests; push to `main` | `make test-unit` after installing the pinned `requirements-test.txt` (not a required check yet; a central decision) |
 | `secret-scan` | push to `main`; pull requests; manual dispatch | gitleaks over the git history |
 
 | Command | Effect | Notes |
@@ -155,7 +153,7 @@ CI runs five workflows. `make check` is a local command and is not the same as C
 | `make lint`, `make test-integration`, `make test-regression`, `make test`, `make acceptance` | placeholder | print NOT_IMPLEMENTED and exit 3: they check nothing and are never a pass |
 | `python3 scripts/security/check_commit_format.py --range origin/main..HEAD` | check | the commit format of the commits on a branch (the PR gate runs the same check as rule R01) |
 
-There is nothing to build. `make test-unit` runs the tests of the reference validator and checks the conformance manifest against the plan; a pass is software evidence for the IN_SCOPE conformance IDs only, never physical or safety validation, and it says nothing about DEFERRED IDs, the runtime, a backend or hardware. A passing `make check` shows only that the listed files exist and that the commit checker's own tests pass. It does not show that a design is right, that a gate is closed or that anything is safe. `.github/kritva-gate.json` declares three required checks (`secret-scan`, `commit-message-check` and `pr-acceptance-gate`); that list is the gate's own declaration, not the branch ruleset. [AGENTS.md](AGENTS.md) and [CONTRIBUTING.md](CONTRIBUTING.md) now name the same three. The owner decided that `pr-acceptance-gate` is a required check in the `main` ruleset (PD-018, D-061); the owner states that it has been added to the `main` ruleset (D-069); that is OWNER-ATTESTED and not independently verified from this README.
+There is nothing to build and no test of the contract, because there is no contract yet. A passing `make check` shows only that the listed files exist and that the commit checker's own tests pass. It does not show that a design is right, that a gate is closed or that anything is safe. `.github/kritva-gate.json` declares three required checks (`secret-scan`, `commit-message-check` and `pr-acceptance-gate`); that list is the gate's own declaration, not the branch ruleset. [AGENTS.md](AGENTS.md) and [CONTRIBUTING.md](CONTRIBUTING.md) now name the same three. The owner decided that `pr-acceptance-gate` is a required check in the `main` ruleset (PD-018, D-061); the owner states that it has been added to the `main` ruleset (D-069); that is OWNER-ATTESTED and not independently verified from this README.
 
 ## 12. Git Workflow and Review
 
@@ -163,7 +161,7 @@ Controlling statement ([AGENTS.md](AGENTS.md) section 3, the D-053 form): header
 
 ## 13. Safety and Security
 
-No safety case exists. The repository contains a software-only reference validator that reads supplied data and performs no I/O toward a backend or device (an AST test forbids it), no Motion runtime and no hardware, and it makes no safety claim. The planned contract can still influence what other software does, so its safety implications need human review when it is designed. The planning records state that any hardware-in-loop or physical validation claim stays gated on program milestone V2-M6 (HOLD) and that no architecture or safety reviewer was assigned when the criteria were written (program decision PD-007, since resolved on an interim basis by D-047: both roles are assigned to the owner). Software acceptance, tests, simulation and mocks are never described as hardware or safety validation. Motion describes commands and limits for devices that move. The actuator hardware family is on HOLD in the program plan, no actuator is connected to anything in this repository, and nothing here validates physical behaviour: any claim about a physical limit, stop or fault response stays blocked by the program's physical-safety gate (V2-M6) and the human safety reviews recorded in kritva-program.
+No implementation and no safety case exist at this planning stage: the repository contains no software that runs and no hardware, and it makes no safety claim. The planned contract can still influence what other software does, so its safety implications need human review when it is designed. The planning records state that any hardware-in-loop or physical validation claim stays gated on program milestone V2-M6 (HOLD) and that no architecture or safety reviewer was assigned when the criteria were written (program decision PD-007, since resolved on an interim basis by D-047: both roles are assigned to the owner). Software acceptance, tests, simulation and mocks are never described as hardware or safety validation. Motion describes commands and limits for devices that move. The actuator hardware family is on HOLD in the program plan, no actuator is connected to anything in this repository, and nothing here validates physical behaviour: any claim about a physical limit, stop or fault response stays blocked by the program's physical-safety gate (V2-M6) and the human safety reviews recorded in kritva-program.
 
 **Reporting a vulnerability:** follow [SECURITY.md](SECURITY.md). It names GitHub private vulnerability reporting as the first route and gives a direct-contact fallback. The Security Owner reports having tested the reporting route on 18 October 2026 (D-068); that is ATTESTED, not independently verified, and nothing here promises a response time. Never put details of an unfixed vulnerability in a public issue, pull request or commit message.
 

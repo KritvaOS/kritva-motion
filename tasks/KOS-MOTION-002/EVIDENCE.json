@@ -1,0 +1,32 @@
+{
+  "task_id": "KOS-MOTION-002",
+  "evidence": [
+    {
+      "type": "software",
+      "uri": "https://github.com/KritvaOS/kritva-motion/actions/runs/42252338614",
+      "description": "secret-scan: PASS on main commit 77319b46 (KOS-MOTION-002 reference validator, tests, manifest and documentation merged)",
+      "commit": "77319b460d01436c7c70a40af8163bde287dfeb7",
+      "ci_run": "https://github.com/KritvaOS/kritva-motion/actions/runs/42252338614",
+      "report_sha256": null,
+      "result": "PASS"
+    },
+    {
+      "type": "software",
+      "uri": "https://github.com/KritvaOS/kritva-motion/actions/runs/42252338615",
+      "description": "readme-check: PASS on main commit 77319b46 (KOS-MOTION-002 reference validator, tests, manifest and documentation merged)",
+      "commit": "77319b460d01436c7c70a40af8163bde287dfeb7",
+      "ci_run": "https://github.com/KritvaOS/kritva-motion/actions/runs/42252338615",
+      "report_sha256": null,
+      "result": "PASS"
+    },
+    {
+      "type": "software",
+      "uri": "https://github.com/KritvaOS/kritva-motion/actions/runs/42252338541",
+      "description": "unit-tests: PASS on main commit 77319b46 (KOS-MOTION-002 reference validator, tests, manifest and documentation merged)",
+      "commit": "77319b460d01436c7c70a40af8163bde287dfeb7",
+      "ci_run": "https://github.com/KritvaOS/kritva-motion/actions/runs/42252338541",
+      "report_sha256": null,
+      "result": "PASS"
+    }
+  ]
+}
