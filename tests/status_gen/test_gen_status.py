@@ -15,6 +15,7 @@ TASKS = """# Tasks
 |---|---|---|---|---|
 | KOS-MOTION-001 | Contract | IN_PROGRESS (owner approved) | V2-M1-MOTION-001 | x |
 | KOS-MOTION-002 | Validator | NOT_STARTED (approved) | V2-M2-MOTION-001 | y |
+| KOS-MOTION-M0-001 | Governance | IN_REVIEW (baselined in v11) | V2-M0-MOTION-001 | z |
 """
 
 
@@ -44,7 +45,7 @@ class Repo(unittest.TestCase):
 
 class TestParse(unittest.TestCase):
     def test_rows(self):
-        self.assertEqual(g.parse_tasks(TASKS), {"KOS-MOTION-001": "IN_PROGRESS", "KOS-MOTION-002": "NOT_STARTED"})
+        self.assertEqual(g.parse_tasks(TASKS), {"KOS-MOTION-001": "IN_PROGRESS", "KOS-MOTION-002": "NOT_STARTED", "KOS-MOTION-M0-001": "IN_REVIEW"})
 
     def test_duplicate_fails_closed(self):
         with self.assertRaises(g.StatusError):
@@ -140,7 +141,7 @@ class TestAcceptedEvidence(Repo):
 
     def test_check_detects_evidence_drift(self):
         self.accept()
-        doc = g.build(self.root, ["KOS-MOTION-001", "KOS-MOTION-002"])
+        doc = g.build(self.root, ["KOS-MOTION-001", "KOS-MOTION-002", "KOS-MOTION-M0-001"])
         (self.root / "status" / "status.json").write_text(json.dumps(doc))
         self.assertEqual(g.check(self.root), [])
         doc["tasks"][0]["evidence"][0]["description"] = "edited"
@@ -176,7 +177,7 @@ class TestCheck(Repo):
         (self.root / "status" / "status.json").write_text(json.dumps(doc))
 
     def test_default_reports_the_baselined_tasks(self):
-        self.assertEqual(g.REPORTED_TASKS, ["KOS-MOTION-001", "KOS-MOTION-002"])
+        self.assertEqual(g.REPORTED_TASKS, ["KOS-MOTION-001", "KOS-MOTION-002", "KOS-MOTION-M0-001"])
         self.assertEqual([x["task_id"] for x in g.build(self.root)["tasks"]], g.REPORTED_TASKS)
 
     def test_check_passes_for_generated_report(self):
@@ -187,6 +188,10 @@ class TestCheck(Repo):
         self.write(g.build(self.root))
         (self.root / "status" / "status.schema.json").write_text("{}")
         self.assertTrue(any("SHA-256" in p for p in g.check(self.root)))
+
+    def test_m0_task_in_review_reports_in_progress_without_acceptance(self):
+        t = g.build(self.root)["tasks"][2]
+        self.assertEqual((t["task_id"], t["execution"]), ("KOS-MOTION-M0-001", "IN_PROGRESS"))
 
     def test_reported_set_must_match_constant(self):
         self.write(g.build(self.root, ["KOS-MOTION-001"]))
