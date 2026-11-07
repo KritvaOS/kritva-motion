@@ -14,7 +14,7 @@ SYNCED only when git proves it.
                                    schema and compare its task facts with planning/TASKS.md
 
 Which tasks are reported is the constant REPORTED_TASKS below. It lists only
-tasks the approved program baseline contains (baseline v9, D-100); adding an
+tasks the approved program baseline contains (baseline v11, D-117); adding an
 ID is a reviewed change. A task listed there that is
 missing from TASKS.md, a duplicate row or an unrecognised status fails closed.
 Stdlib only.
@@ -29,7 +29,7 @@ from pathlib import Path
 
 WORKSTREAM_ID = "MOTION"
 REPO = "KritvaOS/kritva-motion"
-REPORTED_TASKS = ["KOS-MOTION-001", "KOS-MOTION-002"]  # baselined by the program in v9 (D-100)
+REPORTED_TASKS = ["KOS-MOTION-001", "KOS-MOTION-002", "KOS-MOTION-M0-001"]  # v9 (D-100); KOS-MOTION-M0-001 added in v11 (D-117)
 
 # planning/TASKS.md status word -> schema execution value
 EXECUTION = {
@@ -41,7 +41,7 @@ EXECUTION = {
     "BLOCKED": "BLOCKED",
     "ACCEPTED": "COMPLETE",
 }
-ROW = re.compile(r"^\|\s*(KOS-MOTION-\d{3})\s*\|(.*?)\|(.*?)\|(.*?)\|(.*?)\|\s*$")
+ROW = re.compile(r"^\|\s*(KOS-MOTION-(?:M0-)?\d{3})\s*\|(.*?)\|(.*?)\|(.*?)\|(.*?)\|\s*$")
 
 
 class StatusError(Exception):
