@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Started KOS-MOTION-003 (status IN_PROGRESS): the PR-01 design record `tasks/KOS-MOTION-003/` (TASK.md, LIFECYCLE.md derived from the contract with no new names, ID_MATRIX.md for the 85 IDs that are not IN_SCOPE, 55 proposed targets), the criteria AC-301 to AC-307 (`ACCEPTANCE_CRITERIA.md` section 3B) and the TASKS.md row. Documents only: no source code, no gate change, no manifest change; implementation starts only after the owner approves this design. Program decisions D-107 and D-108 (Task: KOS-MOTION-003). Protected path `ACCEPTANCE_CRITERIA.md`: owner merge with bypass.
+
 - `.github/kritva-gate.json` now declares five required checks, matching the `main` ruleset (read back on 2026-11-06), AGENTS.md, CONTRIBUTING.md and README.md: `unit-tests` (D-104) was missing from the file after the milestone closure change, and `readme-check` (D-106) was required by the ruleset but not declared. D-067 had kept `readme-check` out of every ruleset until a later owner decision (Tasks: None; program decisions D-104 and D-106). Protected path `.github/`: owner merge with bypass.
 
 - Ruleset read-back on 2026-11-06: the `main` ruleset requires `unit-tests` (and `readme-check`, which the manifest does not list). README, completion record and task record say verified instead of owner-attested for `unit-tests`; the `readme-check` difference is recorded and not decided (Tasks: None; program decision D-104).
