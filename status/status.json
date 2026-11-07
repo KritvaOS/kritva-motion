@@ -4,14 +4,14 @@
   "repo": "KritvaOS/kritva-motion",
   "source": {
     "branch": "main",
-    "commit": "ee375ed2c89e02ce5ff06dd40013196ef821bac9",
+    "commit": "363e511a3def80ca8fb6045b4761ee1ed22bfb8b",
     "tag": null
   },
   "tasks": [
     {
       "task_id": "KOS-MOTION-001",
       "execution": "COMPLETE",
-      "git_sync": "NOT_SYNCED",
+      "git_sync": "NOT_COMMITTED",
       "readiness": "IMPLEMENTABLE",
       "evidence": [
         {
@@ -46,7 +46,7 @@
     {
       "task_id": "KOS-MOTION-002",
       "execution": "COMPLETE",
-      "git_sync": "NOT_SYNCED",
+      "git_sync": "NOT_COMMITTED",
       "readiness": "IMPLEMENTABLE",
       "evidence": [
         {
@@ -80,21 +80,39 @@
     },
     {
       "task_id": "KOS-MOTION-M0-001",
-      "execution": "IN_PROGRESS",
-      "git_sync": "NOT_SYNCED",
+      "execution": "COMPLETE",
+      "git_sync": "NOT_COMMITTED",
       "readiness": "IMPLEMENTABLE",
       "evidence": [
         {
           "type": "software",
-          "uri": "ACCEPTANCE_CRITERIA.md",
-          "description": "Criteria reference only (not completion proof); planning status text: 'IN_REVIEW'",
-          "commit": null,
-          "ci_run": null,
+          "uri": "https://github.com/KritvaOS/kritva-motion/actions/runs/42385668763",
+          "description": "secret-scan: PASS on main commit 44b733d5 (the commit reviewed in REV-005; later commits change planning and status files only)",
+          "commit": "44b733d5284d36895b1fff7e1cecedb69ca1720c",
+          "ci_run": "https://github.com/KritvaOS/kritva-motion/actions/runs/42385668763",
           "report_sha256": null,
-          "result": null
+          "result": "PASS"
+        },
+        {
+          "type": "software",
+          "uri": "https://github.com/KritvaOS/kritva-motion/actions/runs/42385668726",
+          "description": "readme-check: PASS on main commit 44b733d5 (the commit reviewed in REV-005; later commits change planning and status files only)",
+          "commit": "44b733d5284d36895b1fff7e1cecedb69ca1720c",
+          "ci_run": "https://github.com/KritvaOS/kritva-motion/actions/runs/42385668726",
+          "report_sha256": null,
+          "result": "PASS"
+        },
+        {
+          "type": "software",
+          "uri": "https://github.com/KritvaOS/kritva-motion/actions/runs/42385668725",
+          "description": "unit-tests: PASS on main commit 44b733d5 (the commit reviewed in REV-005; later commits change planning and status files only)",
+          "commit": "44b733d5284d36895b1fff7e1cecedb69ca1720c",
+          "ci_run": "https://github.com/KritvaOS/kritva-motion/actions/runs/42385668725",
+          "report_sha256": null,
+          "result": "PASS"
         }
       ]
     }
   ],
-  "updated_at": "2026-11-07T22:56:53+05:30"
+  "updated_at": "2026-11-07T23:01:44+05:30"
 }
