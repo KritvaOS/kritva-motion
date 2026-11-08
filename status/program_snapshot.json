@@ -1,0 +1,73 @@
+{
+  "baseline_tasks": {
+    "accepted_tasks": 3,
+    "baseline_tasks": 4,
+    "rows": 2
+  },
+  "evidence_notes": [
+    "KOS-MOTION-003: no current report from the owning workstream"
+  ],
+  "execution": {
+    "complete": 3,
+    "tasks": 4
+  },
+  "foundation": {
+    "accepted_tasks": 0,
+    "accepted_weight": 0,
+    "tasks": 0,
+    "weight": 0
+  },
+  "milestones": {
+    "M0": {
+      "accepted": 3,
+      "baseline": 3,
+      "point": 0,
+      "rows": 0
+    },
+    "M1": {
+      "accepted": 5,
+      "baseline": 5,
+      "point": 0,
+      "rows": 0
+    },
+    "M2": {
+      "accepted": 5,
+      "baseline": 13,
+      "point": 0,
+      "rows": 0
+    },
+    "M5": {
+      "accepted": 0,
+      "baseline": 0,
+      "point": 6,
+      "rows": 1
+    },
+    "M8": {
+      "accepted": 0,
+      "baseline": 0,
+      "point": 6,
+      "rows": 1
+    }
+  },
+  "program": {
+    "baseline_approved": true,
+    "baseline_version": 12,
+    "generated_at": "2026-11-08T12:16:37Z",
+    "release_state": "NOT_READY",
+    "view": "https://github.com/KritvaOS/kritva-program/blob/main/v2/tracking/STATUS_VIEW.md"
+  },
+  "repo": "Motion",
+  "repository": "KritvaOS/kritva-motion",
+  "schema_version": 1,
+  "titles": {
+    "M0": "Foundation",
+    "M1": "Studio",
+    "M2": "Build & Artifact",
+    "M3": "Control Plane",
+    "M4": "Booking & Commercial",
+    "M5": "Execution",
+    "M6": "Lab & Robot",
+    "M7": "Live & Results",
+    "M8": "Production"
+  }
+}
