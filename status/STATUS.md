@@ -28,6 +28,26 @@ Accepted weight over total weight, where total covers completed Foundation work,
 
 Milestone dates are owner-approved planning dates in the program, not delivery commitments.
 
+## Baselined tasks
+
+Tasks in the approved program baseline. Weight is the baseline weight. Acceptance is decided by kritva-program; execution is this repository's own report.
+
+| Task | Title | Milestone | Weight | Execution | Acceptance |
+|---|---|---|---|---|---|
+| `KOS-MOTION-M0-001` | Motion governance and acceptance review | M0 | 3 | COMPLETE | ACCEPTED |
+| `KOS-MOTION-001` | Motion command and state contract | M1 | 5 | COMPLETE | ACCEPTED |
+| `KOS-MOTION-002` | Command validation, limit enforcement and fault-path tests | M2 | 5 | COMPLETE | ACCEPTED |
+| `KOS-MOTION-003` | Motion lifecycle, termination and fault state machine | M2 | 8 | NOT_REPORTED | NOT ACCEPTED |
+
+## Planned tasks (not baselined)
+
+Owner-approved V2 planning scope that is not in the baseline yet. Weights are estimates (point value). These earn no credit until they are baselined and accepted.
+
+| Task | Title | Milestone | Estimated weight | Execution | Acceptance |
+|---|---|---|---|---|---|
+| `PROPOSED-NEW-MOTION-002` | Motion simulated execution integration | M5 | 6 | NOT_STARTED | NOT BASELINED |
+| `PROPOSED-NEW-MOTION-003` | Motion production and security review | M8 | 6 | NOT_STARTED | NOT BASELINED |
+
 ## Four states, kept apart
 
 | State | This repository | Decided by |

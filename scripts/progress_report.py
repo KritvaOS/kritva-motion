@@ -42,10 +42,10 @@ REPORT = Path("status/STATUS.md")
 STATUS_JSON = Path("status/status.json")
 WIDTH = 20
 STALE_DAYS = 14
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 MILESTONES = ["M0", "M1", "M2", "M3", "M4", "M5", "M7", "M8"]  # M6 (physical validation) is on HOLD
 REQUIRED = ["schema_version", "repo", "repository", "program", "foundation", "milestones", "baseline_tasks",
-            "execution", "evidence_notes", "titles"]
+            "execution", "evidence_notes", "titles", "tasks"]
 
 
 def bar(done, total, width=WIDTH):
@@ -97,7 +97,50 @@ def validate(snap):
     for label, a, n in rows(snap):
         if a > n:
             problems.append(f"{label}: accepted weight {fmt(a)} is larger than total {fmt(n)}")
+    tasks = snap["tasks"]
+    ids = [x["id"] for x in tasks]
+    if len(ids) != len(set(ids)):
+        problems.append("a task id appears twice in the snapshot")
+    if sum(x["weight"] for x in tasks) != t["total"]:
+        problems.append(f"task weights {fmt(sum(x['weight'] for x in tasks))} do not add up to total weight {fmt(t['total'])}")
+    if sum(x["weight"] for x in tasks if x["accepted"]) != t["accepted"]:
+        problems.append("accepted task weights do not add up to accepted weight")
+    if len(tasks) != t["tasks"]:
+        problems.append(f"{len(tasks)} task rows but {t['tasks']} tasks counted")
     return problems
+
+
+def cell(text):
+    return str(text).replace("|", "/").replace("\n", " ").strip()
+
+
+def task_order(x):
+    m = x["milestone"]
+    return (0 if m == "Foundation" else 1 + int(m[1:]) if m[:1] == "M" and m[1:].isdigit() else 99, x["id"])
+
+
+def task_tables(snap):
+    L = []
+    base = sorted((x for x in snap["tasks"] if x["kind"] == "baselined"), key=task_order)
+    plan = sorted((x for x in snap["tasks"] if x["kind"] == "planned"), key=task_order)
+    if base:
+        L += ["## Baselined tasks", "",
+              "Tasks in the approved program baseline. Weight is the baseline weight. Acceptance is decided by kritva-program; "
+              "execution is this repository's own report.", "",
+              "| Task | Title | Milestone | Weight | Execution | Acceptance |", "|---|---|---|---|---|---|"]
+        for x in base:
+            L.append(f"| `{x['id']}` | {cell(x['title'])} | {x['milestone']} | {fmt(x['weight'])} | {x['execution']} | "
+                     f"{'ACCEPTED' if x['accepted'] else 'NOT ACCEPTED'} |")
+        L.append("")
+    if plan:
+        L += ["## Planned tasks (not baselined)", "",
+              "Owner-approved V2 planning scope that is not in the baseline yet. Weights are estimates (point value). "
+              "These earn no credit until they are baselined and accepted.", "",
+              "| Task | Title | Milestone | Estimated weight | Execution | Acceptance |", "|---|---|---|---|---|---|"]
+        for x in plan:
+            L.append(f"| `{x['id']}` | {cell(x['title'])} | {x['milestone']} | {fmt(x['weight'])} | {x['execution']} | NOT BASELINED |")
+        L.append("")
+    return L
 
 
 def render(snap):
@@ -124,8 +167,9 @@ def render(snap):
     for label, a, n in rows(snap):
         L.append(f"| {label} | `{bar(a, n)}` | {fmt(a)} / {fmt(n)} | {share(a, n)} |")
     L.append(f"| **All** | `{bar(t['accepted'], t['total'])}` | **{fmt(t['accepted'])} / {fmt(t['total'])}** | **{share(t['accepted'], t['total'])}** |")
-    L += ["", "Milestone dates are owner-approved planning dates in the program, not delivery commitments.", "",
-          "## Four states, kept apart", "",
+    L += ["", "Milestone dates are owner-approved planning dates in the program, not delivery commitments.", ""]
+    L += task_tables(snap)
+    L += ["## Four states, kept apart", "",
           "| State | This repository | Decided by |", "|---|---|---|",
           f"| Execution | {ex['complete']} of {ex['tasks']} baselined tasks reported COMPLETE by this repository | this repository's own report |",
           "| Evidence | " + ("; ".join(snap["evidence_notes"]) if snap["evidence_notes"] else "no evidence gap recorded for this repository in the program's evidence health")

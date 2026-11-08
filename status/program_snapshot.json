@@ -58,7 +58,63 @@
   },
   "repo": "Motion",
   "repository": "KritvaOS/kritva-motion",
-  "schema_version": 1,
+  "schema_version": 2,
+  "tasks": [
+    {
+      "accepted": true,
+      "execution": "COMPLETE",
+      "id": "KOS-MOTION-001",
+      "kind": "baselined",
+      "milestone": "M1",
+      "title": "Motion command and state contract",
+      "weight": 5
+    },
+    {
+      "accepted": true,
+      "execution": "COMPLETE",
+      "id": "KOS-MOTION-002",
+      "kind": "baselined",
+      "milestone": "M2",
+      "title": "Command validation, limit enforcement and fault-path tests",
+      "weight": 5
+    },
+    {
+      "accepted": false,
+      "execution": "NOT_REPORTED",
+      "id": "KOS-MOTION-003",
+      "kind": "baselined",
+      "milestone": "M2",
+      "title": "Motion lifecycle, termination and fault state machine",
+      "weight": 8
+    },
+    {
+      "accepted": true,
+      "execution": "COMPLETE",
+      "id": "KOS-MOTION-M0-001",
+      "kind": "baselined",
+      "milestone": "M0",
+      "title": "Motion governance and acceptance review",
+      "weight": 3
+    },
+    {
+      "accepted": false,
+      "execution": "NOT_STARTED",
+      "id": "PROPOSED-NEW-MOTION-002",
+      "kind": "planned",
+      "milestone": "M5",
+      "title": "Motion simulated execution integration",
+      "weight": 6
+    },
+    {
+      "accepted": false,
+      "execution": "NOT_STARTED",
+      "id": "PROPOSED-NEW-MOTION-003",
+      "kind": "planned",
+      "milestone": "M8",
+      "title": "Motion production and security review",
+      "weight": 6
+    }
+  ],
   "titles": {
     "M0": "Foundation",
     "M1": "Studio",
