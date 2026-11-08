@@ -57,3 +57,30 @@ def check_transition(frm, to, reason_code):
             raise IllegalTransition(f"{reason_code!r} is not a {to} reason code")
     elif reason_code is not None:
         raise IllegalTransition(f"a transition to {to} carries no reason code")
+
+
+# Contract 10.5 and 10.6: the causes a termination record may hold, in the order ERROR_CODES.md section 4 lists them.
+CAUSES = ("CANCEL_REQUESTED", "STOP_REQUESTED", "EXECUTION_TIMEOUT", "DEADLINE_EXPIRED", "FAULT")
+TIMER_CAUSES = ("EXECUTION_TIMEOUT", "DEADLINE_EXPIRED")
+
+
+def outcome_of_causes(causes):
+    """The terminal state and reason a confirmed termination gives (contract 10.6 rule 2).
+
+    causes: the recorded causes in the order the engine appended them. A timeout or deadline cause
+    gives FAILED with the one recorded first; only cancel and stop causes give CANCELLED, with reason
+    STOPPED if any STOP_REQUESTED is present and CANCEL_REQUESTED otherwise. A FAULT cause gives
+    FAILED with the fault code and is handled where faults exist (PR-05); here it raises.
+    """
+    causes = list(causes)
+    if not causes:
+        raise IllegalTransition("a termination record needs at least one cause")
+    for c in causes:
+        if c not in CAUSES:
+            raise IllegalTransition(f"{c!r} is not a termination cause")
+    if "FAULT" in causes:
+        raise NotImplementedError("a FAULT cause belongs to PR-05 of KOS-MOTION-003")
+    for c in causes:
+        if c in TIMER_CAUSES:
+            return "FAILED", c
+    return "CANCELLED", "STOPPED" if "STOP_REQUESTED" in causes else "CANCEL_REQUESTED"
