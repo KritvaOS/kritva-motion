@@ -15,8 +15,13 @@ What this change implements (LIFECYCLE.md sections 3 to 5 and 8):
   unsynchronized backend clock (contract 10.2); freshness uses the receipt time only;
 - a late, duplicate or unknown backend input is ignored and recorded (contract 7.5, CT-LC-03).
 
-Not here yet (later pull requests of the task): cancellation, deadline expiry, execution timeout and
-termination (PR-03); STOP, HOLD, CANCEL (PR-04); faults, degradation, recovery and CLEAR_FAULT (PR-05).
+PR-03 adds the timing and termination half (LIFECYCLE.md sections 6 and 10, interpretations I-15 to I-19):
+the command deadline and the execution timeout on the injected monotonic clock, the termination record
+with its bounded wait, cancellation of one command by id, confirmed and unconfirmed termination, and the
+joint fault that an unconfirmed termination leaves behind.
+
+Not here yet (later pull requests of the task): STOP, HOLD, CANCEL commands and arbitration (PR-04);
+other faults, degradation, recovery and CLEAR_FAULT (PR-05).
 A command type that belongs to them raises NotImplementedError before any state changes.
 
 Pure and deterministic: no system clock, no I/O, no randomness, no global state. Every public call
@@ -33,6 +38,7 @@ from kritva_motion import admission as ad
 from kritva_motion.lifecycle import model as m
 
 LATER_OPERATIONS = ("STOP", "HOLD", "CANCEL", "CLEAR_FAULT")
+CANCEL_CAUSES = ("CANCEL_REQUESTED", "STOP_REQUESTED")   # causes a caller may give to terminate()
 MOVEMENT = ("SET_POSITION", "SET_VELOCITY")
 
 
@@ -70,6 +76,9 @@ class _Command:
     started_ms: Optional[float] = None
     window_start_ms: Optional[float] = None    # SET_POSITION settling window (interpretation I-5)
     last_sample_ms: Optional[float] = None
+    term: Optional[dict] = None                # the termination record (contract 10.6), once an attempt exists
+    deadline_fired: bool = False
+    timeout_fired: bool = False
     transitions: list = field(default_factory=list)
 
 
@@ -80,6 +89,7 @@ class _Joint:
     active_command_id: Optional[str] = None
     feedback: Optional[dict] = None       # the latest feedback record (valid or not)
     last_valid: Optional[dict] = None     # the latest record with validity VALID
+    faults: list = field(default_factory=list)   # fault records; only TERMINATION_UNCONFIRMED in PR-03
 
 
 def _number(v):
@@ -98,6 +108,7 @@ class LifecycleEngine:
         self._joints = {jid: _Joint() for jid in self._joint_cfg}
         self._commands = {}
         self._counter = 0
+        self._fault_counter = 0
         self._last_now = None
         self.ignored_log = []
 
@@ -121,7 +132,12 @@ class LifecycleEngine:
                 "state": c.state, "phase": c.phase, "reason_code": c.reason_code,
                 "config_version": c.config_version, "config_digest": c.config_digest, "accepted_at": c.accepted_at,
                 "deadline_ms": c.deadline_ms, "execution_timeout_ms": c.execution_timeout_ms,
-                "backend_reference": c.backend_reference, "transitions": copy.deepcopy(c.transitions)}
+                "backend_reference": c.backend_reference, "transitions": copy.deepcopy(c.transitions),
+                "termination": copy.deepcopy(c.term)}
+
+    def faults(self, joint_id):
+        """Copies of the fault records of one joint, oldest first."""
+        return copy.deepcopy(self._joints[joint_id].faults)
 
     def commands(self):
         return [self.command(cid) for cid in self._commands]
@@ -160,6 +176,8 @@ class LifecycleEngine:
              "backend_status": self._backend["health"], "config_version": self._config["config_version"]}
         if j.active_command_id is not None:
             s["active_command_id"] = j.active_command_id
+        if j.faults:
+            s["fault_ids"] = [f["fault_id"] for f in j.faults]
         if j.last_valid is not None:
             s["measured_position"] = j.last_valid["measured_position"]
             if j.last_valid.get("measured_velocity") is not None:
@@ -229,10 +247,12 @@ class LifecycleEngine:
             human_operator_attested=human_operator_attested)
 
     def submit(self, command, now_ms, utc=None, identity="VALID", permission_granted=True,
-               human_operator_attested=False):
+               human_operator_attested=False, defer_dispatch=False):
         """Admit one command. An accepted SET_POSITION or SET_VELOCITY becomes ACCEPTED with phase
         DISPATCH_PENDING and a dispatch request is returned; it stays ACCEPTED until the backend
-        confirms the start (contract 7.2). A rejection creates no command and no lifecycle (7.3)."""
+        confirms the start (contract 7.2). A rejection creates no command and no lifecycle (7.3).
+        With defer_dispatch=True no dispatch request is issued: the command stays ACCEPTED with phase
+        NONE ("not dispatched", contract 7.6) until dispatch() is called (interpretation I-15)."""
         self._advance(now_ms)
         if isinstance(command, dict) and command.get("command_type") in LATER_OPERATIONS:
             raise NotImplementedError(f"{command['command_type']} belongs to a later pull request of KOS-MOTION-003")
@@ -262,12 +282,35 @@ class LifecycleEngine:
                               "monotonic_ms": now_ms, "trigger": "ADMISSION"})
         res.events.append(self._event("command", cid, "COMMAND_STATE_CHANGED", utc,
                                       {"from": None, "to": "ACCEPTED", "reason_code": None, "phase": "NONE"}))
+        if not defer_dispatch:
+            self._issue_dispatch(c, utc, res)
+        return res
+
+    def _issue_dispatch(self, c, utc, res):
         self._set_phase(c, "DISPATCH_PENDING", utc, res)
         res.requests.append({
-            "op": "dispatch", "command_id": cid, "backend_reference": c.backend_reference,
-            "operation": c.operation, "target": {"type": "joint", "id": jid}, "parameters": copy.deepcopy(c.parameters),
+            "op": "dispatch", "command_id": c.command_id, "backend_reference": c.backend_reference,
+            "operation": c.operation, "target": {"type": "joint", "id": c.joint_id},
+            "parameters": copy.deepcopy(c.parameters),
             "deadline_ms": c.deadline_ms, "execution_timeout_ms": c.execution_timeout_ms,
             "config_version": c.config_version, "config_digest": c.config_digest})
+
+    def dispatch(self, command_id, now_ms, utc=None):
+        """Issue the dispatch request of a command accepted with defer_dispatch=True (I-15).
+        Ignored and recorded for an unknown, terminal, terminating or already dispatched command."""
+        self._advance(now_ms)
+        res = Result(command_id=command_id)
+        c = self._commands.get(command_id)
+        if c is None:
+            self._ignore(res, "dispatch", command_id, "unknown_command", now_ms)
+        elif c.state in m.TERMINAL_STATES:
+            self._ignore(res, "dispatch", command_id, "terminal", now_ms)
+        elif c.phase == "TERMINATING":
+            self._ignore(res, "dispatch", command_id, "terminating", now_ms)
+        elif c.state != "ACCEPTED" or c.phase != "NONE":
+            self._ignore(res, "dispatch", command_id, "already_dispatched", now_ms)
+        else:
+            self._issue_dispatch(c, utc, res)
         return res
 
     # ------------------------------------------------------------------ backend inputs
@@ -285,6 +328,8 @@ class LifecycleEngine:
             self._ignore(res, "execution_started", command_id, "terminal", now_ms)
         elif c.state == "RUNNING":
             self._ignore(res, "execution_started", command_id, "duplicate", now_ms)
+        elif c.phase == "TERMINATING":
+            self._ignore(res, "execution_started", command_id, "terminating", now_ms)   # never revives (7.6, INV-05)
         elif c.phase != "DISPATCH_PENDING":
             self._ignore(res, "execution_started", command_id, "not_dispatched", now_ms)
         else:
@@ -320,7 +365,7 @@ class LifecycleEngine:
             j.last_valid = rec
         res.events.append(self._joint_event(joint_id, utc, now_ms))
         c = self._commands.get(j.active_command_id) if j.active_command_id else None
-        if c is not None and c.state == "RUNNING" and c.operation == "SET_POSITION":
+        if c is not None and c.state == "RUNNING" and c.operation == "SET_POSITION" and c.term is None:
             self._settle(c, rec, prev, now_ms, utc, res)
         return res
 
@@ -366,15 +411,156 @@ class LifecycleEngine:
     # ------------------------------------------------------------------ time
 
     def tick(self, now_ms, utc=None):
-        """Time passing. Completes a SET_VELOCITY whose duration_ms has elapsed on the monotonic clock
-        since the confirmed start (contract 12.2). Nothing else completes by time alone."""
+        """Time passing. At one reading the passes run in this order (interpretation I-4): command
+        deadlines, execution timeouts, termination bounds, SET_VELOCITY durations. Backend inputs
+        supplied at the same reading must be applied before the tick (the caller orders them); a
+        limit is reached when the elapsed time is at least the limit. Each pass visits the commands in
+        the order they were accepted. Elapsed times use only the monotonic readings (contract 10.1)."""
         self._advance(now_ms)
         res = Result()
-        for c in list(self._commands.values()):
-            if c.state == "RUNNING" and c.operation == "SET_VELOCITY" and "duration_ms" in c.parameters:
-                if now_ms - c.started_ms >= c.parameters["duration_ms"]:
-                    self._complete(c, "DURATION_ELAPSED", now_ms, utc, res)
+        cmds = list(self._commands.values())
+        for c in cmds:      # command deadline: duration from acceptance until the start is confirmed (10.3)
+            if (c.state == "ACCEPTED" and not c.deadline_fired and _number(c.deadline_ms)
+                    and now_ms - c.accepted_ms >= c.deadline_ms):
+                c.deadline_fired = True
+                if c.term is not None:
+                    self._append_cause(c, "DEADLINE_EXPIRED", now_ms, utc, res)
+                elif c.phase == "NONE":
+                    # never dispatched: nothing for the backend to terminate (10.3 asks for termination only "if already dispatched")
+                    self._move(c, "FAILED", "DEADLINE_EXPIRED", now_ms, utc, "DEADLINE", res)
+                else:
+                    self._begin_termination(c, "DEADLINE_EXPIRED", now_ms, utc, res)
+        for c in cmds:      # execution timeout: duration from the confirmed start (10.4)
+            if (c.state == "RUNNING" and not c.timeout_fired and _number(c.execution_timeout_ms)
+                    and now_ms - c.started_ms >= c.execution_timeout_ms):
+                c.timeout_fired = True
+                if c.term is not None:
+                    self._append_cause(c, "EXECUTION_TIMEOUT", now_ms, utc, res)
+                else:
+                    self._begin_termination(c, "EXECUTION_TIMEOUT", now_ms, utc, res)
+        for c in cmds:      # termination bound: started once, never restarted (10.6 rule 1, 3)
+            if (c.state not in m.TERMINAL_STATES and c.term is not None and c.term["outcome"] == "PENDING"
+                    and now_ms - c.term["requested_ms"] >= c.term["bound_ms"]):
+                self._unconfirmed(c, now_ms, utc, res)
+        for c in cmds:
+            if (c.state == "RUNNING" and c.term is None and c.operation == "SET_VELOCITY"
+                    and "duration_ms" in c.parameters and now_ms - c.started_ms >= c.parameters["duration_ms"]):
+                self._complete(c, "DURATION_ELAPSED", now_ms, utc, res)
         return res
+
+    # ------------------------------------------------------------------ cancellation and termination
+
+    def terminate(self, command_id, cause, now_ms, utc=None):
+        """Engine-level cancellation of one SET_POSITION or SET_VELOCITY command by id, with cause
+        CANCEL_REQUESTED or STOP_REQUESTED (interpretation I-16). The CANCEL and STOP commands that
+        carry these causes are PR-04; this is the lifecycle behaviour they will use.
+
+        Not dispatched (ACCEPTED, phase NONE): the command ends CANCELLED at once, with no backend
+        request, because the engine itself knows no dispatch was issued (contract 7.6).
+        DISPATCH_PENDING or RUNNING: phase TERMINATING, one termination request goes to the backend,
+        and the bounded wait starts. A second request for the same command only appends its cause:
+        no second backend request, no new bound (10.6 rule 1). Nothing ends the command but the
+        backend confirmation or the bound."""
+        self._advance(now_ms)
+        res = Result(command_id=command_id)
+        if cause not in CANCEL_CAUSES:
+            raise ValueError(f"cause must be one of {CANCEL_CAUSES}")
+        c = self._commands.get(command_id)
+        if c is None:
+            self._ignore(res, "terminate", command_id, "unknown_command", now_ms)
+        elif c.state in m.TERMINAL_STATES:
+            self._ignore(res, "terminate", command_id, "terminal", now_ms)
+        elif c.term is not None:
+            self._append_cause(c, cause, now_ms, utc, res)
+        elif c.state == "ACCEPTED" and c.phase == "NONE":
+            self._move(c, "CANCELLED", "STOPPED" if cause == "STOP_REQUESTED" else "CANCEL_REQUESTED",
+                       now_ms, utc, "CANCEL_BEFORE_DISPATCH", res)
+        else:
+            self._begin_termination(c, cause, now_ms, utc, res)
+        return res
+
+    def _begin_termination(self, c, cause, now_ms, utc, res):
+        bound = self._joint_cfg[c.joint_id]["termination_confirm_timeout_ms"]
+        c.term = {"causes": [], "requested_ms": now_ms, "requested_at": utc, "bound_ms": bound,
+                  "outcome": "PENDING", "backend_accepted_ms": None}
+        self._append_cause(c, cause, now_ms, utc, res)
+        self._set_phase(c, "TERMINATING", utc, res)
+        res.requests.append({"op": "request_termination", "command_id": c.command_id,
+                             "backend_reference": c.backend_reference, "cause": cause})
+
+    def _append_cause(self, c, cause, now_ms, utc, res):
+        c.term["causes"].append({"cause": cause, "at": utc, "monotonic_ms": now_ms})
+
+    def termination_request_accepted(self, command_id, backend_reference, now_ms, utc=None):
+        """The backend accepted the termination request (contract 17.5). It is recorded and is never
+        confirmation: the phase, the bound and the outcome do not change."""
+        self._advance(now_ms)
+        res = Result(command_id=command_id)
+        c = self._commands.get(command_id)
+        reason = self._termination_input_problem(c, backend_reference)
+        if reason:
+            self._ignore(res, "termination_request_accepted", command_id, reason, now_ms)
+        elif c.term["backend_accepted_ms"] is not None:
+            self._ignore(res, "termination_request_accepted", command_id, "duplicate", now_ms)
+        else:
+            c.term["backend_accepted_ms"] = now_ms
+        return res
+
+    def _termination_input_problem(self, c, backend_reference):
+        if c is None:
+            return "unknown_command"
+        if backend_reference != c.backend_reference:
+            return "reference_mismatch"
+        if c.state in m.TERMINAL_STATES:
+            return "terminal"
+        if c.term is None or c.term["outcome"] != "PENDING":
+            return "no_termination_outstanding"
+        return None
+
+    def termination_confirmed(self, command_id, backend_reference, now_ms, utc=None):
+        """The backend confirms the identified execution reached its termination condition (17.5).
+        Ends the command by the most consequential recorded cause (10.6 rule 2): a timeout or deadline
+        cause gives FAILED with the one recorded first; only cancel and stop causes give CANCELLED,
+        reason STOPPED if any STOP_REQUESTED is present, else CANCEL_REQUESTED. A confirmation that
+        arrives after the bound ended the attempt, or for no attempt, is ignored and recorded."""
+        self._advance(now_ms)
+        res = Result(command_id=command_id)
+        c = self._commands.get(command_id)
+        reason = self._termination_input_problem(c, backend_reference)
+        if reason:
+            self._ignore(res, "termination_confirmed", command_id, reason, now_ms)
+            return res
+        c.term["outcome"] = "CONFIRMED"
+        c.term["confirmed_ms"] = now_ms
+        to, why = m.outcome_of_causes([x["cause"] for x in c.term["causes"]])
+        self._move(c, to, why, now_ms, utc, "TERMINATION_CONFIRMED", res)
+        self._release_joint(c, now_ms, utc, res)
+        return res
+
+    def _unconfirmed(self, c, now_ms, utc, res):
+        """The bound expired (10.6 rule 3): FAILED(TERMINATION_UNCONFIRMED), the joint is FAULTED with
+        that fault and its control state is UNKNOWN. The joint is never reported stopped."""
+        c.term["outcome"] = "UNCONFIRMED"
+        self._move(c, "FAILED", "TERMINATION_UNCONFIRMED", now_ms, utc, "TERMINATION_BOUND_EXPIRED", res)
+        j = self._joints[c.joint_id]
+        self._fault_counter += 1
+        fault = {"fault_id": f"fault-{self._fault_counter}", "code": "TERMINATION_UNCONFIRMED",
+                 "joint_id": c.joint_id, "command_id": c.command_id, "raised_at": utc, "raised_ms": now_ms}
+        j.faults.append(fault)
+        j.health_state, j.control_state = "FAULTED", "UNKNOWN"
+        if j.active_command_id == c.command_id:
+            j.active_command_id = None
+        res.events.append(self._event("joint", c.joint_id, "JOINT_FAULT_RAISED", utc, copy.deepcopy(fault)))
+        res.events.append(self._joint_event(c.joint_id, utc, now_ms))
+
+    def _release_joint(self, c, now_ms, utc, res):
+        """A confirmed termination frees the movement slot; an ACTIVE joint becomes IDLE (13.3)."""
+        j = self._joints[c.joint_id]
+        if j.active_command_id == c.command_id:
+            j.active_command_id = None
+            if j.control_state == "ACTIVE":
+                j.control_state = "IDLE"
+            res.events.append(self._joint_event(c.joint_id, utc, now_ms))
 
     def _complete(self, c, reason, now_ms, utc, res):
         self._move(c, "COMPLETED", reason, now_ms, utc, "COMPLETION", res)

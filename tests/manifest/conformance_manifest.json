@@ -88,9 +88,9 @@
     },
     {
       "id": "CT-LC-06",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "7.6",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_termination.TestTerminationConformance.test_CT_LC_06"
     },
     {
       "id": "CT-VAL-01",
@@ -277,27 +277,27 @@
     },
     {
       "id": "CT-TMO-01",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "10.3",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_termination.TestTerminationConformance.test_CT_TMO_01"
     },
     {
       "id": "CT-TMO-02",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "10.4, 10.6",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_termination.TestTerminationConformance.test_CT_TMO_02"
     },
     {
       "id": "CT-TMO-03",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "10.6",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_termination.TestTerminationConformance.test_CT_TMO_03"
     },
     {
       "id": "CT-TMO-04",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "10.5, 10.6",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_termination.TestTerminationConformance.test_CT_TMO_04"
     },
     {
       "id": "CT-TMO-05",
@@ -307,9 +307,9 @@
     },
     {
       "id": "CT-TMO-06",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "10.1",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_termination.TestTerminationConformance.test_CT_TMO_06"
     },
     {
       "id": "CT-TMO-07",
@@ -517,15 +517,15 @@
     },
     {
       "id": "CT-LC-07",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "7.6",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_termination.TestTerminationConformance.test_CT_LC_07"
     },
     {
       "id": "CT-LC-08",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "7.5, 7.6",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_termination.TestTerminationConformance.test_CT_LC_08"
     },
     {
       "id": "CT-ARB-09",
@@ -577,9 +577,9 @@
     },
     {
       "id": "CT-TMO-09",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "10.3",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_termination.TestTerminationConformance.test_CT_TMO_09"
     },
     {
       "id": "CT-AUTH-05",
@@ -701,9 +701,9 @@
     },
     {
       "id": "CT-TMO-11",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "10.6",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_termination.TestTerminationConformance.test_CT_TMO_11"
     },
     {
       "id": "CT-ARB-16",

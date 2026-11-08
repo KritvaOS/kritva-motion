@@ -153,7 +153,7 @@ class TestLifecycleConformance(unittest.TestCase):
     def test_CT_CMP_02(self):
         """A command whose condition cannot be established is never COMPLETED."""
         # SET_POSITION: no feedback after the start
-        e = S.engine()
+        e = S.engine(S.config(default_execution_timeout_ms=10**12))
         S.ready(e, pos=0.5)   # the joint already measured the target before the start
         cid, _ = S.submit_start(e, S.pos_cmd(0.5), 10)
         e.tick(50)
@@ -166,7 +166,8 @@ class TestLifecycleConformance(unittest.TestCase):
         # the commanded value and the start confirmation are not evidence; only a valid sample counts
         self.assertEqual(e.command(cid)["reason_code"], None)
         # SET_VELOCITY without duration never completes by itself
-        e2 = S.engine()
+        # (a very long execution timeout is configured, so that time passing cannot end it: PR-03 adds the timeout)
+        e2 = S.engine(S.config(default_execution_timeout_ms=10**12))
         S.ready(e2)
         vid, _ = S.submit_start(e2, S.vel_cmd(0.1), 10)
         for t in (10**3, 10**6, 10**9):
