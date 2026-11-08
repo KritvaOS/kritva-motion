@@ -1,6 +1,6 @@
 # KOS-MOTION-003: Motion lifecycle, termination and fault state machine
 
-Status (revision 1): IN_PROGRESS since 2026-11-07. PR-01 (design) is awaiting owner review; no implementation pull request starts before the owner approves it. Owner approval: program decision D-107 (Dinesh, chat, 2026-11-06). Baseline: v10 (D-108), weight 8, milestone V2-M2-MOTION-002. KOS-MOTION-002 is accepted, so the dependency is met; the baseline has no dependency field, so it is enforced here.
+Status (revision 2): IN_PROGRESS since 2026-11-07. PR-01 (design) was signed off by the owner on 2026-11-08 (interpretations I-1 to I-11 and the 55 targets stand). PR-02 (normal lifecycle and completion) is in review. Owner approval: program decision D-107 (Dinesh, chat, 2026-11-06). Baseline: v10 (D-108), weight 8, milestone V2-M2-MOTION-002. KOS-MOTION-002 is accepted, so the dependency is met; the baseline has no dependency field, so it is enforced here.
 Task owner: Dinesh (repository owner). Architecture and safety reviewer roles: Dinesh, interim (D-047); the review is not independent and every acceptance record says so.
 The task earns credit only through a central approval with passing evidence. Motion reports facts only.
 
@@ -40,13 +40,13 @@ Criteria AC-301 to AC-307 are in [ACCEPTANCE_CRITERIA.md](../../ACCEPTANCE_CRITE
 | PR | Deliverable | Target IDs (see ID_MATRIX.md) |
 |---|---|---|
 | PR-01 | This design record: TASK.md, LIFECYCLE.md, ID_MATRIX.md, criteria AC-301..AC-307, TASKS.md row. Protected path (criteria): owner merge. Hard owner review stop | none |
-| PR-02 | Normal lifecycle, completion, injected clock, recording | 14 |
-| PR-03 | Cancellation, deadline, execution timeout, termination and unconfirmed termination | 8 |
+| PR-02 | Normal lifecycle, completion, injected clock, recording | 10 |
+| PR-03 | Cancellation, deadline, execution timeout, termination and unconfirmed termination | 10 |
 | PR-04 | `STOP`, `HOLD`, `CANCEL`, arbitration | 10 |
-| PR-05 | Faults, joint state, degradation, recovery, `CLEAR_FAULT` | 21 |
-| PR-06 | Fault-injection scenario set, determinism, manifest update, matrix test, property test, documentation, review record | 2 |
+| PR-05 | Faults, joint state, degradation, recovery, `CLEAR_FAULT` | 22 |
+| PR-06 | Fault-injection scenario set, determinism, manifest update, matrix test, property test, documentation, review record | 3 |
 
-Each implementation PR ships its own tests and updates the manifest for the IDs it covers, so the gate stays green at every step. Targets add up to 55; the owner confirms them in PR-01.
+Each implementation PR ships its own tests and updates the manifest for the IDs it covers, so the gate stays green at every step. Targets add up to 55 (confirmed by the owner on 2026-11-08). During PR-02 four IDs moved to the pull request that can test them: CT-LC-01 to PR-06 (every transition needs the cancellation and failure paths), CT-LC-06 and CT-TMO-06 to PR-03 (the `TERMINATING` phase and the timers), CT-FLT-18 to PR-05 (needs the degradation path). The set of 55 does not change.
 
 ## 6. Review plan
 
