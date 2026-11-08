@@ -55,3 +55,15 @@ def vel_cmd(vel=0.1, jid="joint-1", unit="rad/s", duration=None, **over):
     if duration is not None:
         p["duration_ms"] = duration
     return env("SET_VELOCITY", jid, parameters=p, **over)
+
+
+def stop_cmd(jid="joint-1", **over):
+    return env("STOP", jid, **over)
+
+
+def hold_cmd(jid="joint-1", **over):
+    return env("HOLD", jid, **over)
+
+
+def cancel_cmd(command_id, **over):
+    return env("CANCEL", parameters={"command_id": command_id}, **over)
