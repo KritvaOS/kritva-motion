@@ -15,13 +15,18 @@ What this change implements (LIFECYCLE.md sections 3 to 5 and 8):
   unsynchronized backend clock (contract 10.2); freshness uses the receipt time only;
 - a late, duplicate or unknown backend input is ignored and recorded (contract 7.5, CT-LC-03).
 
+PR-04 adds HOLD, STOP and CANCEL as commands with their arbitration (LIFECYCLE.md sections 6 and 8,
+interpretations I-20 to I-25): a HOLD that completes on a supplied engagement confirmation, a STOP that
+terminates, joins or opens an attempt and completes only on backend confirmation, a CANCEL that follows
+its target, the hold release at the start of a movement, a refused STOP, and the control-state effect of
+losing the backend.
+
 PR-03 adds the timing and termination half (LIFECYCLE.md sections 6 and 10, interpretations I-15 to I-19):
 the command deadline and the execution timeout on the injected monotonic clock, the termination record
 with its bounded wait, cancellation of one command by id, confirmed and unconfirmed termination, and the
 joint fault that an unconfirmed termination leaves behind.
 
-Not here yet (later pull requests of the task): STOP, HOLD, CANCEL commands and arbitration (PR-04);
-other faults, degradation, recovery and CLEAR_FAULT (PR-05).
+Not here yet (a later pull request of the task): other faults, degradation, recovery and CLEAR_FAULT (PR-05).
 A command type that belongs to them raises NotImplementedError before any state changes.
 
 Pure and deterministic: no system clock, no I/O, no randomness, no global state. Every public call
@@ -37,9 +42,11 @@ from typing import Any, Optional
 from kritva_motion import admission as ad
 from kritva_motion.lifecycle import model as m
 
-LATER_OPERATIONS = ("STOP", "HOLD", "CANCEL", "CLEAR_FAULT")
+LATER_OPERATIONS = ("CLEAR_FAULT",)
 CANCEL_CAUSES = ("CANCEL_REQUESTED", "STOP_REQUESTED")   # causes a caller may give to terminate()
 MOVEMENT = ("SET_POSITION", "SET_VELOCITY")
+SLOT_OPERATIONS = ("SET_POSITION", "SET_VELOCITY", "HOLD")   # occupy the movement slot (contract 9.1)
+CONTROL_OPERATIONS = ("STOP", "CANCEL")                        # own no execution (contract 7.8)
 
 
 class ClockError(ValueError):
@@ -77,6 +84,8 @@ class _Command:
     window_start_ms: Optional[float] = None    # SET_POSITION settling window (interpretation I-5)
     last_sample_ms: Optional[float] = None
     term: Optional[dict] = None                # the termination record (contract 10.6), once an attempt exists
+    ref_id: Optional[str] = None               # STOP: the command that owns the attempt it follows; CANCEL: its target
+    release_pending: bool = False              # a hold release was requested at the start (I-23)
     deadline_fired: bool = False
     timeout_fired: bool = False
     transitions: list = field(default_factory=list)
@@ -133,7 +142,7 @@ class LifecycleEngine:
                 "config_version": c.config_version, "config_digest": c.config_digest, "accepted_at": c.accepted_at,
                 "deadline_ms": c.deadline_ms, "execution_timeout_ms": c.execution_timeout_ms,
                 "backend_reference": c.backend_reference, "transitions": copy.deepcopy(c.transitions),
-                "termination": copy.deepcopy(c.term)}
+                "termination": copy.deepcopy(c.term), "references": c.ref_id}
 
     def faults(self, joint_id):
         """Copies of the fault records of one joint, oldest first."""
@@ -212,6 +221,7 @@ class LifecycleEngine:
                                       {"from": frm, "to": to, "reason_code": c.reason_code, "phase": c.phase}))
         if c.phase != old_phase:
             res.events.append(self._event("command", c.command_id, "COMMAND_PHASE_CHANGED", utc, {"phase": c.phase}))
+        self._sync_dependents(c.command_id, now_ms, utc, res)
 
     def _set_phase(self, c, phase, utc, res):
         if phase not in m.PHASES_OF_STATE[c.state]:
@@ -261,20 +271,25 @@ class LifecycleEngine:
         res.admission = ad.admit(ctx)
         if not res.admission.accepted or res.admission.replay:
             return res
-        if command["command_type"] not in MOVEMENT:
-            raise NotImplementedError(f"{command['command_type']} is not supported by this engine yet")
-        jid = command["target"]["id"]
-        cfg = self._joint_cfg[jid]
+        op = command["command_type"]
         self._counter += 1
         cid = f"cmd-{self._counter}"
+        if op == "CANCEL":
+            target = self._commands[command["parameters"]["command_id"]]
+            jid, cfg = target.joint_id, self._joint_cfg[target.joint_id]
+        else:
+            jid = command["target"]["id"]
+            cfg = self._joint_cfg[jid]
+        control = op in CONTROL_OPERATIONS
         c = _Command(
-            command_id=cid, client_request_id=command["client_request_id"], operation=command["command_type"],
+            command_id=cid, client_request_id=command["client_request_id"], operation=op,
             joint_id=jid, parameters=copy.deepcopy(command.get("parameters", {})),
             config_version=self._config["config_version"], config_digest=self._digest, accepted_at=utc,
             accepted_ms=now_ms,
-            deadline_ms=command["deadline_ms"] if "deadline_ms" in command else cfg["default_deadline_ms"],
-            execution_timeout_ms=(command["execution_timeout_ms"] if "execution_timeout_ms" in command
-                                  else cfg["default_execution_timeout_ms"]),
+            deadline_ms=None if control else (command["deadline_ms"] if "deadline_ms" in command
+                                              else cfg["default_deadline_ms"]),
+            execution_timeout_ms=None if control else (command["execution_timeout_ms"] if "execution_timeout_ms" in command
+                                                        else cfg["default_execution_timeout_ms"]),
             backend_reference="ref-" + cid)
         self._commands[cid] = c
         res.command_id = cid
@@ -282,14 +297,20 @@ class LifecycleEngine:
                               "monotonic_ms": now_ms, "trigger": "ADMISSION"})
         res.events.append(self._event("command", cid, "COMMAND_STATE_CHANGED", utc,
                                       {"from": None, "to": "ACCEPTED", "reason_code": None, "phase": "NONE"}))
-        if not defer_dispatch:
+        if op == "STOP":
+            self._start_stop(c, now_ms, utc, res)
+        elif op == "CANCEL":
+            c.ref_id = command["parameters"]["command_id"]
+            self._apply_cause(self._commands[c.ref_id], "CANCEL_REQUESTED", now_ms, utc, res, "CANCEL")
+            self._sync_dependent(c, now_ms, utc, res)
+        elif not defer_dispatch:
             self._issue_dispatch(c, utc, res)
         return res
 
     def _issue_dispatch(self, c, utc, res):
         self._set_phase(c, "DISPATCH_PENDING", utc, res)
         res.requests.append({
-            "op": "dispatch", "command_id": c.command_id, "backend_reference": c.backend_reference,
+            "op": "request_hold" if c.operation == "HOLD" else "dispatch", "command_id": c.command_id, "backend_reference": c.backend_reference,
             "operation": c.operation, "target": {"type": "joint", "id": c.joint_id},
             "parameters": copy.deepcopy(c.parameters),
             "deadline_ms": c.deadline_ms, "execution_timeout_ms": c.execution_timeout_ms,
@@ -336,7 +357,14 @@ class LifecycleEngine:
             self._move(c, "RUNNING", None, now_ms, utc, "EXECUTION_STARTED", res)
             c.started_ms = now_ms
             j = self._joints[c.joint_id]
-            j.control_state, j.active_command_id = "ACTIVE", c.command_id
+            j.active_command_id = c.command_id
+            if c.operation in MOVEMENT:
+                if j.control_state == "HOLDING":
+                    # contract 9.5: a movement started on a HOLDING joint releases the hold explicitly (I-23)
+                    c.release_pending = True
+                    res.requests.append({"op": "release_hold", "command_id": c.command_id,
+                                         "backend_reference": c.backend_reference, "target": {"type": "joint", "id": c.joint_id}})
+                j.control_state = "ACTIVE"
             res.events.append(self._joint_event(c.joint_id, utc, now_ms))
         return res
 
@@ -470,14 +498,22 @@ class LifecycleEngine:
             self._ignore(res, "terminate", command_id, "unknown_command", now_ms)
         elif c.state in m.TERMINAL_STATES:
             self._ignore(res, "terminate", command_id, "terminal", now_ms)
-        elif c.term is not None:
+        elif c.operation not in SLOT_OPERATIONS:
+            self._ignore(res, "terminate", command_id, "not_cancellable", now_ms)   # contract 6.1
+        else:
+            self._apply_cause(c, cause, now_ms, utc, res, "CANCEL")
+        return res
+
+    def _apply_cause(self, c, cause, now_ms, utc, res, trigger):
+        """Add a CANCEL_REQUESTED or STOP_REQUESTED cause to one slot command: end it at once if no
+        dispatch was issued, join the attempt if one is outstanding, otherwise start one."""
+        if c.term is not None:
             self._append_cause(c, cause, now_ms, utc, res)
         elif c.state == "ACCEPTED" and c.phase == "NONE":
             self._move(c, "CANCELLED", "STOPPED" if cause == "STOP_REQUESTED" else "CANCEL_REQUESTED",
                        now_ms, utc, "CANCEL_BEFORE_DISPATCH", res)
         else:
             self._begin_termination(c, cause, now_ms, utc, res)
-        return res
 
     def _begin_termination(self, c, cause, now_ms, utc, res):
         bound = self._joint_cfg[c.joint_id]["termination_confirm_timeout_ms"]
@@ -504,6 +540,9 @@ class LifecycleEngine:
             self._ignore(res, "termination_request_accepted", command_id, "duplicate", now_ms)
         else:
             c.term["backend_accepted_ms"] = now_ms
+            if c.operation == "STOP" and c.state == "ACCEPTED":
+                self._move(c, "RUNNING", None, now_ms, utc, "TERMINATION_ACCEPTED", res)   # I-21
+            self._sync_dependents(c.command_id, now_ms, utc, res)
         return res
 
     def _termination_input_problem(self, c, backend_reference):
@@ -532,9 +571,18 @@ class LifecycleEngine:
             return res
         c.term["outcome"] = "CONFIRMED"
         c.term["confirmed_ms"] = now_ms
-        to, why = m.outcome_of_causes([x["cause"] for x in c.term["causes"]])
-        self._move(c, to, why, now_ms, utc, "TERMINATION_CONFIRMED", res)
-        self._release_joint(c, now_ms, utc, res)
+        causes = [x["cause"] for x in c.term["causes"]]
+        if c.operation == "STOP":
+            # the STOP owns this attempt: the confirmation is its own completion (contract 6.2, 10.6 rule 5)
+            if c.state == "ACCEPTED":
+                if c.term["backend_accepted_ms"] is None:
+                    c.term["backend_accepted_ms"] = now_ms
+                self._move(c, "RUNNING", None, now_ms, utc, "TERMINATION_ACCEPTED", res)
+            self._move(c, "COMPLETED", "STOP_CONFIRMED", now_ms, utc, "TERMINATION_CONFIRMED", res)
+        else:
+            to, why = m.outcome_of_causes(causes)
+            self._move(c, to, why, now_ms, utc, "TERMINATION_CONFIRMED", res)
+        self._release_joint(c, now_ms, utc, res, stopped="STOP_REQUESTED" in causes)
         return res
 
     def _unconfirmed(self, c, now_ms, utc, res):
@@ -553,14 +601,217 @@ class LifecycleEngine:
         res.events.append(self._event("joint", c.joint_id, "JOINT_FAULT_RAISED", utc, copy.deepcopy(fault)))
         res.events.append(self._joint_event(c.joint_id, utc, now_ms))
 
-    def _release_joint(self, c, now_ms, utc, res):
-        """A confirmed termination frees the movement slot; an ACTIVE joint becomes IDLE (13.3)."""
+    def _release_joint(self, c, now_ms, utc, res, stopped=False):
+        """A confirmed termination frees the movement slot; an ACTIVE joint becomes IDLE (13.3). A
+        confirmed STOP establishes IDLE from ACTIVE, HOLDING or UNKNOWN (13.9 items 4 and 5), and
+        leaves the health state alone: a fault stays recorded and is not cleared (6.2)."""
         j = self._joints[c.joint_id]
+        changed = False
         if j.active_command_id == c.command_id:
             j.active_command_id = None
-            if j.control_state == "ACTIVE":
-                j.control_state = "IDLE"
+            changed = True
+        want = j.control_state == "ACTIVE" if not stopped else j.control_state != "IDLE"
+        if want and (changed or stopped):
+            j.control_state = "IDLE"
+            changed = True
+        if changed:
             res.events.append(self._joint_event(c.joint_id, utc, now_ms))
+
+    # ------------------------------------------------------------------ STOP, CANCEL and HOLD (PR-04)
+
+    def _start_stop(self, c, now_ms, utc, res):
+        """Interpretation I-20. A STOP follows exactly one termination attempt on its joint:
+        1. an attempt is outstanding (any command with a PENDING termination record): the STOP joins it,
+           STOP_REQUESTED is appended, no second request, the bound is not restarted (contract 6.2);
+        2. a dispatched movement or pending HOLD occupies the slot: the STOP starts its attempt with
+           cause STOP_REQUESTED (9.3); a command that was never dispatched ends CANCELLED(STOPPED) at
+           once and the STOP then falls to case 3, because the absence of an active command is not
+           evidence of a stop (2.4);
+        3. nothing is active: the STOP opens its own attempt (I-6), and on a HOLDING joint asks for the
+           release of the hold first (6.2, 9.5)."""
+        others = [x for x in self._commands.values()
+                  if x.joint_id == c.joint_id and x is not c and x.state not in m.TERMINAL_STATES]
+        outstanding = [x for x in others if x.term is not None and x.term["outcome"] == "PENDING"]
+        if outstanding:
+            owner = outstanding[0]
+            c.ref_id = owner.command_id
+            self._append_cause(owner, "STOP_REQUESTED", now_ms, utc, res)
+            self._sync_dependent(c, now_ms, utc, res)
+            return
+        slot = [x for x in others if x.operation in SLOT_OPERATIONS]
+        if slot:
+            owner = slot[0]
+            if owner.phase != "NONE" or owner.state == "RUNNING":
+                c.ref_id = owner.command_id
+                self._begin_termination(owner, "STOP_REQUESTED", now_ms, utc, res)
+                self._sync_dependent(c, now_ms, utc, res)
+                return
+            self._apply_cause(owner, "STOP_REQUESTED", now_ms, utc, res, "STOP")
+        c.ref_id = c.command_id
+        if self._joints[c.joint_id].control_state == "HOLDING":
+            res.requests.append({"op": "release_hold", "command_id": c.command_id,
+                                 "backend_reference": c.backend_reference, "target": {"type": "joint", "id": c.joint_id}})
+        self._begin_termination(c, "STOP_REQUESTED", now_ms, utc, res)
+
+    def _sync_dependents(self, owner_id, now_ms, utc, res):
+        for x in list(self._commands.values()):
+            if x.ref_id == owner_id and x.command_id != owner_id and x.operation in CONTROL_OPERATIONS \
+                    and x.state not in m.TERMINAL_STATES:
+                self._sync_dependent(x, now_ms, utc, res)
+
+    def _ensure_running(self, c, now_ms, utc, res):
+        if c.state == "ACCEPTED":
+            self._move(c, "RUNNING", None, now_ms, utc, "REQUEST_ISSUED", res)
+
+    def _sync_dependent(self, c, now_ms, utc, res):
+        """Drive a STOP or CANCEL from the command it follows (contract 7.8, 13.4 table).
+        CANCEL: COMPLETED(CANCEL_EFFECTIVE) when its target is CANCELLED, else FAILED with the target's
+        reason. STOP: COMPLETED(STOP_CONFIRMED) when the shared attempt is CONFIRMED (even if the joint
+        is or becomes FAULTED), FAILED(TERMINATION_UNCONFIRMED) when it is UNCONFIRMED, FAILED with the
+        owner's reason when the backend refused it. While the attempt is pending the command becomes
+        RUNNING once the backend accepted the request (I-21)."""
+        if c.state in m.TERMINAL_STATES:
+            return    # already resolved by the move of the command it follows
+        o = self._commands[c.ref_id]
+        if c.operation == "CANCEL":
+            if o.state == "CANCELLED":
+                self._ensure_running(c, now_ms, utc, res)
+                self._move(c, "COMPLETED", "CANCEL_EFFECTIVE", now_ms, utc, "TARGET_CANCELLED", res)
+            elif o.state == "FAILED":
+                self._move(c, "FAILED", o.reason_code, now_ms, utc, "TARGET_FAILED", res)
+            elif o.state == "COMPLETED":    # not reachable: a command with an outstanding attempt is never completed (I-18)
+                self._move(c, "FAILED", "INTERNAL_ERROR", now_ms, utc, "TARGET_COMPLETED", res)
+            elif o.term is not None and o.term["backend_accepted_ms"] is not None:
+                self._ensure_running(c, now_ms, utc, res)
+            return
+        outcome = o.term["outcome"] if o.term is not None else None
+        if outcome == "CONFIRMED":
+            self._ensure_running(c, now_ms, utc, res)
+            self._move(c, "COMPLETED", "STOP_CONFIRMED", now_ms, utc, "TERMINATION_CONFIRMED", res)
+        elif outcome == "UNCONFIRMED":
+            self._move(c, "FAILED", "TERMINATION_UNCONFIRMED", now_ms, utc, "TERMINATION_BOUND_EXPIRED", res)
+        elif outcome == "REFUSED":
+            self._move(c, "FAILED", "BACKEND_REJECTED_DISPATCH", now_ms, utc, "TERMINATION_REFUSED", res)
+        elif outcome == "PENDING" and o.term["backend_accepted_ms"] is not None:
+            self._ensure_running(c, now_ms, utc, res)
+
+    def termination_refused(self, command_id, backend_reference, now_ms, utc=None):
+        """The backend refuses a STOP's termination request before accepting any attempt (contract 6.2,
+        ERROR_CODES BACKEND_REJECTED_DISPATCH). The STOP, and every STOP that joined it, ends
+        FAILED(BACKEND_REJECTED_DISPATCH); the control state does not change (2.4 a) and no fault is
+        created. A refusal is only modelled for an attempt a STOP owns (I-24); for any other command
+        the bound alone decides, and the input is ignored and recorded."""
+        self._advance(now_ms)
+        res = Result(command_id=command_id)
+        c = self._commands.get(command_id)
+        if c is None:
+            self._ignore(res, "termination_refused", command_id, "unknown_command", now_ms)
+        elif backend_reference != c.backend_reference:
+            self._ignore(res, "termination_refused", command_id, "reference_mismatch", now_ms)
+        elif c.state in m.TERMINAL_STATES:
+            self._ignore(res, "termination_refused", command_id, "terminal", now_ms)
+        elif c.operation != "STOP" or c.term is None or c.term["outcome"] != "PENDING":
+            self._ignore(res, "termination_refused", command_id, "not_a_stop_attempt", now_ms)
+        elif c.term["backend_accepted_ms"] is not None:
+            self._ignore(res, "termination_refused", command_id, "already_accepted", now_ms)
+        else:
+            c.term["outcome"] = "REFUSED"
+            self._move(c, "FAILED", "BACKEND_REJECTED_DISPATCH", now_ms, utc, "TERMINATION_REFUSED", res)
+        return res
+
+    def hold_confirmed(self, command_id, backend_reference, now_ms, utc=None):
+        """The backend confirms that the hold is engaged (or, for a HOLD on a HOLDING joint, remains
+        engaged). Completes the HOLD with HOLD_ENGAGED and the joint becomes HOLDING (contract 6.3,
+        13.3). The HOLD must be RUNNING; an engagement reported while a termination is outstanding is
+        ignored, the attempt decides (I-22)."""
+        self._advance(now_ms)
+        res = Result(command_id=command_id)
+        c = self._commands.get(command_id)
+        if c is None or c.operation != "HOLD":
+            self._ignore(res, "hold_confirmed", command_id, "unknown_hold" if c is None else "not_a_hold", now_ms)
+        elif backend_reference != c.backend_reference:
+            self._ignore(res, "hold_confirmed", command_id, "reference_mismatch", now_ms)
+        elif c.state in m.TERMINAL_STATES:
+            self._ignore(res, "hold_confirmed", command_id, "terminal", now_ms)
+        elif c.term is not None:
+            self._ignore(res, "hold_confirmed", command_id, "terminating", now_ms)
+        elif c.state != "RUNNING":
+            self._ignore(res, "hold_confirmed", command_id, "not_started", now_ms)
+        else:
+            self._move(c, "COMPLETED", "HOLD_ENGAGED", now_ms, utc, "HOLD_CONFIRMED", res)
+            j = self._joints[c.joint_id]
+            if j.active_command_id == c.command_id:
+                j.active_command_id = None
+            j.control_state = "HOLDING"
+            res.events.append(self._joint_event(c.joint_id, utc, now_ms))
+        return res
+
+    def hold_released(self, command_id, backend_reference, now_ms, utc=None):
+        """The backend confirms the release of the hold that a starting movement asked for (I-23)."""
+        self._advance(now_ms)
+        res = Result(command_id=command_id)
+        c = self._release_target(res, "hold_released", command_id, backend_reference, now_ms)
+        if c is not None:
+            c.release_pending = False
+        return res
+
+    def hold_release_failed(self, command_id, backend_reference, now_ms, utc=None):
+        """The backend could not release the hold for a starting movement. The command ends
+        FAILED(BACKEND_REJECTED_DISPATCH) and the joint control state becomes UNKNOWN: the hold state is
+        re-evaluated from backend confirmation and is not assumed (contract 9.5, I-23)."""
+        self._advance(now_ms)
+        res = Result(command_id=command_id)
+        c = self._release_target(res, "hold_release_failed", command_id, backend_reference, now_ms)
+        if c is not None:
+            c.release_pending = False
+            self._move(c, "FAILED", "BACKEND_REJECTED_DISPATCH", now_ms, utc, "HOLD_RELEASE_FAILED", res)
+            j = self._joints[c.joint_id]
+            if j.active_command_id == c.command_id:
+                j.active_command_id = None
+            j.control_state = "UNKNOWN"
+            res.events.append(self._joint_event(c.joint_id, utc, now_ms))
+        return res
+
+    def _release_target(self, res, kind, command_id, backend_reference, now_ms):
+        c = self._commands.get(command_id)
+        if c is None:
+            self._ignore(res, kind, command_id, "unknown_command", now_ms)
+        elif backend_reference != c.backend_reference:
+            self._ignore(res, kind, command_id, "reference_mismatch", now_ms)
+        elif c.state in m.TERMINAL_STATES:
+            self._ignore(res, kind, command_id, "terminal", now_ms)
+        elif c.term is not None:
+            self._ignore(res, kind, command_id, "terminating", now_ms)
+        elif not c.release_pending:
+            self._ignore(res, kind, command_id, "no_release_pending", now_ms)
+        else:
+            return c
+        return None
+
+    def backend_health(self, health, now_ms, utc=None):
+        """The backend health report (contract 17.2): AVAILABLE, DEGRADED, UNAVAILABLE or FAULTED.
+        It changes what admission sees. When the backend is UNAVAILABLE or FAULTED a joint that was
+        ACTIVE, HOLDING or terminating can no longer be established, so its control state becomes
+        UNKNOWN (contract 2.4 c, 6.2); a backend that becomes available again never leaves UNKNOWN by
+        itself (13.9). Failing the commands in flight and raising backend and joint faults is PR-05
+        (I-25)."""
+        self._advance(now_ms)
+        res = Result()
+        if health not in ("AVAILABLE", "DEGRADED", "UNAVAILABLE", "FAULTED"):
+            raise ValueError("health must be AVAILABLE, DEGRADED, UNAVAILABLE or FAULTED")
+        if health == self._backend["health"]:
+            self._ignore(res, "backend_health", None, "unchanged", now_ms)
+            return res
+        self._backend["health"] = health
+        if health in ("UNAVAILABLE", "FAULTED"):
+            for jid, j in self._joints.items():
+                pending = any(x.joint_id == jid and x.state not in m.TERMINAL_STATES
+                              and x.term is not None and x.term["outcome"] == "PENDING"
+                              for x in self._commands.values())
+                if (j.control_state in ("ACTIVE", "HOLDING") or pending) and j.control_state != "UNKNOWN":
+                    j.control_state = "UNKNOWN"
+                    res.events.append(self._joint_event(jid, utc, now_ms))
+        return res
 
     def _complete(self, c, reason, now_ms, utc, res):
         self._move(c, "COMPLETED", reason, now_ms, utc, "COMPLETION", res)

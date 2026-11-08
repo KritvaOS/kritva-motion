@@ -241,15 +241,15 @@
     },
     {
       "id": "CT-ARB-03",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "9.3",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered). The admission-level part, if any, is tested but not reported as this ID."
+      "test": "test_lifecycle_control.TestControlConformance.test_CT_ARB_03"
     },
     {
       "id": "CT-ARB-04",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "6.2",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered). The admission-level part, if any, is tested but not reported as this ID."
+      "test": "test_lifecycle_control.TestControlConformance.test_CT_ARB_04"
     },
     {
       "id": "CT-ARB-05",
@@ -265,9 +265,9 @@
     },
     {
       "id": "CT-ARB-07",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "9.5",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_control.TestControlConformance.test_CT_ARB_07"
     },
     {
       "id": "CT-ARB-08",
@@ -529,21 +529,21 @@
     },
     {
       "id": "CT-ARB-09",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "6.2, 8.6",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered). The admission-level part, if any, is tested but not reported as this ID."
+      "test": "test_lifecycle_control.TestControlConformance.test_CT_ARB_09"
     },
     {
       "id": "CT-ARB-10",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "6.2",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered). The admission-level part, if any, is tested but not reported as this ID."
+      "test": "test_lifecycle_control.TestControlConformance.test_CT_ARB_10"
     },
     {
       "id": "CT-ARB-11",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "6.2, 9.5",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered). The admission-level part, if any, is tested but not reported as this ID."
+      "test": "test_lifecycle_control.TestControlConformance.test_CT_ARB_11"
     },
     {
       "id": "CT-ARB-12",
@@ -553,9 +553,9 @@
     },
     {
       "id": "CT-ARB-13",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "6.3",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered). The admission-level part, if any, is tested but not reported as this ID."
+      "test": "test_lifecycle_control.TestControlConformance.test_CT_ARB_13"
     },
     {
       "id": "CT-ARB-14",
@@ -565,9 +565,9 @@
     },
     {
       "id": "CT-ARB-15",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "9.5",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_control.TestControlConformance.test_CT_ARB_15"
     },
     {
       "id": "CT-TMO-08",
@@ -695,9 +695,9 @@
     },
     {
       "id": "CT-TMO-10",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "6.2, 10.6",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_control.TestControlConformance.test_CT_TMO_10"
     },
     {
       "id": "CT-TMO-11",
@@ -707,9 +707,9 @@
     },
     {
       "id": "CT-ARB-16",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "2.4, 6.2",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_control.TestControlConformance.test_CT_ARB_16"
     },
     {
       "id": "CT-FB-06",

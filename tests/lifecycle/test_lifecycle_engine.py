@@ -79,7 +79,7 @@ class TestClock(unittest.TestCase):
 
 class TestLaterOperations(unittest.TestCase):
     def test_later_operations_raise_before_any_change(self):
-        for op in ("STOP", "HOLD", "CANCEL", "CLEAR_FAULT"):
+        for op in ("CLEAR_FAULT",):   # STOP, HOLD and CANCEL arrived in PR-04; CLEAR_FAULT is PR-05
             with self.subTest(op=op):
                 e = S.engine()
                 S.ready(e)
