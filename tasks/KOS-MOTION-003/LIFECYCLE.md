@@ -160,6 +160,9 @@ The contract does not settle these. Each is recorded, and the owner confirms or 
 | I-9 | CT-TMO-07 "every fault-injection scenario" | means the scenario set defined and listed in PR-06, not every possible fault |
 | I-10 | CT-FLT-18, CT-FB-06, CT-VAL-11, CT-DET-01 (manifest: DEFERRED for other reasons) | proposed as targets: FLT-18 only the runtime half (`SET_VELOCITY` never complete without evidence), FB-06 `is_current` computed by the engine, VAL-11 the dispatch request carries absolute position and signed velocity unchanged and a zero velocity is a `SET_VELOCITY`, DET-01 determinism under the injected clock. If the owner rejects one it stays DEFERRED with its current reason |
 | I-11 | Events | returned as ordered data without `event_id` or sequence number; publishing, numbering and delivery (14.3, 14.4) are KOS-MOTION-005 |
+| I-12 | Feedback clock | freshness and settling use the engine's own monotonic receipt time only; the backend timestamp is recorded and never compared with it; `clock_unsynchronized` is true unless the backend declared its clock synchronized (an undeclared status fails closed) (PR-02) |
+| I-13 | Samples before the confirmed start | a feedback sample received before `RUNNING` is not evidence for `SET_POSITION`; the settling window starts only from samples received while the command is `RUNNING` (PR-02) |
+| I-14 | Reason codes on transitions | a transition into a terminal state needs a reason code of that state (ERROR_CODES section 2); a transition into a non-terminal state carries none; anything else raises `IllegalTransition` (PR-02) |
 
 Possible contract findings (not changed by this task): the I-3 gap in 7.8, the I-7 gap in 13.4, and the three findings already recorded in the task record of KOS-MOTION-002.
 

@@ -6,12 +6,12 @@ Targets: 55 IDs. Of the 52 IDs the manifest marks as needing the lifecycle state
 
 | ID | Status now | Contract | Plan text (shortened) | Class | Decision | Delivery |
 |---|---|---|---|---|---|---|
-| CT-LC-01 | DEFERRED | 7.5 | Every transition in 7.5 is reachable and recorded once with a reason code | Lifecycle engine | Target of KOS-MOTION-003 | PR-02 |
+| CT-LC-01 | DEFERRED | 7.5 | Every transition in 7.5 is reachable and recorded once with a reason code | Lifecycle engine | Target of KOS-MOTION-003 | PR-06 |
 | CT-LC-02 | DEFERRED | 7.5 | Every pair of states not in 7.5 is refused (table-driven over all 25 pairs) | Lifecycle engine | Target of KOS-MOTION-003 | PR-02 |
 | CT-LC-03 | DEFERRED | 7.5 | A terminal state never changes; a late backend event after terminal is ignored and logged | Lifecycle engine | Target of KOS-MOTION-003 | PR-02 |
 | CT-LC-04 | DEFERRED | 7.2 | Acceptance does not imply `RUNNING`; `RUNNING` only on backend start confirmation | Lifecycle engine | Target of KOS-MOTION-003 | PR-02 |
 | CT-LC-05 | DEFERRED | 7.3, 15 | Rejected submissions have no `command_id` and no lifecycle, and appear in history | Lifecycle plus history | Stays DEFERRED: the history half needs a store (candidate KOS-MOTION-005) | - |
-| CT-LC-06 | DEFERRED | 7.6 | Phases `NONE`, `DISPATCH_PENDING` and `TERMINATING` appear only on non-terminal commands and never as states; a terminal command always has phase `NON | Lifecycle engine | Target of KOS-MOTION-003 | PR-02 |
+| CT-LC-06 | DEFERRED | 7.6 | Phases `NONE`, `DISPATCH_PENDING` and `TERMINATING` appear only on non-terminal commands and never as states; a terminal command always has phase `NON | Lifecycle engine | Target of KOS-MOTION-003 | PR-03 |
 | CT-VAL-11 | DEFERRED | 5.4, 5.5 | Position and velocity semantics: absolute position, signed velocity, zero velocity is not STOP or HOLD | Lifecycle engine | Target of KOS-MOTION-003 (reclassified in PR-01, owner to confirm) | PR-02 |
 | CT-CFG-01 | DEFERRED | 3.2 | Submissions are rejected `CONFIG_NOT_ACTIVE` until a configuration validates | Store, publisher, activation or status reporting | Stays DEFERRED (candidate KOS-MOTION-005) | - |
 | CT-CFG-03 | DEFERRED | 3.3 | Accepted commands record the configuration version and digest | Store, publisher, activation or status reporting | Stays DEFERRED (candidate KOS-MOTION-005) | - |
@@ -32,7 +32,7 @@ Targets: 55 IDs. Of the 52 IDs the manifest marks as needing the lifecycle state
 | CT-TMO-03 | DEFERRED | 10.6 | Unconfirmed termination within the bound gives `FAILED(TERMINATION_UNCONFIRMED)` and a faulted joint, never a "stopped" report | Lifecycle engine | Target of KOS-MOTION-003 | PR-03 |
 | CT-TMO-04 | DEFERRED | 10.5, 10.6 | Cancel with unconfirmed termination follows the same path | Lifecycle engine | Target of KOS-MOTION-003 | PR-03 |
 | CT-TMO-05 | DEFERRED | 10.3, 10.4 | Effective default deadline and timeout come from configuration and are recorded in the command record | Lifecycle engine | Target of KOS-MOTION-003 | PR-02 |
-| CT-TMO-06 | DEFERRED | 10.1 | Durations use the monotonic clock: wall-clock steps do not alter timeouts | Lifecycle engine | Target of KOS-MOTION-003 | PR-02 |
+| CT-TMO-06 | DEFERRED | 10.1 | Durations use the monotonic clock: wall-clock steps do not alter timeouts | Lifecycle engine | Target of KOS-MOTION-003 | PR-03 |
 | CT-TMO-07 | DEFERRED | 7.2 | Every accepted command reaches exactly one terminal state in every fault-injection scenario | Lifecycle engine | Target of KOS-MOTION-003 | PR-06 |
 | CT-FB-02 | DEFERRED | 10.2, 17.2 | Both timestamps are recorded; an unsynchronized backend clock is flagged | Lifecycle engine | Target of KOS-MOTION-003 | PR-02 |
 | CT-FB-03 | DEFERRED | 11.2, 11.3 | Stale, invalid and missing feedback are reported distinctly and never as valid | Store, publisher, activation or status reporting | Stays DEFERRED (candidate KOS-MOTION-005) | - |
@@ -82,7 +82,7 @@ Targets: 55 IDs. Of the 52 IDs the manifest marks as needing the lifecycle state
 | CT-FLT-15 | DEFERRED | 6.2, 10.6 | A confirmed `STOP` stays `COMPLETED(STOP_CONFIRMED)` when a fault is appended to its attempt; the fault stays recorded | Lifecycle engine | Target of KOS-MOTION-003 | PR-05 |
 | CT-FLT-16 | DEFERRED | 13.9 | Initial control state is `UNKNOWN`; a stale or ambiguous backend report does not establish a state; the backend becoming available alone does not leav | Lifecycle engine | Target of KOS-MOTION-003 | PR-05 |
 | CT-FLT-17 | DEFERRED | 13.6, 13.9 | Recovery path: confirmed `STOP` gives `IDLE`, then `CLEAR_FAULT`; without stop confirmation the joint stays `FAULTED` and `UNKNOWN` and `CLEAR_FAULT`  | Lifecycle engine | Target of KOS-MOTION-003 | PR-05 |
-| CT-FLT-18 | DEFERRED | 13.8 | Degradation permission does not make `SET_POSITION` or `HOLD` admissible without valid fresh feedback; `SET_VELOCITY` is accepted only with its comple | Lifecycle engine | Target of KOS-MOTION-003 (reclassified in PR-01, owner to confirm) | PR-02 |
+| CT-FLT-18 | DEFERRED | 13.8 | Degradation permission does not make `SET_POSITION` or `HOLD` admissible without valid fresh feedback; `SET_VELOCITY` is accepted only with its comple | Lifecycle engine | Target of KOS-MOTION-003 (reclassified in PR-01, owner to confirm) | PR-05 |
 | CT-TMO-10 | DEFERRED | 6.2, 10.6 | `STOP` during an outstanding termination joins it: cause appended, bound not restarted, no second backend request, own command ID; a `STOP` after a te | Lifecycle engine | Target of KOS-MOTION-003 | PR-04 |
 | CT-TMO-11 | DEFERRED | 10.6 | Reason selection: any `STOP_REQUESTED` gives `STOPPED`, otherwise `CANCEL_REQUESTED`; first recorded of timeout and deadline wins | Lifecycle engine | Target of KOS-MOTION-003 | PR-03 |
 | CT-ARB-16 | DEFERRED | 2.4, 6.2 | Backend refusal of `STOP` before any attempt gives `FAILED(BACKEND_REJECTED_DISPATCH)` and not `TERMINATION_UNCONFIRMED`; backend loss on an active jo | Lifecycle engine | Target of KOS-MOTION-003 | PR-04 |

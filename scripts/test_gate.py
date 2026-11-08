@@ -22,7 +22,7 @@ import sys
 import unittest
 from pathlib import Path
 
-UNIT_TEST_DIRS = ["tests/schema", "tests/validator", "tests/gate", "tests/status_gen"]
+UNIT_TEST_DIRS = ["tests/schema", "tests/validator", "tests/lifecycle", "tests/gate", "tests/status_gen"]
 MANIFEST = "tests/manifest/conformance_manifest.json"
 PLAN = "contract/CONFORMANCE_TEST_PLAN.md"
 STATUSES = ("IN_SCOPE", "DEFERRED", "OUT_OF_SCOPE")

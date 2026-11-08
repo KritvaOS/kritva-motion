@@ -64,21 +64,21 @@
     },
     {
       "id": "CT-LC-02",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "7.5",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_conformance.TestLifecycleConformance.test_CT_LC_02"
     },
     {
       "id": "CT-LC-03",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "7.5",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_conformance.TestLifecycleConformance.test_CT_LC_03"
     },
     {
       "id": "CT-LC-04",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "7.2",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_conformance.TestLifecycleConformance.test_CT_LC_04"
     },
     {
       "id": "CT-LC-05",
@@ -156,9 +156,9 @@
     },
     {
       "id": "CT-VAL-11",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "5.4, 5.5",
-      "reason": "Execution semantics (absolute position, signed velocity). Admission treats a zero velocity as a movement command and compares absolute positions with the limits, but that is not reported as this ID."
+      "test": "test_lifecycle_conformance.TestLifecycleConformance.test_CT_VAL_11"
     },
     {
       "id": "CT-CFG-01",
@@ -235,9 +235,9 @@
     },
     {
       "id": "CT-ARB-02",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "9.2",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_conformance.TestLifecycleConformance.test_CT_ARB_02"
     },
     {
       "id": "CT-ARB-03",
@@ -301,9 +301,9 @@
     },
     {
       "id": "CT-TMO-05",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "10.3, 10.4",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_conformance.TestLifecycleConformance.test_CT_TMO_05"
     },
     {
       "id": "CT-TMO-06",
@@ -325,9 +325,9 @@
     },
     {
       "id": "CT-FB-02",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "10.2, 17.2",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_conformance.TestLifecycleConformance.test_CT_FB_02"
     },
     {
       "id": "CT-FB-03",
@@ -349,21 +349,21 @@
     },
     {
       "id": "CT-CMP-01",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "12.2",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_conformance.TestLifecycleConformance.test_CT_CMP_01"
     },
     {
       "id": "CT-CMP-02",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "12.1",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_conformance.TestLifecycleConformance.test_CT_CMP_02"
     },
     {
       "id": "CT-CMP-03",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "12.2",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_conformance.TestLifecycleConformance.test_CT_CMP_03"
     },
     {
       "id": "CT-FLT-01",
