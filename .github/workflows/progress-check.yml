@@ -1,0 +1,41 @@
+#==============================================================================
+# Copyright (c) 2026 KritvaOS
+# SPDX-License-Identifier: Apache-2.0
+#
+# File        : progress-check.yml
+# Description : GitHub Actions check that status/STATUS.md matches its pinned program snapshot
+#
+# Component   : Infrastructure
+# Module      : Program Status Reporting
+# Layer       : Development Infrastructure
+#
+# Requirements: kritva-program decision D-120
+# API         : GitHub Actions workflow
+#
+# Author      : KritvaOS
+# Created     : 08-11-2026
+#==============================================================================
+
+# progress-check.yml: fails when status/STATUS.md differs from status/program_snapshot.json (D-120).
+# It reads only files in this repository, so a change in kritva-program never turns it red by itself.
+name: progress-check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  progress-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: "3.12"
+      - name: Check the progress report against its snapshot
+        run: python3 scripts/progress_report.py --check
