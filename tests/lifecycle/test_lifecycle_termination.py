@@ -165,7 +165,7 @@ class TestTerminationConformance(unittest.TestCase):
 
     def test_CT_TMO_02(self):
         """Execution timeout starts termination; confirmed termination gives FAILED(EXECUTION_TIMEOUT)."""
-        e = S.engine()
+        e = S.engine_optional_feedback()
         cid = running(e, execution_timeout_ms=400)                      # started at 1
         e.tick(400)
         self.assertEqual(e.command(cid)["phase"], "NONE")               # 399 ms after the start: nothing yet
@@ -186,12 +186,13 @@ class TestTerminationConformance(unittest.TestCase):
         self.assertEqual(c["termination"]["outcome"], "CONFIRMED")
         self.assertEqual(requests(done, "request_termination"), [])     # one request only
         snap = e.joint_state("joint-1", 902)
-        self.assertEqual((snap["control_state"], snap["health_state"]), ("IDLE", "READY"))
+        # DEGRADED only because this engine has optional feedback and none arrived (PR-05); never FAULTED
+        self.assertEqual((snap["control_state"], snap["health_state"]), ("IDLE", "DEGRADED"))
         self.assertNotIn("active_command_id", snap)
         self.assertEqual(e.faults("joint-1"), [])                       # FAILED does not fault the joint
         # the effective timeout is recorded, and a longer one is not cut short
         self.assertEqual(c["execution_timeout_ms"], 400)
-        e2 = S.engine()
+        e2 = S.engine_optional_feedback()
         long_one = running(e2, execution_timeout_ms=900)
         e2.tick(800)
         self.assertEqual(e2.command(long_one)["phase"], "NONE")
@@ -255,7 +256,7 @@ class TestTerminationConformance(unittest.TestCase):
     def test_CT_TMO_06(self):
         """Durations use the monotonic clock: wall-clock steps do not alter timeouts."""
         def run(utc_of):
-            e = S.engine()
+            e = S.engine_optional_feedback()
             S.ready(e, t=0)
             r = e.submit(S.vel_cmd(0.1, execution_timeout_ms=400, deadline_ms=700), 1, utc_of(1))
             cid = r.command_id

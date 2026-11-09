@@ -24,6 +24,15 @@ def engine(cfg=None, backend=None):
     return LifecycleEngine(copy.deepcopy(cfg or base.CONFIG), copy.deepcopy(backend or base.BACKEND), "digest-1")
 
 
+def engine_optional_feedback(**joint_1_over):
+    """An engine whose joint-1 feedback is not required (feedback_required false, policy DEGRADE). The tests
+    of the earlier pull requests that let time pass with no feedback sample use it: with required feedback
+    that silence is a loss of feedback during execution and a FEEDBACK_LOST fault (contract 11.5, PR-05)."""
+    over = dict(feedback_required=False, feedback_timeout_policy="DEGRADE")
+    over.update(joint_1_over)
+    return engine(config(**over))
+
+
 def sample(pos=0.0, validity="VALID", synchronized=True, stamp="2026-11-08T00:00:00Z", **extra):
     s = {"measured_position": pos, "validity": validity, "backend_timestamp": stamp,
          "clock_domain": "backend-clock", "clock_synchronized": synchronized}

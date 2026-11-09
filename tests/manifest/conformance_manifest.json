@@ -337,15 +337,15 @@
     },
     {
       "id": "CT-FB-04",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "11.5",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_faults.TestFaultConformance.test_CT_FB_04"
     },
     {
       "id": "CT-FB-05",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "11.5",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_faults.TestFaultConformance.test_CT_FB_05"
     },
     {
       "id": "CT-CMP-01",
@@ -367,21 +367,21 @@
     },
     {
       "id": "CT-FLT-01",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "13.4",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_faults.TestFaultConformance.test_CT_FLT_01"
     },
     {
       "id": "CT-FLT-02",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "13.4",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_faults.TestFaultConformance.test_CT_FLT_02"
     },
     {
       "id": "CT-FLT-03",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "13.5",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_faults.TestFaultConformance.test_CT_FLT_03"
     },
     {
       "id": "CT-FLT-04",
@@ -391,9 +391,9 @@
     },
     {
       "id": "CT-FLT-05",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "13.4",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_faults.TestFaultConformance.test_CT_FLT_05"
     },
     {
       "id": "CT-FLT-06",
@@ -403,15 +403,15 @@
     },
     {
       "id": "CT-FLT-07",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "13.3",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_faults.TestFaultConformance.test_CT_FLT_07"
     },
     {
       "id": "CT-FLT-08",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "13.1",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_faults.TestFaultConformance.test_CT_FLT_08"
     },
     {
       "id": "CT-EV-01",
@@ -571,9 +571,9 @@
     },
     {
       "id": "CT-TMO-08",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "10.6",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_faults.TestFaultConformance.test_CT_TMO_08"
     },
     {
       "id": "CT-TMO-09",
@@ -596,21 +596,21 @@
     },
     {
       "id": "CT-FLT-09",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "13.2, 13.3",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_faults.TestFaultConformance.test_CT_FLT_09"
     },
     {
       "id": "CT-FLT-10",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "13.3, 13.6",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_faults.TestFaultConformance.test_CT_FLT_10"
     },
     {
       "id": "CT-FLT-11",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "13.6",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_faults.TestFaultConformance.test_CT_FLT_11"
     },
     {
       "id": "CT-FLT-12",
@@ -658,33 +658,33 @@
     },
     {
       "id": "CT-FLT-14",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "7.8, 13.4",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_faults.TestFaultConformance.test_CT_FLT_14"
     },
     {
       "id": "CT-FLT-15",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "6.2, 10.6",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_faults.TestFaultConformance.test_CT_FLT_15"
     },
     {
       "id": "CT-FLT-16",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "13.9",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_faults.TestFaultConformance.test_CT_FLT_16"
     },
     {
       "id": "CT-FLT-17",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "13.6, 13.9",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_faults.TestFaultConformance.test_CT_FLT_17"
     },
     {
       "id": "CT-FLT-18",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "13.8",
-      "reason": "The second half (SET_VELOCITY accepted only with its completion evidence) is a runtime completion matter. The admission part (degradation permission does not waive feedback for SET_POSITION and HOLD) is tested but not reported as this ID."
+      "test": "test_lifecycle_faults.TestFaultConformance.test_CT_FLT_18"
     },
     {
       "id": "CT-CFG-08",
@@ -713,9 +713,9 @@
     },
     {
       "id": "CT-FB-06",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "13.5",
-      "reason": "Needs the runtime that computes is_current; the schema rule and the admission use of a supplied is_current are tested but are not reported as this ID."
+      "test": "test_lifecycle_faults.TestFaultConformance.test_CT_FB_06"
     },
     {
       "id": "CT-VAL-14",
@@ -725,27 +725,27 @@
     },
     {
       "id": "CT-FLT-19",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "13.9",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_faults.TestFaultConformance.test_CT_FLT_19"
     },
     {
       "id": "CT-FLT-20",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "13.9",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_faults.TestFaultConformance.test_CT_FLT_20"
     },
     {
       "id": "CT-FLT-21",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "13.9, 13.6",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_faults.TestFaultConformance.test_CT_FLT_21"
     },
     {
       "id": "CT-FLT-22",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "13.4, 13.6",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_faults.TestFaultConformance.test_CT_FLT_22"
     },
     {
       "id": "CT-FLT-23",

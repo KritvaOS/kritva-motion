@@ -212,8 +212,11 @@ class TestModelOutcome(unittest.TestCase):
             model.outcome_of_causes([])
         with self.assertRaises(model.IllegalTransition):
             model.outcome_of_causes(["SOMETHING_ELSE"])
-        with self.assertRaises(NotImplementedError):
+        with self.assertRaises(model.IllegalTransition):                  # a FAULT cause needs its fault's code (PR-05)
             model.outcome_of_causes(["CANCEL_REQUESTED", "FAULT"])
+        with self.assertRaises(model.IllegalTransition):
+            model.outcome_of_causes(["FAULT"], ["NOT_A_REASON"])
+        self.assertEqual(model.outcome_of_causes(["CANCEL_REQUESTED", "FAULT"], ["FEEDBACK_LOST"]), ("FAILED", "FEEDBACK_LOST"))
 
 
 class TestDeterminism(unittest.TestCase):
