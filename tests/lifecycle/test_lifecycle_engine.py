@@ -77,16 +77,15 @@ class TestClock(unittest.TestCase):
         e.tick(5)
 
 
-class TestLaterOperations(unittest.TestCase):
-    def test_later_operations_raise_before_any_change(self):
-        for op in ("CLEAR_FAULT",):   # STOP, HOLD and CANCEL arrived in PR-04; CLEAR_FAULT is PR-05
-            with self.subTest(op=op):
-                e = S.engine()
-                S.ready(e)
-                before = (e.commands(), e.joint_state("joint-1", 1), list(e.ignored_log))
-                with self.assertRaises(NotImplementedError):
-                    e.submit(S.env(op, "joint-1"), 1)
-                self.assertEqual(before, (e.commands(), e.joint_state("joint-1", 1), list(e.ignored_log)))
+class TestEveryOperationIsImplemented(unittest.TestCase):
+    def test_clear_fault_without_a_fault_is_rejected_by_admission_and_changes_nothing(self):
+        # STOP, HOLD and CANCEL arrived in PR-04 and CLEAR_FAULT in PR-05: no command type raises NotImplementedError
+        e = S.engine()
+        S.ready(e)
+        before = (e.commands(), e.joint_state("joint-1", 1), list(e.ignored_log))
+        r = e.submit(S.env("CLEAR_FAULT", "joint-1"), 1)
+        self.assertEqual((r.admission.accepted, r.admission.code, r.command_id), (False, "FAULT_NOT_FOUND", None))
+        self.assertEqual(before, (e.commands(), e.joint_state("joint-1", 1), list(e.ignored_log)))
 
 
 class TestPhasesAndStart(unittest.TestCase):
@@ -148,7 +147,8 @@ class TestCompletion(unittest.TestCase):
         self.assertEqual(e.joint_state("joint-1", 1100)["control_state"], "IDLE")
 
     def test_out_of_tolerance_or_invalid_sample_restarts_the_window(self):
-        cfg = S.config(settling_duration_ms=100, max_feedback_age_ms=200, position_tolerance=0.01)
+        cfg = S.config(settling_duration_ms=100, max_feedback_age_ms=200, position_tolerance=0.01,
+                       feedback_required=False, feedback_timeout_policy="DEGRADE")   # an INVALID sample is not under test as a fault (PR-05)
         e, cid = self._running(cfg, t=1000)
         e.feedback("joint-1", S.sample(0.5), 1000)
         e.feedback("joint-1", S.sample(0.9), 1050)
@@ -170,7 +170,7 @@ class TestCompletion(unittest.TestCase):
         self.assertEqual(e.command(cid)["state"], "COMPLETED")
 
     def test_velocity_with_duration_completes_on_tick_only(self):
-        e = S.engine()
+        e = S.engine_optional_feedback()
         S.ready(e)
         cid, _ = S.submit_start(e, S.vel_cmd(0.1, duration=500), 1, 10)
         e.tick(509)

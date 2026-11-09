@@ -26,8 +26,11 @@ the command deadline and the execution timeout on the injected monotonic clock, 
 with its bounded wait, cancellation of one command by id, confirmed and unconfirmed termination, and the
 joint fault that an unconfirmed termination leaves behind.
 
-Not here yet (a later pull request of the task): other faults, degradation, recovery and CLEAR_FAULT (PR-05).
-A command type that belongs to them raises NotImplementedError before any state changes.
+PR-05 adds the joint fault model (LIFECYCLE.md sections 7 and 10, interpretations I-26 to I-35): fault
+records and their propagation to every non-terminal command of an affected joint (contract 13.4),
+backend faults, loss of required or optional feedback during execution (11.5), degradation (13.8),
+recovery of the control state (13.9), CLEAR_FAULT with its acceptance boundary (13.6), and the joint
+control and health transitions of 13.3 as a table the engine checks on every change.
 
 Pure and deterministic: no system clock, no I/O, no randomness, no global state. Every public call
 takes the caller's monotonic reading `now_ms`, which must never go backwards; UTC audit strings are
@@ -42,11 +45,11 @@ from typing import Any, Optional
 from kritva_motion import admission as ad
 from kritva_motion.lifecycle import model as m
 
-LATER_OPERATIONS = ("CLEAR_FAULT",)
 CANCEL_CAUSES = ("CANCEL_REQUESTED", "STOP_REQUESTED")   # causes a caller may give to terminate()
 MOVEMENT = ("SET_POSITION", "SET_VELOCITY")
 SLOT_OPERATIONS = ("SET_POSITION", "SET_VELOCITY", "HOLD")   # occupy the movement slot (contract 9.1)
 CONTROL_OPERATIONS = ("STOP", "CANCEL")                        # own no execution (contract 7.8)
+NO_TIMER_OPERATIONS = ("STOP", "CANCEL", "CLEAR_FAULT")        # carry no deadline and no execution timeout
 
 
 class ClockError(ValueError):
@@ -89,6 +92,11 @@ class _Command:
     deadline_fired: bool = False
     timeout_fired: bool = False
     transitions: list = field(default_factory=list)
+    envelope: Any = None                       # CLEAR_FAULT: the admitted command, to re-evaluate it at application (I-33)
+    identity: str = "VALID"
+    permission_granted: bool = True
+    human_attested: bool = False
+    fault_mark: int = 0                        # CLEAR_FAULT: the fault counter when it was accepted
 
 
 @dataclass
@@ -98,7 +106,10 @@ class _Joint:
     active_command_id: Optional[str] = None
     feedback: Optional[dict] = None       # the latest feedback record (valid or not)
     last_valid: Optional[dict] = None     # the latest record with validity VALID
-    faults: list = field(default_factory=list)   # fault records; only TERMINATION_UNCONFIRMED in PR-03
+    faults: list = field(default_factory=list)   # fault records, oldest first, ACTIVE or CLEARED (I-26)
+    degradation: list = field(default_factory=list)   # active degradation reasons (13.8)
+    history: list = field(default_factory=list)       # control and health transitions (13.3)
+    stop_seen: set = field(default_factory=set)       # fault ids for which a termination was confirmed after the fault
 
 
 def _number(v):
@@ -118,6 +129,7 @@ class LifecycleEngine:
         self._commands = {}
         self._counter = 0
         self._fault_counter = 0
+        self._backend_conditions = []   # backend fault codes whose condition has not ended (13.4)
         self._last_now = None
         self.ignored_log = []
 
@@ -150,6 +162,10 @@ class LifecycleEngine:
 
     def commands(self):
         return [self.command(cid) for cid in self._commands]
+
+    def joint_transitions(self, joint_id):
+        """Copies of the control and health transitions of one joint, oldest first (contract 13.3)."""
+        return copy.deepcopy(self._joints[joint_id].history)
 
     def feedback_record(self, joint_id):
         """A copy of the latest feedback record for a joint (valid or not), or None. Both the backend
@@ -185,12 +201,18 @@ class LifecycleEngine:
              "backend_status": self._backend["health"], "config_version": self._config["config_version"]}
         if j.active_command_id is not None:
             s["active_command_id"] = j.active_command_id
-        if j.faults:
-            s["fault_ids"] = [f["fault_id"] for f in j.faults]
+        active = [f["fault_id"] for f in j.faults if f["state"] == "ACTIVE"]
+        if active:
+            s["fault_ids"] = active
+        if j.degradation:
+            s["degradation_reasons"] = list(j.degradation)
         if j.last_valid is not None:
+            # last-known values; is_current says whether they are current (contract 13.5)
             s["measured_position"] = j.last_valid["measured_position"]
             if j.last_valid.get("measured_velocity") is not None:
                 s["measured_velocity"] = j.last_valid["measured_velocity"]
+            if j.last_valid.get("received_at") is not None:
+                s["last_valid_feedback_at"] = j.last_valid["received_at"]
         rec = j.feedback
         if rec is not None:
             for src, dst in (("backend_timestamp", "backend_timestamp"), ("clock_domain", "backend_clock_domain"),
@@ -242,6 +264,12 @@ class LifecycleEngine:
         for cid, c in self._commands.items():
             records[cid] = {"operation": c.operation, "state": c.state, "phase": c.phase,
                             "visible": True, "joint_id": c.joint_id}
+        faults = {}
+        for fjid, fj in self._joints.items():
+            for f in fj.faults:
+                if f["state"] == "ACTIVE":
+                    faults[f["fault_id"]] = {"joint_id": fjid, "visible": True, "code": f["code"],
+                                             "cause_resolved": self._cause_resolved(f, now_ms)}
         jid = None
         if isinstance(command, dict) and isinstance(command.get("target"), dict):
             jid = command["target"].get("id")
@@ -252,7 +280,7 @@ class LifecycleEngine:
             recv = fb["received_ms"] if fb is not None else None
         return ad.AdmissionContext(
             command=command, identity=identity, permission_granted=permission_granted,
-            active_config=self._config, commands=records, backend=self._backend, joint_state=snap,
+            active_config=self._config, commands=records, faults=faults, backend=self._backend, joint_state=snap,
             feedback_received_monotonic_ms=recv, reference_time_ms=now_ms,
             human_operator_attested=human_operator_attested)
 
@@ -262,10 +290,10 @@ class LifecycleEngine:
         DISPATCH_PENDING and a dispatch request is returned; it stays ACCEPTED until the backend
         confirms the start (contract 7.2). A rejection creates no command and no lifecycle (7.3).
         With defer_dispatch=True no dispatch request is issued: the command stays ACCEPTED with phase
-        NONE ("not dispatched", contract 7.6) until dispatch() is called (interpretation I-15)."""
+        NONE ("not dispatched", contract 7.6) until dispatch() is called (interpretation I-15). For a
+        CLEAR_FAULT the same flag defers its application: it is accepted, and dispatch() applies it
+        (interpretation I-33)."""
         self._advance(now_ms)
-        if isinstance(command, dict) and command.get("command_type") in LATER_OPERATIONS:
-            raise NotImplementedError(f"{command['command_type']} belongs to a later pull request of KOS-MOTION-003")
         res = Result()
         ctx = self._admission_context(command, now_ms, identity, permission_granted, human_operator_attested)
         res.admission = ad.admit(ctx)
@@ -280,7 +308,7 @@ class LifecycleEngine:
         else:
             jid = command["target"]["id"]
             cfg = self._joint_cfg[jid]
-        control = op in CONTROL_OPERATIONS
+        control = op in NO_TIMER_OPERATIONS
         c = _Command(
             command_id=cid, client_request_id=command["client_request_id"], operation=op,
             joint_id=jid, parameters=copy.deepcopy(command.get("parameters", {})),
@@ -297,7 +325,12 @@ class LifecycleEngine:
                               "monotonic_ms": now_ms, "trigger": "ADMISSION"})
         res.events.append(self._event("command", cid, "COMMAND_STATE_CHANGED", utc,
                                       {"from": None, "to": "ACCEPTED", "reason_code": None, "phase": "NONE"}))
-        if op == "STOP":
+        if op == "CLEAR_FAULT":
+            c.envelope, c.identity, c.permission_granted = copy.deepcopy(command), identity, permission_granted
+            c.human_attested, c.fault_mark = human_operator_attested, self._fault_counter
+            if not defer_dispatch:
+                self._apply_clear(c, now_ms, utc, res)
+        elif op == "STOP":
             self._start_stop(c, now_ms, utc, res)
         elif op == "CANCEL":
             c.ref_id = command["parameters"]["command_id"]
@@ -328,6 +361,8 @@ class LifecycleEngine:
             self._ignore(res, "dispatch", command_id, "terminal", now_ms)
         elif c.phase == "TERMINATING":
             self._ignore(res, "dispatch", command_id, "terminating", now_ms)
+        elif c.operation == "CLEAR_FAULT":
+            self._apply_clear(c, now_ms, utc, res)
         elif c.state != "ACCEPTED" or c.phase != "NONE":
             self._ignore(res, "dispatch", command_id, "already_dispatched", now_ms)
         else:
@@ -364,7 +399,7 @@ class LifecycleEngine:
                     c.release_pending = True
                     res.requests.append({"op": "release_hold", "command_id": c.command_id,
                                          "backend_reference": c.backend_reference, "target": {"type": "joint", "id": c.joint_id}})
-                j.control_state = "ACTIVE"
+                self._set_control(c.joint_id, "ACTIVE", "MOVEMENT_STARTED", now_ms)
             res.events.append(self._joint_event(c.joint_id, utc, now_ms))
         return res
 
@@ -395,6 +430,7 @@ class LifecycleEngine:
         c = self._commands.get(j.active_command_id) if j.active_command_id else None
         if c is not None and c.state == "RUNNING" and c.operation == "SET_POSITION" and c.term is None:
             self._settle(c, rec, prev, now_ms, utc, res)
+        self._check_feedback(joint_id, now_ms, utc, res)
         return res
 
     def _settle(self, c, rec, prev, now_ms, utc, res):
@@ -420,7 +456,7 @@ class LifecycleEngine:
         """An authoritative backend status report for a joint (contract 13.9, item 2). It can establish
         IDLE, ACTIVE or HOLDING only on a joint whose control state is UNKNOWN, only when it names a
         control state and is no older than max_feedback_age_ms; otherwise the state stays UNKNOWN.
-        Only the establishment of a state is implemented here; the rest of 13.9 is PR-05."""
+        It never clears a fault and never changes the health state (13.9 item 5, interpretation I-32)."""
         self._advance(now_ms)
         res = Result()
         j = self._joints.get(joint_id)
@@ -432,7 +468,7 @@ class LifecycleEngine:
               or age_ms > self._joint_cfg[joint_id]["max_feedback_age_ms"]):
             self._ignore(res, "status_report", None, "partial_ambiguous_or_stale", now_ms)
         else:
-            j.control_state = control_state
+            self._set_control(joint_id, control_state, "STATUS_REPORT", now_ms)
             res.events.append(self._joint_event(joint_id, utc, now_ms))
         return res
 
@@ -443,7 +479,9 @@ class LifecycleEngine:
         deadlines, execution timeouts, termination bounds, SET_VELOCITY durations. Backend inputs
         supplied at the same reading must be applied before the tick (the caller orders them); a
         limit is reached when the elapsed time is at least the limit. Each pass visits the commands in
-        the order they were accepted. Elapsed times use only the monotonic readings (contract 10.1)."""
+        the order they were accepted. Feedback loss is evaluated last, so a timer that already began a
+        termination at this reading wins (I-30). Elapsed times use only the monotonic readings
+        (contract 10.1)."""
         self._advance(now_ms)
         res = Result()
         cmds = list(self._commands.values())
@@ -474,6 +512,8 @@ class LifecycleEngine:
             if (c.state == "RUNNING" and c.term is None and c.operation == "SET_VELOCITY"
                     and "duration_ms" in c.parameters and now_ms - c.started_ms >= c.parameters["duration_ms"]):
                 self._complete(c, "DURATION_ELAPSED", now_ms, utc, res)
+        for jid in self._joints:    # feedback lost or back during execution (11.5, interpretation I-30)
+            self._check_feedback(jid, now_ms, utc, res)
         return res
 
     # ------------------------------------------------------------------ cancellation and termination
@@ -515,17 +555,23 @@ class LifecycleEngine:
         else:
             self._begin_termination(c, cause, now_ms, utc, res)
 
-    def _begin_termination(self, c, cause, now_ms, utc, res):
+    def _begin_termination(self, c, cause, now_ms, utc, res, fault=None):
         bound = self._joint_cfg[c.joint_id]["termination_confirm_timeout_ms"]
         c.term = {"causes": [], "requested_ms": now_ms, "requested_at": utc, "bound_ms": bound,
                   "outcome": "PENDING", "backend_accepted_ms": None}
-        self._append_cause(c, cause, now_ms, utc, res)
+        self._append_cause(c, cause, now_ms, utc, res, fault)
         self._set_phase(c, "TERMINATING", utc, res)
-        res.requests.append({"op": "request_termination", "command_id": c.command_id,
-                             "backend_reference": c.backend_reference, "cause": cause})
+        req = {"op": "request_termination", "command_id": c.command_id,
+               "backend_reference": c.backend_reference, "cause": cause}
+        if fault is not None:
+            req["fault_id"] = fault["fault_id"]
+        res.requests.append(req)
 
-    def _append_cause(self, c, cause, now_ms, utc, res):
-        c.term["causes"].append({"cause": cause, "at": utc, "monotonic_ms": now_ms})
+    def _append_cause(self, c, cause, now_ms, utc, res, fault=None):
+        entry = {"cause": cause, "at": utc, "monotonic_ms": now_ms}
+        if fault is not None:
+            entry["fault_id"], entry["code"] = fault["fault_id"], fault["code"]
+        c.term["causes"].append(entry)
 
     def termination_request_accepted(self, command_id, backend_reference, now_ms, utc=None):
         """The backend accepted the termination request (contract 17.5). It is recorded and is never
@@ -580,7 +626,7 @@ class LifecycleEngine:
                 self._move(c, "RUNNING", None, now_ms, utc, "TERMINATION_ACCEPTED", res)
             self._move(c, "COMPLETED", "STOP_CONFIRMED", now_ms, utc, "TERMINATION_CONFIRMED", res)
         else:
-            to, why = m.outcome_of_causes(causes)
+            to, why = m.outcome_of_causes(causes, [x["code"] for x in c.term["causes"] if x["cause"] == "FAULT"])
             self._move(c, to, why, now_ms, utc, "TERMINATION_CONFIRMED", res)
         self._release_joint(c, now_ms, utc, res, stopped="STOP_REQUESTED" in causes)
         return res
@@ -591,20 +637,17 @@ class LifecycleEngine:
         c.term["outcome"] = "UNCONFIRMED"
         self._move(c, "FAILED", "TERMINATION_UNCONFIRMED", now_ms, utc, "TERMINATION_BOUND_EXPIRED", res)
         j = self._joints[c.joint_id]
-        self._fault_counter += 1
-        fault = {"fault_id": f"fault-{self._fault_counter}", "code": "TERMINATION_UNCONFIRMED",
-                 "joint_id": c.joint_id, "command_id": c.command_id, "raised_at": utc, "raised_ms": now_ms}
-        j.faults.append(fault)
-        j.health_state, j.control_state = "FAULTED", "UNKNOWN"
+        self._add_fault(c.joint_id, "TERMINATION_UNCONFIRMED", "JOINT", c.command_id, now_ms, utc, res)
+        self._set_control(c.joint_id, "UNKNOWN", "TERMINATION_UNCONFIRMED", now_ms)
         if j.active_command_id == c.command_id:
             j.active_command_id = None
-        res.events.append(self._event("joint", c.joint_id, "JOINT_FAULT_RAISED", utc, copy.deepcopy(fault)))
         res.events.append(self._joint_event(c.joint_id, utc, now_ms))
 
     def _release_joint(self, c, now_ms, utc, res, stopped=False):
         """A confirmed termination frees the movement slot; an ACTIVE joint becomes IDLE (13.3). A
         confirmed STOP establishes IDLE from ACTIVE, HOLDING or UNKNOWN (13.9 items 4 and 5), and
-        leaves the health state alone: a fault stays recorded and is not cleared (6.2)."""
+        leaves the health state alone: a fault stays recorded and is not cleared (6.2). A confirmed
+        termination is also what resolves the cause of a stop-related fault (I-27)."""
         j = self._joints[c.joint_id]
         changed = False
         if j.active_command_id == c.command_id:
@@ -612,8 +655,11 @@ class LifecycleEngine:
             changed = True
         want = j.control_state == "ACTIVE" if not stopped else j.control_state != "IDLE"
         if want and (changed or stopped):
-            j.control_state = "IDLE"
+            self._set_control(c.joint_id, "IDLE", "STOP_CONFIRMED" if stopped else "TERMINATION_CONFIRMED", now_ms)
             changed = True
+        for f in j.faults:
+            if f["state"] == "ACTIVE":
+                j.stop_seen.add(f["fault_id"])
         if changed:
             res.events.append(self._joint_event(c.joint_id, utc, now_ms))
 
@@ -742,7 +788,7 @@ class LifecycleEngine:
             j = self._joints[c.joint_id]
             if j.active_command_id == c.command_id:
                 j.active_command_id = None
-            j.control_state = "HOLDING"
+            self._set_control(c.joint_id, "HOLDING", "HOLD_CONFIRMED", now_ms)
             res.events.append(self._joint_event(c.joint_id, utc, now_ms))
         return res
 
@@ -768,7 +814,7 @@ class LifecycleEngine:
             j = self._joints[c.joint_id]
             if j.active_command_id == c.command_id:
                 j.active_command_id = None
-            j.control_state = "UNKNOWN"
+            self._set_control(c.joint_id, "UNKNOWN", "HOLD_RELEASE_FAILED", now_ms)
             res.events.append(self._joint_event(c.joint_id, utc, now_ms))
         return res
 
@@ -809,8 +855,18 @@ class LifecycleEngine:
                               and x.term is not None and x.term["outcome"] == "PENDING"
                               for x in self._commands.values())
                 if (j.control_state in ("ACTIVE", "HOLDING") or pending) and j.control_state != "UNKNOWN":
-                    j.control_state = "UNKNOWN"
+                    self._set_control(jid, "UNKNOWN", "BACKEND_LOST", now_ms)
                     res.events.append(self._joint_event(jid, utc, now_ms))
+        for jid, j in self._joints.items():        # contract 13.8: BACKEND_DEGRADED is a degradation reason
+            has = "BACKEND_DEGRADED" in j.degradation
+            if health == "DEGRADED" and not has:
+                j.degradation.append("BACKEND_DEGRADED")
+            elif health != "DEGRADED" and has:
+                j.degradation.remove("BACKEND_DEGRADED")
+            else:
+                continue
+            self._recompute_health(jid, "BACKEND_HEALTH", now_ms)
+            res.events.append(self._joint_event(jid, utc, now_ms))
         return res
 
     def _complete(self, c, reason, now_ms, utc, res):
@@ -819,5 +875,217 @@ class LifecycleEngine:
         if j.active_command_id == c.command_id:
             j.active_command_id = None
             if j.control_state == "ACTIVE":
-                j.control_state = "IDLE"   # contract 13.3: ACTIVE to IDLE on completion with no hold engaged
+                self._set_control(c.joint_id, "IDLE", "COMPLETION", now_ms)   # contract 13.3: no hold engaged
             res.events.append(self._joint_event(c.joint_id, utc, now_ms))
+
+    # ------------------------------------------------------------------ joint state (contract 13.3)
+
+    def _set_control(self, jid, to, trigger, now_ms):
+        """The only place a joint control state changes. Raises IllegalTransition for a change that
+        contract 13.3 does not list; a change to the same value is not a transition."""
+        j = self._joints[jid]
+        if j.control_state == to:
+            return False
+        m.check_joint_transition("control", j.control_state, to)
+        j.history.append({"dimension": "control", "from": j.control_state, "to": to, "trigger": trigger,
+                          "monotonic_ms": now_ms})
+        j.control_state = to
+        return True
+
+    def _set_health(self, jid, to, trigger, now_ms):
+        """The only place a joint health state changes (see _set_control)."""
+        j = self._joints[jid]
+        if j.health_state == to:
+            return False
+        m.check_joint_transition("health", j.health_state, to)
+        j.history.append({"dimension": "health", "from": j.health_state, "to": to, "trigger": trigger,
+                          "monotonic_ms": now_ms})
+        j.health_state = to
+        return True
+
+    def _recompute_health(self, jid, trigger, now_ms):
+        """FAULTED while any fault is ACTIVE, else DEGRADED while a degradation reason remains, else
+        READY (contract 13.3, 13.6). The control state is never touched here."""
+        j = self._joints[jid]
+        if any(f["state"] == "ACTIVE" for f in j.faults):
+            to = "FAULTED"
+        else:
+            to = "DEGRADED" if j.degradation else "READY"
+        return self._set_health(jid, to, trigger, now_ms)
+
+    # ------------------------------------------------------------------ faults (PR-05, contract 13)
+
+    def _add_fault(self, jid, code, fault_class, command_id, now_ms, utc, res):
+        """Create one fault record (interpretation I-26), make the joint FAULTED, publish the event, and
+        fail every CLEAR_FAULT of the joint that was accepted before it (contract 13.4, I-33)."""
+        j = self._joints[jid]
+        self._fault_counter += 1
+        fault = {"fault_id": f"fault-{self._fault_counter}", "code": code, "fault_class": fault_class,
+                 "joint_id": jid, "command_id": command_id, "raised_at": utc, "raised_ms": now_ms, "state": "ACTIVE"}
+        j.faults.append(fault)
+        self._recompute_health(jid, "FAULT_RAISED", now_ms)
+        res.events.append(self._event("joint", jid, "JOINT_FAULT_RAISED", utc, copy.deepcopy(fault)))
+        for x in list(self._commands.values()):
+            if x.operation == "CLEAR_FAULT" and x.joint_id == jid and x.state not in m.TERMINAL_STATES:
+                self._move(x, "FAILED", code, now_ms, utc, "NEW_FAULT", res)
+        return fault
+
+    def _raise_fault(self, jid, code, fault_class, now_ms, utc, res, command_id=None):
+        """A joint or backend fault on one joint (contract 13.4): record it, set the joint FAULTED, append
+        cause FAULT to the termination record of every non-terminal movement command and pending HOLD
+        of the joint (starting an attempt where none is outstanding, ending a never-dispatched command at
+        once), join an attempt a STOP owns, and ask for a stop when nothing else carries the request."""
+        j = self._joints[jid]
+        fault = self._add_fault(jid, code, fault_class, command_id, now_ms, utc, res)
+        on_joint = [x for x in self._commands.values() if x.joint_id == jid and x.state not in m.TERMINAL_STATES]
+        for x in on_joint:
+            if x.operation in SLOT_OPERATIONS:
+                self._fault_command(x, fault, now_ms, utc, res)
+            elif (x.operation == "STOP" and x.term is not None and x.term["outcome"] == "PENDING"
+                  and x.ref_id == x.command_id):
+                self._append_cause(x, "FAULT", now_ms, utc, res, fault)   # the fault joins the STOP's own attempt
+        attempt = any(x.state not in m.TERMINAL_STATES and x.joint_id == jid and x.term is not None
+                      and x.term["outcome"] == "PENDING" for x in self._commands.values())
+        if not attempt and j.control_state != "IDLE" and self._backend_can_stop():
+            # nothing carries the stop request: an advisory request with no command to bind it (I-29)
+            res.requests.append({"op": "request_termination", "command_id": None, "backend_reference": None,
+                                 "target": {"type": "joint", "id": jid}, "cause": "FAULT",
+                                 "fault_id": fault["fault_id"]})
+        res.events.append(self._joint_event(jid, utc, now_ms))
+        return fault
+
+    def _fault_command(self, c, fault, now_ms, utc, res):
+        if c.term is not None:
+            self._append_cause(c, "FAULT", now_ms, utc, res, fault)       # the bound is neither restarted nor extended
+        elif c.state == "ACCEPTED" and c.phase == "NONE":
+            self._move(c, "FAILED", fault["code"], now_ms, utc, "FAULT", res)   # nothing was dispatched: nothing to stop
+        else:
+            self._begin_termination(c, "FAULT", now_ms, utc, res, fault)
+
+    def _backend_can_stop(self):
+        caps = self._backend.get("capabilities") if isinstance(self._backend.get("capabilities"), dict) else {}
+        return caps.get("controlled_stop") is True and self._backend.get("health") not in ("UNAVAILABLE", "FAULTED")
+
+    def _cause_resolved(self, fault, now_ms):
+        """Whether the cause of an ACTIVE fault is resolved (contract 13.6, interpretation I-27)."""
+        code = fault["code"]
+        if code == "FEEDBACK_LOST":
+            return self._feedback_status(fault["joint_id"], now_ms) == "VALID"
+        if code in m.BACKEND_FAULT_CODES:
+            return code not in self._backend_conditions
+        return fault["fault_id"] in self._joints[fault["joint_id"]].stop_seen
+
+    def joint_fault(self, joint_id, code, now_ms, utc=None):
+        """The backend reports a joint fault the engine cannot decide itself: TRACKING_ERROR or
+        JOINT_LIMIT_VIOLATION (contract 13.1). FEEDBACK_LOST and TERMINATION_UNCONFIRMED are decided by
+        the engine from feedback and from the bound. A second report of a code that is still ACTIVE on
+        the joint is ignored and recorded (I-28)."""
+        self._advance(now_ms)
+        res = Result()
+        if code not in m.REPORTED_JOINT_FAULTS:
+            raise ValueError(f"code must be one of {m.REPORTED_JOINT_FAULTS}")
+        j = self._joints.get(joint_id)
+        if j is None:
+            self._ignore(res, "joint_fault", None, "unknown_joint", now_ms)
+        elif any(f["state"] == "ACTIVE" and f["code"] == code for f in j.faults):
+            self._ignore(res, "joint_fault", None, "duplicate_fault", now_ms)
+        else:
+            self._raise_fault(joint_id, code, "JOINT", now_ms, utc, res)
+        return res
+
+    def backend_fault(self, code, now_ms, utc=None, joints=None):
+        """The backend reports a fault (contract 13.1, 13.4): BACKEND_UNAVAILABLE,
+        BACKEND_COMMUNICATION_LOSS or BACKEND_EXECUTION_FAILURE. It creates a joint fault record on
+        each affected joint and propagates to every command record on them. joints=None means every
+        joint. The backend health report is a separate input (backend_health) and is not changed here
+        (interpretation I-28)."""
+        self._advance(now_ms)
+        res = Result()
+        if code not in m.BACKEND_FAULT_CODES:
+            raise ValueError(f"code must be one of {m.BACKEND_FAULT_CODES}")
+        targets = list(self._joints) if joints is None else list(joints)
+        if code not in self._backend_conditions:
+            self._backend_conditions.append(code)
+            res.events.append(self._event("backend", "backend", "BACKEND_FAULT_RAISED", utc, {"code": code}))
+        for jid in targets:
+            j = self._joints.get(jid)
+            if j is None:
+                self._ignore(res, "backend_fault", None, "unknown_joint", now_ms)
+            elif any(f["state"] == "ACTIVE" and f["code"] == code for f in j.faults):
+                self._ignore(res, "backend_fault", None, "duplicate_fault", now_ms)
+            else:
+                self._raise_fault(jid, code, "BACKEND", now_ms, utc, res)
+        return res
+
+    def backend_fault_cleared(self, now_ms, utc=None, code=None):
+        """The backend reports healthy (contract 13.4): the backend fault condition ends and
+        BACKEND_FAULT_CLEARED is published. It does not clear any joint fault record."""
+        self._advance(now_ms)
+        res = Result()
+        ended = [c for c in self._backend_conditions if code is None or c == code]
+        if not ended:
+            self._ignore(res, "backend_fault_cleared", None, "no_backend_fault", now_ms)
+        for c in ended:
+            self._backend_conditions.remove(c)
+            res.events.append(self._event("backend", "backend", "BACKEND_FAULT_CLEARED", utc, {"code": c}))
+        return res
+
+    # ------------------------------------------------------------------ feedback loss and degradation (11.5, 13.8)
+
+    def _check_feedback(self, jid, now_ms, utc, res):
+        """Interpretation I-30. Evaluate the feedback of one joint against what is executing on it.
+        Valid feedback ends the degradation reason FEEDBACK_OPTIONAL_UNAVAILABLE. Feedback that is not
+        valid (INVALID at once; STALE once older than max_feedback_age_ms; MISSING once that long after
+        the start) while a movement or a pending HOLD is RUNNING and not terminating raises the joint
+        fault FEEDBACK_LOST when feedback is required and requests a controlled stop through it, or
+        otherwise the degradation reason FEEDBACK_OPTIONAL_UNAVAILABLE; the command continues."""
+        j, cfg = self._joints[jid], self._joint_cfg[jid]
+        status = self._feedback_status(jid, now_ms)
+        if status == "VALID":
+            if "FEEDBACK_OPTIONAL_UNAVAILABLE" in j.degradation:
+                j.degradation.remove("FEEDBACK_OPTIONAL_UNAVAILABLE")
+                self._recompute_health(jid, "FEEDBACK_RESTORED", now_ms)
+                res.events.append(self._joint_event(jid, utc, now_ms))
+            return
+        running = [x for x in self._commands.values() if x.joint_id == jid and x.operation in SLOT_OPERATIONS
+                   and x.state == "RUNNING" and x.term is None]
+        if not running:
+            return
+        if status == "MISSING" and now_ms - min(x.started_ms for x in running) <= cfg["max_feedback_age_ms"]:
+            return
+        if cfg.get("feedback_required") is True:
+            if not any(f["state"] == "ACTIVE" and f["code"] == "FEEDBACK_LOST" for f in j.faults):
+                self._raise_fault(jid, "FEEDBACK_LOST", "JOINT", now_ms, utc, res)
+        elif "FEEDBACK_OPTIONAL_UNAVAILABLE" not in j.degradation:
+            j.degradation.append("FEEDBACK_OPTIONAL_UNAVAILABLE")
+            self._recompute_health(jid, "FEEDBACK_OPTIONAL_UNAVAILABLE", now_ms)
+            res.events.append(self._joint_event(jid, utc, now_ms))
+
+    # ------------------------------------------------------------------ CLEAR_FAULT (13.6)
+
+    def _apply_clear(self, c, now_ms, utc, res):
+        """Apply an accepted CLEAR_FAULT atomically (interpretation I-33). A fault raised after the
+        acceptance already ended it FAILED with that fault's code (_add_fault). Here every precondition
+        of 13.6 is evaluated again at this reading by the same admission steps; if one no longer holds
+        (a termination began, the control state is UNKNOWN, ...) nothing is cleared, the input is
+        ignored and recorded, and the command stays pending. Otherwise exactly the identified fault is
+        cleared, the command passes through RUNNING at this instant (I-3) and is COMPLETED(FAULT_CLEARED),
+        and the health returns to READY, or to DEGRADED, only when no other fault remains."""
+        j = self._joints[c.joint_id]
+        fid = c.parameters["fault_id"]
+        newer = [f for f in j.faults if f["state"] == "ACTIVE" and int(f["fault_id"].rsplit("-", 1)[1]) > c.fault_mark]
+        if newer:
+            self._move(c, "FAILED", newer[0]["code"], now_ms, utc, "NEW_FAULT", res)
+            return
+        ctx = self._admission_context(c.envelope, now_ms, c.identity, c.permission_granted, c.human_attested)
+        failure = ad.first_failure(ctx, 11)
+        if failure is not None:
+            self._ignore(res, "clear_fault", c.command_id, f"precondition_not_met:{failure.code}", now_ms)
+            return
+        fault = next(f for f in j.faults if f["fault_id"] == fid and f["state"] == "ACTIVE")
+        self._ensure_running(c, now_ms, utc, res)
+        fault["state"], fault["cleared_at"], fault["cleared_ms"], fault["cleared_by"] = "CLEARED", utc, now_ms, c.command_id
+        self._move(c, "COMPLETED", "FAULT_CLEARED", now_ms, utc, "FAULT_CLEARED", res)
+        res.events.append(self._event("joint", c.joint_id, "JOINT_FAULT_CLEARED", utc, copy.deepcopy(fault)))
+        self._recompute_health(c.joint_id, "FAULT_CLEARED", now_ms)
+        res.events.append(self._joint_event(c.joint_id, utc, now_ms))

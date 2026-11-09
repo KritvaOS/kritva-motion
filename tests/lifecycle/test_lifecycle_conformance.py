@@ -117,7 +117,7 @@ class TestLifecycleConformance(unittest.TestCase):
     def test_CT_CMP_01(self):
         """SET_POSITION completes only after tolerance and settling with valid fresh feedback."""
         def run(samples, until=None):
-            e = S.engine()
+            e = S.engine_optional_feedback()   # silence between samples is not under test here (PR-05)
             S.ready(e)
             cid, _ = S.submit_start(e, S.pos_cmd(0.5), 10)
             done_at = None
@@ -153,7 +153,7 @@ class TestLifecycleConformance(unittest.TestCase):
     def test_CT_CMP_02(self):
         """A command whose condition cannot be established is never COMPLETED."""
         # SET_POSITION: no feedback after the start
-        e = S.engine(S.config(default_execution_timeout_ms=10**12))
+        e = S.engine(S.config(default_execution_timeout_ms=10**12, feedback_required=False, feedback_timeout_policy="DEGRADE"))
         S.ready(e, pos=0.5)   # the joint already measured the target before the start
         cid, _ = S.submit_start(e, S.pos_cmd(0.5), 10)
         e.tick(50)
@@ -167,7 +167,7 @@ class TestLifecycleConformance(unittest.TestCase):
         self.assertEqual(e.command(cid)["reason_code"], None)
         # SET_VELOCITY without duration never completes by itself
         # (a very long execution timeout is configured, so that time passing cannot end it: PR-03 adds the timeout)
-        e2 = S.engine(S.config(default_execution_timeout_ms=10**12))
+        e2 = S.engine(S.config(default_execution_timeout_ms=10**12, feedback_required=False, feedback_timeout_policy="DEGRADE"))
         S.ready(e2)
         vid, _ = S.submit_start(e2, S.vel_cmd(0.1), 10)
         for t in (10**3, 10**6, 10**9):
@@ -178,7 +178,7 @@ class TestLifecycleConformance(unittest.TestCase):
 
     def test_CT_CMP_03(self):
         """SET_VELOCITY with duration completes at expiry; without duration it remains active."""
-        e = S.engine()
+        e = S.engine_optional_feedback()
         S.ready(e)
         r = e.submit(S.vel_cmd(0.1, duration=1000), 10, "2026-11-08T00:00:00Z")
         cid = r.command_id
@@ -192,7 +192,7 @@ class TestLifecycleConformance(unittest.TestCase):
         self.assertEqual((c["state"], c["reason_code"]), ("COMPLETED", "DURATION_ELAPSED"))
         self.assertEqual(e.joint_state("joint-1", 1500)["control_state"], "IDLE")
         # without duration_ms the command stays active
-        e2 = S.engine()
+        e2 = S.engine_optional_feedback()
         S.ready(e2)
         vid, _ = S.submit_start(e2, S.vel_cmd(0.1), 10)
         e2.tick(10**8)
