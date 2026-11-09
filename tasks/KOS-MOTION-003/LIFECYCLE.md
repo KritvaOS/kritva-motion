@@ -1,6 +1,6 @@
 # KOS-MOTION-003: Lifecycle design (PR-01)
 
-Status: signed off by the owner on 2026-11-08. Built: PR-02 to PR-04 (merged) and PR-05 (faults, degradation, recovery and `CLEAR_FAULT`, interpretations I-26 to I-35). Remaining in PR-06: the matrix generator, the matrix test, the property test and the closing records.
+Status: signed off by the owner on 2026-11-08. All six pull requests are built: PR-02 to PR-05 are merged and PR-06 (the matrix generator and its test, the fault-injection scenario set, the determinism test and the fixed-seed property test) is in review. The task is not accepted; acceptance is the owner's decision on `REVIEW.md` (interim review, D-047, not independent).
 
 This document is derived from [contract/MOTION_CONTRACT.md](../../contract/MOTION_CONTRACT.md) (v0.1.0-draft, normative), [contract/ERROR_CODES.md](../../contract/ERROR_CODES.md) and [contract/CONFORMANCE_TEST_PLAN.md](../../contract/CONFORMANCE_TEST_PLAN.md). It adds no state, phase, reason code or event name. Where the contract is silent or ambiguous the point is listed in section 9 as an interpretation to confirm, not decided silently. Where this document and the contract differ, the contract wins and this document is wrong.
 
@@ -113,6 +113,31 @@ Two independent dimensions (13.2): `control_state` is `IDLE`, `ACTIVE`, `HOLDING
 | Degradation: `DEGRADED` while a command runs preserves `control_state`; live preconditions still apply to every operation a policy permits | 13.8 |
 | Loss of required feedback during execution raises `FEEDBACK_LOST` and requests a controlled stop; loss of non-required feedback gives `DEGRADED` (`FEEDBACK_OPTIONAL_UNAVAILABLE`) | 11.5 |
 
+Joint transition tables (contract 13.3), as the code defines them. `python3 scripts/lifecycle_matrix.py` prints them and `--check` compares them with this document row by row; a test does the same and fails on a missing, extra or duplicated row. The command table is T1 to T7 in section 3.
+
+| # | From (control) | To (control) | Trigger (13.3) |
+|---|---|---|---|
+| C1 | `IDLE` | `ACTIVE` | a movement command starts |
+| C2 | `ACTIVE` | `IDLE` | completion or a confirmed stop, no hold engaged |
+| C3 | `IDLE` | `HOLDING` | a confirmed hold |
+| C4 | `HOLDING` | `ACTIVE` | a movement command starts |
+| C5 | `HOLDING` | `IDLE` | a confirmed stop |
+| C6 | `IDLE` | `UNKNOWN` | motion status can no longer be confirmed |
+| C7 | `ACTIVE` | `UNKNOWN` | motion status can no longer be confirmed |
+| C8 | `HOLDING` | `UNKNOWN` | motion status can no longer be confirmed |
+| C9 | `UNKNOWN` | `IDLE` | a confirmed stop, or a fresh authoritative report (13.9) |
+| C10 | `UNKNOWN` | `ACTIVE` | a fresh authoritative report (13.9 item 2) |
+| C11 | `UNKNOWN` | `HOLDING` | a fresh authoritative report or a confirmed hold (13.9 item 2) |
+
+| # | From (health) | To (health) | Trigger (13.3) |
+|---|---|---|---|
+| H1 | `READY` | `DEGRADED` | a declared limitation |
+| H2 | `DEGRADED` | `READY` | the limitation clears, control state preserved |
+| H3 | `READY` | `FAULTED` | a joint or backend fault |
+| H4 | `DEGRADED` | `FAULTED` | a joint or backend fault |
+| H5 | `FAULTED` | `READY` | CLEAR_FAULT with no other fault or degradation remaining |
+| H6 | `FAULTED` | `DEGRADED` | CLEAR_FAULT while a degradation condition remains |
+
 ## 8. Arbitration, STOP, HOLD, completion
 
 | Topic | Rule |
@@ -125,7 +150,7 @@ Two independent dimensions (13.2): `control_state` is `IDLE`, `ACTIVE`, `HOLDING
 | Completion | only from supplied evidence, never from commanded values (12.1): `SET_POSITION` after valid fresh position stays within tolerance for the settling duration; `SET_VELOCITY` with `duration_ms` at expiry on the monotonic clock, without duration never; `STOP`, `HOLD` on backend confirmation; `CANCEL` when the target is `CANCELLED`; `CLEAR_FAULT` when cleared |
 | Time | durations use the injected monotonic reading only; audit timestamps are separate inputs; a wall-clock step cannot change a timeout (10.1) |
 
-## 9. Invariants (tested, including by a fixed-seed property test in PR-06)
+## 9. Invariants (tested, including by a fixed-seed property test)
 
 | ID | Invariant |
 |---|---|
@@ -142,6 +167,8 @@ Two independent dimensions (13.2): `control_state` is `IDLE`, `ACTIVE`, `HOLDING
 | INV-11 | `FAILED` and `FAULTED` are independent: neither implies the other |
 | INV-12 | The same ordered inputs and clock readings give the same outputs, records and order |
 | INV-13 | The engine reads no system clock and has no I/O and no backend-specific state |
+
+Coverage: INV-01 to INV-04, INV-07, INV-10 and INV-12 are checked on every stream of `tests/lifecycle/test_lifecycle_property.py` (seed 20261103, 400 streams of 45 inputs, command and counts printed on every run); INV-01, INV-02, INV-03 and INV-12 are also checked on the listed scenarios of section 12 by CT-TMO-07, CT-LC-01 and CT-DET-01. INV-05, INV-06, INV-08 and INV-09 are covered by the dedicated tests of PR-03 to PR-05 and INV-13 by the no-I/O tests. The property test never replaces a mapped test.
 
 ## 10. Interpretations and open points (to confirm in this review)
 
@@ -184,9 +211,37 @@ The contract does not settle these. Each is recorded, and the owner confirms or 
 | I-33 | `CLEAR_FAULT` (13.6) | admitted by the KOS-MOTION-002 `admit()` with the engine's fault, health and termination view as inputs. It names one fault and clears exactly that one atomically, passing `RUNNING` at that instant (I-3) and ending `COMPLETED(FAULT_CLEARED)`; health returns to `READY` or `DEGRADED` only when no other fault is `ACTIVE`. Every precondition is evaluated again at application; if one no longer holds, nothing is cleared and the input is ignored and recorded. A fault raised after acceptance fails every accepted `CLEAR_FAULT` of the joint (`NEW_FAULT`, with the code of that fault) (PR-05) |
 | I-34 | Applying a deferred `CLEAR_FAULT` | with `defer_dispatch`, acceptance and application are separate points. A deferred `CLEAR_FAULT` whose preconditions have lapsed stays pending until `dispatch(command_id, ...)` is called again; the caller drives the application point, the engine has no clock of its own (PR-05) |
 | I-35 | Open: required feedback lost on a confirmed `HOLDING` joint with no running command | contract 9.5 says it follows section 13, but 13.4 names no trigger for it. It is not modelled in PR-05: no fault is raised for it. Proposed for a contract clarification or for PR-06 if the owner decides |
+| I-36 | Reading of CT-LC-01, CT-TMO-07 and CT-DET-01 | CT-LC-01: one stream reaches each of T2 to T7 (T1 starts every stream); each command record is a continuous chain from admission, no pair is recorded twice, every terminal transition carries a reason code of its state and the others none, and each transition is published once as `COMMAND_STATE_CHANGED`. CT-TMO-07: "every fault-injection scenario" is the set listed in section 12 (I-9); each scenario injects at least one fault; after every limit has passed, each accepted command has exactly one terminal transition, which is the last, and a late input changes nothing. CT-DET-01: each scenario run three times on fresh engines gives equal results, events, command records, joint state, fault records and joint transitions; the clock is the supplied readings (PR-06) |
 
 Possible contract findings (not changed by this task): the I-3 gap in 7.8, the I-7 gap in 13.4, and the three findings already recorded in the task record of KOS-MOTION-002.
 
-## 11. Planned structure (built in PR-02 to PR-04 for the lifecycle, timers, termination, STOP, HOLD and CANCEL; the joint fault model, degradation, recovery and CLEAR_FAULT in PR-05; the matrix generator, matrix test and property test follow in PR-06)
+## 11. Structure (built in PR-02 to PR-06)
 
-`src/kritva_motion/lifecycle/`: a state and transition model (tables as data), the termination record, the joint model, the engine (single-threaded, no globals, injected clock), and the execution port as a `typing.Protocol`. `scripts/` gets a generator that prints the transition matrix from the code. A test compares the generated matrix with the table in this document and fails on a missing, extra or duplicated transition, not only on a count. `tests/lifecycle/` holds the dedicated per-ID tests, the negative sequences (invalid, duplicate, stale and conflicting inputs) and the fixed-seed property test, which records the seed, the iteration count and the command and does not replace the mapped tests.
+`src/kritva_motion/lifecycle/`: a state and transition model (tables as data), the termination record, the joint model, the engine (single-threaded, no globals, injected clock), and the execution port as a `typing.Protocol`. `scripts/lifecycle_matrix.py` prints the transition matrix from the code (`--check` compares it with this document). A test compares the generated matrix with the table in this document and fails on a missing, extra or duplicated transition, not only on a count. `tests/lifecycle/` holds the dedicated per-ID tests, the negative sequences (invalid, duplicate, stale and conflicting inputs) and the fixed-seed property test, which records the seed, the iteration count and the command and does not replace the mapped tests.
+
+## 12. Fault-injection scenario set (CT-TMO-07, I-9, I-36)
+
+The scripted streams in `tests/lifecycle/scenario_support.py`; a test compares this list with the code. Each one starts with both test joints ready and injects at least one fault. CT-TMO-07 and CT-DET-01 run all of them.
+
+| # | Name | Fault injected |
+|---|---|---|
+| S1 | `feedback-lost-then-stop-confirmed` | required feedback goes silent on a running movement; the stop is confirmed |
+| S2 | `feedback-lost-stop-never-confirmed` | as above, but the backend never confirms: the bound ends it |
+| S3 | `tracking-error-while-running` | a reported tracking error on a running position command |
+| S4 | `joint-limit-violation-after-dispatch` | a fault after dispatch and before the backend confirmed the start |
+| S5 | `fault-before-dispatch` | a fault while the command is accepted and was never dispatched |
+| S6 | `late-start-after-fault` | the backend confirms a start after the fault began the termination |
+| S7 | `backend-unavailable-two-joints` | a backend fault on every joint while two commands run |
+| S8 | `backend-fault-one-joint-then-cleared` | a communication loss on one joint that later ends; no fault record clears |
+| S9 | `backend-execution-failure-no-confirmation` | an execution failure; the termination is refused by silence |
+| S10 | `pending-hold-then-fault` | a HOLD waiting for engagement meets a fault |
+| S11 | `fault-during-stop` | a fault reaches a joint while its STOP is waiting for confirmation |
+| S12 | `fault-during-cancel` | a fault reaches a joint while a CANCEL of its command is outstanding |
+| S13 | `stop-refused-then-fault` | the backend refuses a STOP on an idle joint, then a movement meets a fault |
+| S14 | `deadline-passes-during-fault` | a command never started; its deadline and a fault both apply |
+| S15 | `execution-timeout-unconfirmed-then-fault` | a timeout begins the termination, a fault joins it, nothing is confirmed |
+| S16 | `duplicate-fault-and-confirmation` | the same fault and the same confirmation reported twice |
+| S17 | `clear-fault-then-new-fault` | an accepted CLEAR_FAULT is overtaken by a new fault before it is applied |
+| S18 | `clear-fault-applied` | recovery: fault, confirmed stop, CLEAR_FAULT applied; later motion is accepted |
+| S19 | `hold-engaged-then-fault` | a confirmed hold is faulted; the hold's own command is already terminal |
+| S20 | `movement-releases-hold-then-fault` | a movement releases a hold and a fault arrives before the release is confirmed |

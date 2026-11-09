@@ -58,9 +58,9 @@
     },
     {
       "id": "CT-LC-01",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "7.5",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_final.TestFinalConformance.test_CT_LC_01"
     },
     {
       "id": "CT-LC-02",
@@ -313,9 +313,9 @@
     },
     {
       "id": "CT-TMO-07",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "7.2",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_lifecycle_final.TestFinalConformance.test_CT_TMO_07"
     },
     {
       "id": "CT-FB-01",
@@ -505,9 +505,9 @@
     },
     {
       "id": "CT-DET-01",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "7, 10, 14",
-      "reason": "Needs the runtime and a simulated monotonic clock; admission determinism is tested separately and is not reported as this ID."
+      "test": "test_lifecycle_final.TestFinalConformance.test_CT_DET_01"
     },
     {
       "id": "CT-DET-02",
