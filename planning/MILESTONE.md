@@ -7,5 +7,6 @@ Source: kritva-program `v2/planning/milestones.json` (generated plan; edit it th
 | V2-M0-MOTION-001 | V2-M0 FOUNDATION | 2026-10-30 | Repository governance baseline merged: acceptance criteria, CI checks, CODEOWNERS, AGENTS.md. |
 | V2-M1-MOTION-001 | V2-M1 STUDIO | 2026-11-30 | Motion command and state contract (task 001) reviewed and tagged v0.1.0. |
 | V2-M2-MOTION-001 | V2-M2 BUILD & ARTIFACT | 2027-01-15 | Command and configuration validation, limit enforcement and admission-time and joint-state fault-path tests pass as a software-only reference validator, with the `make test-unit` gate and a conformance manifest. The integration and regression gates and the runtime lifecycle, termination and fault state machine are separate, later work. |
+| V2-M2-MOTION-002 | V2-M2 BUILD & ARTIFACT | 2027-01-15 | Software-only Motion lifecycle, termination, stop-preemption and fault state machine conforms to the Motion contract v0.1.0-draft through deterministic reference tests, with no backend, store or physical behaviour. |
 | V2-M5-MOTION-001 | V2-M5 EXECUTION | 2027-06-15 | Motion commands validated against a simulated actuator interface. |
 | V2-M8-MOTION-001 | V2-M8 PRODUCTION | 2027-09-13 | Release and security review complete. |

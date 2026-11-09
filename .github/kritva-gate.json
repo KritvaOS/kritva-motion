@@ -31,7 +31,8 @@
     "commit-message-check",
     "pr-acceptance-gate",
     "unit-tests",
-    "readme-check"
+    "readme-check",
+    "progress-check"
   ],
   "task_prefix": "KOS-MOTION",
   "task_registry": {
