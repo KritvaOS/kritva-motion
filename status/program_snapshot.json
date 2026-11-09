@@ -1,14 +1,12 @@
 {
   "baseline_tasks": {
-    "accepted_tasks": 3,
+    "accepted_tasks": 4,
     "baseline_tasks": 4,
     "rows": 2
   },
-  "evidence_notes": [
-    "KOS-MOTION-003: no current report from the owning workstream"
-  ],
+  "evidence_notes": [],
   "execution": {
-    "complete": 3,
+    "complete": 4,
     "tasks": 4
   },
   "foundation": {
@@ -31,7 +29,7 @@
       "rows": 0
     },
     "M2": {
-      "accepted": 5,
+      "accepted": 13,
       "baseline": 13,
       "point": 0,
       "rows": 0
@@ -52,7 +50,7 @@
   "program": {
     "baseline_approved": true,
     "baseline_version": 12,
-    "generated_at": "2026-11-08T12:16:37Z",
+    "generated_at": "2026-11-09T11:19:37Z",
     "release_state": "NOT_READY",
     "view": "https://github.com/KritvaOS/kritva-program/blob/main/v2/tracking/STATUS_VIEW.md"
   },
@@ -79,8 +77,8 @@
       "weight": 5
     },
     {
-      "accepted": false,
-      "execution": "NOT_REPORTED",
+      "accepted": true,
+      "execution": "COMPLETE",
       "id": "KOS-MOTION-003",
       "kind": "baselined",
       "milestone": "M2",
