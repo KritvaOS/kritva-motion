@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Closed milestone V2-M2-MOTION-002 (owner, 2026-11-09; program decision D-122): a second record in `COMPLETION_RECORD.md`, the milestone and milestone-status tables, and `progress-check` added to the required checks in `.github/kritva-gate.json`, `AGENTS.md`, `CONTRIBUTING.md` and the README (the owner added it to the `main` ruleset; D-123). Software evidence only; no tag; no credit of its own.
+
 - KOS-MOTION-003 accepted by the owner on 2026-11-09: `tasks/KOS-MOTION-003/REVIEW.md` records the decision on commit 1acb437, `EVIDENCE.json` lists four passing CI runs on it, `planning/TASKS.md` moves the task to ACCEPTED, and the status report now includes the task (`REPORTED_TASKS`, with its test). Software evidence only; the contract stays a draft; central credit is a separate approval in kritva-program (Task: KOS-MOTION-003).
 
 - KOS-MOTION-003 PR-06: the transition matrix generator (`scripts/lifecycle_matrix.py`) and a test that compares it with `LIFECYCLE.md` row by row and fails on a missing, extra, duplicated or replaced transition; a listed fault-injection scenario set (20 scripted streams); a determinism test; a fixed-seed property test (seed 20261103, 400 streams, command and counts printed on every run); a test that compares `ID_MATRIX.md` with the manifest; CT-LC-01, CT-TMO-07 and CT-DET-01 move to IN_SCOPE (94 IN_SCOPE, 25 DEFERRED, 5 OUT_OF_SCOPE, all 55 targets covered); `LIFECYCLE.md` gains the joint transition tables, I-36 and the scenario list; `tasks/KOS-MOTION-003/REVIEW.md` is prepared for the owner's decision and the task is not accepted (Task: KOS-MOTION-003; software evidence only).
