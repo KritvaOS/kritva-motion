@@ -1,6 +1,6 @@
 # KOS-MOTION-003: Lifecycle design (PR-01)
 
-Status: signed off by the owner on 2026-11-08. All six pull requests are built: PR-02 to PR-05 are merged and PR-06 (the matrix generator and its test, the fault-injection scenario set, the determinism test and the fixed-seed property test) is in review. The task is not accepted; acceptance is the owner's decision on `REVIEW.md` (interim review, D-047, not independent).
+Status: signed off by the owner on 2026-11-08; all six pull requests are merged and the task was accepted by the owner on 2026-11-09 (`REVIEW.md`; interim review, D-047, not independent; software evidence only).
 
 This document is derived from [contract/MOTION_CONTRACT.md](../../contract/MOTION_CONTRACT.md) (v0.1.0-draft, normative), [contract/ERROR_CODES.md](../../contract/ERROR_CODES.md) and [contract/CONFORMANCE_TEST_PLAN.md](../../contract/CONFORMANCE_TEST_PLAN.md). It adds no state, phase, reason code or event name. Where the contract is silent or ambiguous the point is listed in section 9 as an interpretation to confirm, not decided silently. Where this document and the contract differ, the contract wins and this document is wrong.
 

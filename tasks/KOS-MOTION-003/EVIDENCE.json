@@ -1,0 +1,41 @@
+{
+  "task_id": "KOS-MOTION-003",
+  "evidence": [
+    {
+      "type": "software",
+      "uri": "https://github.com/KritvaOS/kritva-motion/actions/runs/42605983509",
+      "description": "unit-tests: PASS on main commit 1acb437a (KOS-MOTION-003 PR-06 merged; the lifecycle engine, fault model, matrix generator, scenario set and property test are on main)",
+      "commit": "1acb437abc1a9c0934a0626d7b39a163947b325c",
+      "ci_run": "https://github.com/KritvaOS/kritva-motion/actions/runs/42605983509",
+      "report_sha256": null,
+      "result": "PASS"
+    },
+    {
+      "type": "software",
+      "uri": "https://github.com/KritvaOS/kritva-motion/actions/runs/42605983404",
+      "description": "secret-scan: PASS on main commit 1acb437a (KOS-MOTION-003 PR-06 merged; the lifecycle engine, fault model, matrix generator, scenario set and property test are on main)",
+      "commit": "1acb437abc1a9c0934a0626d7b39a163947b325c",
+      "ci_run": "https://github.com/KritvaOS/kritva-motion/actions/runs/42605983404",
+      "report_sha256": null,
+      "result": "PASS"
+    },
+    {
+      "type": "software",
+      "uri": "https://github.com/KritvaOS/kritva-motion/actions/runs/42605983556",
+      "description": "readme-check: PASS on main commit 1acb437a (KOS-MOTION-003 PR-06 merged; the lifecycle engine, fault model, matrix generator, scenario set and property test are on main)",
+      "commit": "1acb437abc1a9c0934a0626d7b39a163947b325c",
+      "ci_run": "https://github.com/KritvaOS/kritva-motion/actions/runs/42605983556",
+      "report_sha256": null,
+      "result": "PASS"
+    },
+    {
+      "type": "software",
+      "uri": "https://github.com/KritvaOS/kritva-motion/actions/runs/42605983489",
+      "description": "progress-check: PASS on main commit 1acb437a (KOS-MOTION-003 PR-06 merged; the lifecycle engine, fault model, matrix generator, scenario set and property test are on main)",
+      "commit": "1acb437abc1a9c0934a0626d7b39a163947b325c",
+      "ci_run": "https://github.com/KritvaOS/kritva-motion/actions/runs/42605983489",
+      "report_sha256": null,
+      "result": "PASS"
+    }
+  ]
+}

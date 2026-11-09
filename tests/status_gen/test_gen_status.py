@@ -16,6 +16,7 @@ TASKS = """# Tasks
 | KOS-MOTION-001 | Contract | IN_PROGRESS (owner approved) | V2-M1-MOTION-001 | x |
 | KOS-MOTION-002 | Validator | NOT_STARTED (approved) | V2-M2-MOTION-001 | y |
 | KOS-MOTION-M0-001 | Governance | IN_REVIEW (baselined in v11) | V2-M0-MOTION-001 | z |
+| KOS-MOTION-003 | Lifecycle | IN_PROGRESS (approved) | V2-M2-MOTION-002 | w |
 """
 
 
@@ -45,7 +46,7 @@ class Repo(unittest.TestCase):
 
 class TestParse(unittest.TestCase):
     def test_rows(self):
-        self.assertEqual(g.parse_tasks(TASKS), {"KOS-MOTION-001": "IN_PROGRESS", "KOS-MOTION-002": "NOT_STARTED", "KOS-MOTION-M0-001": "IN_REVIEW"})
+        self.assertEqual(g.parse_tasks(TASKS), {"KOS-MOTION-001": "IN_PROGRESS", "KOS-MOTION-002": "NOT_STARTED", "KOS-MOTION-M0-001": "IN_REVIEW", "KOS-MOTION-003": "IN_PROGRESS"})
 
     def test_duplicate_fails_closed(self):
         with self.assertRaises(g.StatusError):
@@ -141,7 +142,7 @@ class TestAcceptedEvidence(Repo):
 
     def test_check_detects_evidence_drift(self):
         self.accept()
-        doc = g.build(self.root, ["KOS-MOTION-001", "KOS-MOTION-002", "KOS-MOTION-M0-001"])
+        doc = g.build(self.root, ["KOS-MOTION-001", "KOS-MOTION-002", "KOS-MOTION-M0-001", "KOS-MOTION-003"])
         (self.root / "status" / "status.json").write_text(json.dumps(doc))
         self.assertEqual(g.check(self.root), [])
         doc["tasks"][0]["evidence"][0]["description"] = "edited"
@@ -177,7 +178,7 @@ class TestCheck(Repo):
         (self.root / "status" / "status.json").write_text(json.dumps(doc))
 
     def test_default_reports_the_baselined_tasks(self):
-        self.assertEqual(g.REPORTED_TASKS, ["KOS-MOTION-001", "KOS-MOTION-002", "KOS-MOTION-M0-001"])
+        self.assertEqual(g.REPORTED_TASKS, ["KOS-MOTION-001", "KOS-MOTION-002", "KOS-MOTION-M0-001", "KOS-MOTION-003"])
         self.assertEqual([x["task_id"] for x in g.build(self.root)["tasks"]], g.REPORTED_TASKS)
 
     def test_check_passes_for_generated_report(self):

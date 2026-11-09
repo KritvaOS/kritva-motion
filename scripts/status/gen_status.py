@@ -29,7 +29,7 @@ from pathlib import Path
 
 WORKSTREAM_ID = "MOTION"
 REPO = "KritvaOS/kritva-motion"
-REPORTED_TASKS = ["KOS-MOTION-001", "KOS-MOTION-002", "KOS-MOTION-M0-001"]  # v9 (D-100); KOS-MOTION-M0-001 added in v11 (D-117)
+REPORTED_TASKS = ["KOS-MOTION-001", "KOS-MOTION-002", "KOS-MOTION-M0-001", "KOS-MOTION-003"]  # v9 (D-100); KOS-MOTION-M0-001 added in v11 (D-117); KOS-MOTION-003 baselined in v10 (D-108), reported from its acceptance
 
 # planning/TASKS.md status word -> schema execution value
 EXECUTION = {

@@ -1,12 +1,14 @@
-# KOS-MOTION-003: owner review record (prepared for the review, not yet decided)
+# KOS-MOTION-003: owner review record
 
-Date prepared: 2026-11-09. Reviewer and approver: Dinesh (repository owner), interim architecture and safety reviewer (D-047). This review is not independent.
-Reviewed commit: to be filled in by the owner at the review (main after the PR-06 merge). No commit hash is stated here because none exists yet.
-Decision: **pending**. This file records what is offered for the review; it is not an acceptance. The owner's decision is added by the owner, and `planning/TASKS.md` changes status only then.
+Date: 2026-11-09. Reviewer and approver: Dinesh (repository owner), interim architecture and safety reviewer (D-047). This review is not independent.
+Reviewed commit: `1acb437abc1a9c0934a0626d7b39a163947b325c` (main after the merge of pull request 42, KOS-MOTION-003 PR-06; the source and test files are unchanged since).
+Decision: the owner accepts task KOS-MOTION-003 against AC-301 to AC-307 (`ACCEPTANCE_CRITERIA.md` section 3B, text unchanged since it was proposed). Acceptance instruction: Dinesh, chat, 2026-11-09, after the merge of PR-06 ("Do necessary step to accepted the implementation and update the program and motion status"). Central credit is a separate approval in kritva-program.
 
-## Evidence offered per criterion
+## Result per criterion
 
-| Criterion | What is offered | Where |
+AC-301 to AC-307 are accepted, each on the basis below.
+
+| Criterion | Basis | Where |
 |---|---|---|
 | AC-301 lifecycle and transition table | T1 to T7 each reached and recorded once with a reason code (CT-LC-01); all 25 ordered pairs tested (CT-LC-02); terminal states never change (CT-LC-03); the transition matrix is printed from the code and compared with `LIFECYCLE.md` row by row, with broken copies of the document (missing, extra, duplicated, replaced row) required to fail | `tests/lifecycle/test_lifecycle_conformance.py`, `test_lifecycle_final.py`, `test_lifecycle_matrix.py`; `scripts/lifecycle_matrix.py` |
 | AC-302 phases | CT-LC-04 and CT-LC-06, deadline and cancellation before and after dispatch, a late start never revives a terminating or terminal command | `test_lifecycle_conformance.py`, `test_lifecycle_timers.py`, `test_lifecycle_termination.py` |
@@ -18,9 +20,9 @@ Decision: **pending**. This file records what is offered for the review; it is n
 
 Mutation check (not part of the gate): a defect injected into a copy of the engine, such as a terminal state that does not reset its phase or a terminal transition that drops its reason code, made the property test and the scenario tests fail. This shows the tests can fail; it is not a coverage claim.
 
-## What the owner is asked to decide or confirm
+## Interpretations and open points carried by this acceptance
 
-- Interpretations I-1 to I-36 in `LIFECYCLE.md` section 10 are the engine's reading where the contract is silent. I-1 to I-11 were signed off in PR-01; I-12 to I-36 were added during the implementation pull requests and have not had a separate owner sign-off.
+- Interpretations I-1 to I-36 in `LIFECYCLE.md` section 10 are the engine's reading where the contract is silent, not contract text. I-1 to I-11 were signed off in PR-01; I-12 to I-36 were added in the implementation pull requests and are accepted by this decision as the engine's reading, with the open points below left open.
 - Open points that the engine does not settle (none changes the contract):
   - I-35: loss of required feedback on a confirmed `HOLDING` joint with no running command is not modelled; contract 9.5 says it follows section 13, but 13.4 names no trigger.
   - I-27 and I-32: `CLEAR_FAULT` for stop-related faults requires a confirmed stop, not only a status report. This is conservative.
@@ -40,4 +42,4 @@ Mutation check (not part of the gate): a defect injected into a copy of the engi
 
 ## Evidence record
 
-`tasks/KOS-MOTION-003/EVIDENCE.json` is not written yet. It lists passing CI runs on the reviewed `main` commit and can only be written after the PR-06 merge and the owner's decision, from the real run URLs.
+Machine-readable record: `tasks/KOS-MOTION-003/EVIDENCE.json`: four passing runs on the reviewed commit (unit-tests, secret-scan, readme-check, progress-check). `commit-message-check` and `pr-acceptance-gate` run on pull requests only, so they have no run on a `main` commit; their results are on the merged pull requests. `unit-tests` runs `make test-unit`: the unit tests (379 tests: 94 IN_SCOPE conformance tests plus behaviour, matrix and property tests) and the conformance manifest gate. These show the repository checks passed; they are not tests of runtime or physical behaviour.
