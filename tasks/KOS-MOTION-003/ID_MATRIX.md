@@ -1,6 +1,6 @@
 # KOS-MOTION-003: ID dependency matrix
 
-Derived from `tests/manifest/conformance_manifest.json` and `contract/CONFORMANCE_TEST_PLAN.md` on main (2026-11-07). It covers every ID that is not IN_SCOPE: 85 IDs (80 DEFERRED and 5 OUT_OF_SCOPE). The 39 IN_SCOPE IDs of KOS-MOTION-002 are unchanged and must keep passing. The classification below is a proposal for owner review in PR-01; a later change to the manifest, with one dedicated test per target ID, happens only in the implementation pull requests (PR-06 adds a test that compares this matrix with the manifest).
+Derived from `tests/manifest/conformance_manifest.json` and `contract/CONFORMANCE_TEST_PLAN.md` on main (2026-11-07). It covers every ID that is not IN_SCOPE: 85 IDs (80 DEFERRED and 5 OUT_OF_SCOPE). The 39 IN_SCOPE IDs of KOS-MOTION-002 are unchanged and must keep passing. The classification below was confirmed by the owner in PR-01. The column "Status now" is the status when this file was written; the manifest is the current truth, and a test (`tests/lifecycle/test_lifecycle_matrix.py`, PR-06) compares the Decision column with the manifest for every ID.
 
 Targets: 55 IDs. Of the 52 IDs the manifest marks as needing the lifecycle state machine, 51 stay targets and CT-LC-05 stays DEFERRED because its history half needs a store; four IDs the manifest marks differently are proposed as targets (CT-FLT-18, CT-FB-06, CT-VAL-11, CT-DET-01), each with a reason in LIFECYCLE.md section 10. The owner confirms or removes them in PR-01.
 
