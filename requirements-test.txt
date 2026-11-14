@@ -1,7 +1,9 @@
 # Test-only dependencies for kritva-motion (KOS-MOTION-002, program decision D-100).
 # Used only by tests/schema; the reference validator itself uses the standard library only.
 # Exact pins, direct and transitive. Hashes are not recorded yet: the rpds-py wheels differ by platform.
-# Install:  python3 -m pip install -r requirements-test.txt
+# Needs Python 3.11 or newer (the pinned rpds-py 2026.6.3 does not install on 3.10); CI uses 3.12.
+# Install with the interpreter that runs the tests:  python3.12 -m pip install -r requirements-test.txt
+# Run the gate with the same interpreter:  make test-unit PYTHON=python3.12
 # Tests never use the network: all schema references are local ($defs).
 attrs==26.1.0
 jsonschema==4.26.0
