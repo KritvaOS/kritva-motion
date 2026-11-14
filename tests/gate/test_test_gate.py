@@ -206,6 +206,31 @@ class TestUnitTests(GateCase):
         self.assertIn("does not exist", p.stdout)
 
 
+class TestMissingTestDependency(unittest.TestCase):
+    """The preflight names the interpreter and the fix instead of leaving only import errors."""
+
+    @staticmethod
+    def _gate_module():
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("gate_script_under_test", GATE)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+
+    def test_a_missing_jsonschema_gives_an_actionable_hint(self):
+        def no_import(name):
+            raise ImportError(name)
+        hint = self._gate_module().missing_test_dependency(no_import)
+        self.assertIsNotNone(hint)
+        self.assertIn(sys.executable, hint)
+        self.assertIn("-m pip install -r requirements-test.txt", hint)
+        self.assertIn("3.11", hint)
+        self.assertIn("make test-unit PYTHON=", hint)
+
+    def test_no_hint_when_the_dependency_imports(self):
+        self.assertIsNone(self._gate_module().missing_test_dependency(lambda name: object()))
+
+
 class TestRealManifest(unittest.TestCase):
     def test_the_repository_manifest_covers_the_plan_exactly(self):
         sys.path.insert(0, str(ROOT / "scripts"))

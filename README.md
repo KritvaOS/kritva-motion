@@ -80,7 +80,7 @@ Labels: INPUT is edited by hand and read by a tool or review; GENERATED is writt
 
 | Tool | Purpose | Version | Check |
 |---|---|---|---|
-| Python 3 | Check scripts, PR gate, tests (standard library only) | 3.12 in CI; the scripts use only the standard library | `python3 --version` |
+| Python 3 | Check scripts, PR gate, tests (the scripts use only the standard library; the schema tests use the pinned test-only dependencies in `requirements-test.txt`) | 3.12 in CI; 3.11 or newer for `make test-unit` (the pinned `rpds-py` does not install on 3.10); select it with `make test-unit PYTHON=python3.12` | `python3 --version` |
 | GNU make | Convenience wrapper | any | `make --version` |
 | Git | Branching and the commit checker | any | `git --version` |
 

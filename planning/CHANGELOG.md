@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Made the Python requirement for the unit gate explicit (Tasks: None; no change to the contract, the manifest or any criterion): `scripts/test_gate.py` now fails early with a message that names the interpreter, the `pip install -r requirements-test.txt` command for that interpreter and the 3.11 minimum when `jsonschema` is missing, a test proves the message, and the README toolchain row and `requirements-test.txt` say that `make test-unit` needs Python 3.11 or newer (CI uses 3.12) and takes `PYTHON=python3.12`. The Makefile already accepted `PYTHON=`; nothing in it changes.
+
 - Closed milestone V2-M2-MOTION-002 (owner, 2026-11-09; program decision D-122): a second record in `COMPLETION_RECORD.md`, the milestone and milestone-status tables, and `progress-check` added to the required checks in `.github/kritva-gate.json`, `AGENTS.md`, `CONTRIBUTING.md` and the README (the owner added it to the `main` ruleset; D-123). Software evidence only; no tag; no credit of its own.
 
 - KOS-MOTION-003 accepted by the owner on 2026-11-09: `tasks/KOS-MOTION-003/REVIEW.md` records the decision on commit 1acb437, `EVIDENCE.json` lists four passing CI runs on it, `planning/TASKS.md` moves the task to ACCEPTED, and the status report now includes the task (`REPORTED_TASKS`, with its test). Software evidence only; the contract stays a draft; central credit is a separate approval in kritva-program (Task: KOS-MOTION-003).

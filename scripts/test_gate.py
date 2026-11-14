@@ -193,6 +193,23 @@ def run(root, test_dirs, manifest_path, plan_path, out=sys.stdout):
     return 1 if problems else 0
 
 
+def missing_test_dependency(importer=__import__):
+    """Return a hint when the test-only dependency jsonschema cannot be imported, else None.
+
+    The hint names the interpreter that is running the gate: pip must install the pinned test
+    dependencies into that same interpreter, and the pinned rpds-py needs Python 3.11 or newer.
+    """
+    try:
+        importer("jsonschema")
+    except ImportError:
+        exe = sys.executable or "python3"
+        ver = "%d.%d" % sys.version_info[:2]
+        return (f"the test dependency jsonschema is not installed for this interpreter (Python {ver}, {exe}); "
+                f"install the pinned test dependencies with the same interpreter: {exe} -m pip install -r requirements-test.txt "
+                "(the pinned rpds-py needs Python 3.11 or newer; select an interpreter with: make test-unit PYTHON=python3.12)")
+    return None
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--root", default=str(Path(__file__).resolve().parents[1]))
@@ -200,6 +217,12 @@ def main(argv=None):
     ap.add_argument("--manifest", default=MANIFEST)
     ap.add_argument("--plan", default=PLAN)
     a = ap.parse_args(argv)
+    if not a.test_dirs:
+        hint = missing_test_dependency()
+        if hint:
+            print(f"GATE FAIL: {hint}")
+            print("gate: FAIL")
+            return 1
     return run(a.root, a.test_dirs or UNIT_TEST_DIRS, a.manifest, a.plan)
 
 
