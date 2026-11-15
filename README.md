@@ -19,7 +19,7 @@
 | Status Reporting | Generated `status/status.json` (schema 2.0) by `scripts/status/gen_status.py`; the report lists the baselined Motion tasks, with CI evidence only for tasks the owner has accepted (see section 10) Generated progress view: [status/STATUS.md](status/STATUS.md) (see section 10). |
 | License | [LICENSE](LICENSE) (Apache License 2.0; see section 17 for an open question) |
 
-This README follows the Kritva README standard (`v2/planning/standards/README_STANDARD.md` in [kritva-program](https://github.com/KritvaOS/kritva-program)). It is a navigation map; the documents it links own the detail.
+This README follows the Kritva README standard ([`common/readme/README_STANDARD.md`](https://github.com/KritvaOS/kritva-standard/blob/main/common/readme/README_STANDARD.md) in [kritva-standard](https://github.com/KritvaOS/kritva-standard)). It is a navigation map; the documents it links own the detail.
 
 ## 1. Purpose and Scope
 
