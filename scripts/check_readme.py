@@ -12,7 +12,7 @@ left outside code (fenced blocks, inline code and lines indented by four
 spaces or a tab are code; links are still checked on indented lines).
 A PASS does not show that content is accurate, a command works, an external
 URL is reachable, an anchor exists or anything is approved; that is review
-work (v2/planning/standards/README_REVIEW_CHECKLIST.md in kritva-program).
+work (common/readme/README_REVIEW_CHECKLIST.md in kritva-standard).
 Exit 0 if it passes, 1 if not. Stdlib only.
 """
 import argparse
