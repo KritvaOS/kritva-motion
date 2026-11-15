@@ -21,11 +21,11 @@ TEST_DIR = "tests/integration"
 MANIFEST = "tests/manifest/conformance_manifest.json"
 
 
-def run(root, test_dir=TEST_DIR, manifest=MANIFEST, out=sys.stdout):
+def run(root, test_dir=TEST_DIR, manifest=MANIFEST, out=sys.stdout, label="integration"):
     root = Path(root).resolve()
     d = root / test_dir
     if not d.is_dir():
-        print(f"integration gate: {test_dir} does not exist", file=out)
+        print(f"{label} gate: {test_dir} does not exist", file=out)
         return 1
     if str(d) not in sys.path:
         sys.path.insert(0, str(d))
@@ -33,7 +33,7 @@ def run(root, test_dir=TEST_DIR, manifest=MANIFEST, out=sys.stdout):
     result = unittest.TextTestRunner(stream=out, verbosity=1, resultclass=Recorder).run(suite)
     problems = []
     if result.testsRun == 0:
-        problems.append("no integration test was discovered")
+        problems.append(f"no {label} test was discovered")
     if result.skipped_ids:
         problems.append(f"{len(result.skipped_ids)} test(s) were skipped; the gate allows no skips")
     if not result.wasSuccessful() or result.bad:
@@ -48,11 +48,11 @@ def run(root, test_dir=TEST_DIR, manifest=MANIFEST, out=sys.stdout):
                 if t in result.ran and t not in result.bad:
                     ids.append(e["id"])
                 else:
-                    problems.append(f"{e['id']}: its integration test {t} did not run and pass")
-    print(f"integration evidence: tests_run={result.testsRun} conformance_ids_evidenced={sorted(ids)}", file=out)
+                    problems.append(f"{e['id']}: its {label} test {t} did not run and pass")
+    print(f"{label} evidence: tests_run={result.testsRun} conformance_ids_evidenced={sorted(ids)}", file=out)
     for p in problems:
-        print(f"INTEGRATION GATE FAIL: {p}", file=out)
-    print("integration gate: FAIL" if problems else "integration gate: ok", file=out)
+        print(f"{label.upper()} GATE FAIL: {p}", file=out)
+    print(f"{label} gate: FAIL" if problems else f"{label} gate: ok", file=out)
     return 1 if problems else 0
 
 

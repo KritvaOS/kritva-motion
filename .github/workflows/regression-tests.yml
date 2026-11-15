@@ -1,0 +1,26 @@
+# regression-tests.yml: GitHub Actions run of `make test-regression` (KOS-MOTION-004, AC-406).
+# Installs only the pinned test-only dependencies; no secrets, no network use by the tests.
+# Not a required check: making it one is a central kritva-program and repository ruleset decision.
+name: regression-tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  regression-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install the pinned test dependencies
+        run: python3 -m pip install -r requirements-test.txt
+      - name: Regression tests
+        run: make test-regression

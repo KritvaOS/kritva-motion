@@ -27,6 +27,7 @@ EXPECTED = {   # scenario -> (command key -> (state, reason_code))
     "hold_release_fails": {"h": ("COMPLETED", "HOLD_ENGAGED"), "m": ("FAILED", "BACKEND_REJECTED_DISPATCH")},
     "backend_health_and_faults": {"a": ("RUNNING", None)},
     "admission_rejection": {},
+    "idempotent_resubmission": {"a": ("RUNNING", None), "again": ("RUNNING", None)},
     "concurrency_limit": {"a": ("RUNNING", None), "b": ("FAILED", "BACKEND_REJECTED_DISPATCH")},
 }
 BACKENDS = ("simulator", "loopback")

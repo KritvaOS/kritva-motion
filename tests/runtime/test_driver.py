@@ -363,6 +363,44 @@ class TestPortFailures(unittest.TestCase):
             Driver(e, co, T.Drifting(sim, lambda d: d.pop("clock"), good=0))
 
 
+class TestAdvisoryStop(unittest.TestCase):
+    """A fault on a joint that is not idle and has no command in flight asks for a stop that no command carries (I-29).
+    The fixed-seed property test found that the first version of the driver took that request for a command's and
+    reported a loss of the backend; this is its regression test."""
+
+    def holding(self):
+        e, co, pub, sink, sim, d = build({"joints": {J1: joint_script(
+            hold={"answer": "accept", "start": {"after_ms": 1}, "confirm": {"after_ms": 2}})}})
+        submit(d, S.hold_cmd(), 10)
+        d.poll(12)
+        self.assertEqual(e.joint_state(J1, 12)["control_state"], "HOLDING")
+        return e, co, pub, sink, sim, d
+
+    def test_the_stop_is_sent_with_a_reference_of_the_drivers_own_and_is_no_backend_loss(self):
+        e, co, pub, sink, sim, d = self.holding()
+        d.joint_fault(J1, "TRACKING_ERROR", 20, "2026-11-15T00:00:20Z")
+        sent = [t for t in d.trace if t["direction"] == "to_backend" and t["command_id"] is None]
+        self.assertEqual([(t["op"], t["backend_reference"]) for t in sent], [("request_termination", "advisory-fault-1")])
+        self.assertEqual([f["code"] for f in e.faults(J1)], ["TRACKING_ERROR"])
+        self.assertNotIn("BACKEND_COMMUNICATION_LOSS", [f["code"] for f in e.faults(J1)])
+        self.assertFalse(any(x["input"] == "backend_error" for x in d.log))
+        d.poll(60)                                               # the backend's confirmation has no command to apply to
+        self.assertTrue(any(x["reason"] == "advisory_stop_report" for x in d.log))
+        self.assertEqual(e.joint_state(J1, 60)["health_state"], "FAULTED")
+
+    def test_without_the_declared_capability_nothing_is_sent(self):
+        e, co, pub, sink, sim, _ = build({"joints": {J1: joint_script(
+            hold={"answer": "accept", "start": {"after_ms": 1}, "confirm": {"after_ms": 2}})}})
+        drift = T.Drifting(sim, lambda dd: dd["capabilities"].update(controlled_stop=False), good=10**6)
+        d = Driver(e, co, drift)
+        submit(d, S.hold_cmd(), 10)
+        d.poll(12)
+        drift._good = 0                                   # from now on the declaration lacks controlled stop
+        d.joint_fault(J1, "TRACKING_ERROR", 20, "2026-11-15T00:00:20Z")
+        self.assertNotIn("request_termination", drift.received)
+        self.assertTrue(any(x["input"] == "advisory_stop" and "controlled_stop" in x["reason"] for x in d.log))
+
+
 class TestDriverProperties(unittest.TestCase):
     def run_once(self):
         e, co, pub, sink, sim, d = build()
