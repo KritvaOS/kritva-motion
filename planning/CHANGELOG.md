@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-<<<<<<< Updated upstream
+- Removed stash conflict markers that pull request 57 committed by mistake into `ACCEPTANCE_CRITERIA.md`, `planning/CHANGELOG.md` and `planning/TASKS.md` (Tasks: None; no content change): the three files are restored to their state on main at the merge of pull request 56 (commit 2a6fd5b); the progress snapshot files from pull request 57 are kept. The cause was a stash pop of an old, unrelated stash in a snapshot command.
+
 - Closed milestone V2-M2-MOTION-003 (owner, 2026-11-15; program decision D-133; Tasks: None, a closure record that changes no code): a third record in `COMPLETION_RECORD.md` for the stores, configuration activation and event publisher (KOS-MOTION-005, evidence commit 1d4f433, run 43695411353), and `planning/MILESTONE_STATUS.md` shows the milestone CLOSED. Software evidence only; the integration and regression gates, the backend and simulator work and the Core security interface stay open; no tag is created.
 
 - KOS-MOTION-005 added to the status report (Tasks: None; the task is already ACCEPTED and closed in `planning/TASKS.md`): `REPORTED_TASKS` in `scripts/status/gen_status.py` now includes it (with its test fixture), and `status/status.json` is regenerated so the task reports execution COMPLETE with the four passing CI runs of `tasks/KOS-MOTION-005/EVIDENCE.json` on commit 1d4f433. Facts only; central credit is a separate approval in kritva-program.
@@ -39,8 +40,6 @@
 
 - KOS-MOTION-003 PR-02: the pure, in-memory lifecycle engine for normal lifecycle and completion (`src/kritva_motion/lifecycle/`, standard library only, injected monotonic clock, admission through the KOS-MOTION-002 validator, `RUNNING` only on a backend start confirmation, completion only from supplied evidence) and ten more IN_SCOPE conformance IDs (CT-LC-02, CT-LC-03, CT-LC-04, CT-ARB-02, CT-CMP-01, CT-CMP-02, CT-CMP-03, CT-TMO-05, CT-FB-02, CT-VAL-11): 49 IN_SCOPE, 70 DEFERRED, 5 OUT_OF_SCOPE. `tests/lifecycle` joins the unit-test directories. Cancellation, deadline, timeout, termination, STOP, HOLD, faults and the scenario set follow in PR-03 to PR-06. Software evidence only; Task: KOS-MOTION-003. No credit is claimed (central approval and CI evidence are needed).
 
-=======
->>>>>>> Stashed changes
 - Started KOS-MOTION-003 (status IN_PROGRESS): the PR-01 design record `tasks/KOS-MOTION-003/` (TASK.md, LIFECYCLE.md derived from the contract with no new names, ID_MATRIX.md for the 85 IDs that are not IN_SCOPE, 55 proposed targets), the criteria AC-301 to AC-307 (`ACCEPTANCE_CRITERIA.md` section 3B) and the TASKS.md row. Documents only: no source code, no gate change, no manifest change; implementation starts only after the owner approves this design. Program decisions D-107 and D-108 (Task: KOS-MOTION-003). Protected path `ACCEPTANCE_CRITERIA.md`: owner merge with bypass.
 
 - `.github/kritva-gate.json` now declares five required checks, matching the `main` ruleset (read back on 2026-11-06), AGENTS.md, CONTRIBUTING.md and README.md: `unit-tests` (D-104) was missing from the file after the milestone closure change, and `readme-check` (D-106) was required by the ruleset but not declared. D-067 had kept `readme-check` out of every ruleset until a later owner decision (Tasks: None; program decisions D-104 and D-106). Protected path `.github/`: owner merge with bypass.
