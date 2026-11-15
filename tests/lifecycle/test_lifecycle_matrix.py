@@ -80,7 +80,8 @@ class TestTransitionMatrix(unittest.TestCase):
     # IDs that this matrix classified "Stays DEFERRED (candidate KOS-MOTION-005)" and that KOS-MOTION-005
     # has since delivered (its ID_MATRIX.md lists them with their pull request). Each KOS-MOTION-005 pull
     # request adds its IDs here; the KOS-MOTION-003 decisions themselves are unchanged.
-    DELIVERED_BY_005 = {"CT-CFG-01", "CT-CFG-03", "CT-CFG-04", "CT-CFG-05", "CT-CFG-06"}
+    DELIVERED_BY_005 = {"CT-CFG-01", "CT-CFG-03", "CT-CFG-04", "CT-CFG-05", "CT-CFG-06",
+                        "CT-ID-01", "CT-ID-02", "CT-ID-03", "CT-ID-04", "CT-ID-05"}
 
     def test_id_matrix_decisions_against_the_manifest(self):
         """ID_MATRIX.md (the owner-confirmed classification) and the manifest agree for every ID: a target is
