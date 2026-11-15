@@ -1,6 +1,6 @@
 # regression-tests.yml: GitHub Actions run of `make test-regression` (KOS-MOTION-004, AC-406).
 # Installs only the pinned test-only dependencies; no secrets, no network use by the tests.
-# Not a required check: making it one is a central kritva-program and repository ruleset decision.
+# Required check of the main ruleset (owner, 2026-11-15; kritva-program D-138).
 name: regression-tests
 
 on:
