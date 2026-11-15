@@ -16,6 +16,9 @@ MATRIX = ROOT / "tasks" / "KOS-MOTION-005" / "ID_MATRIX.md"
 MANIFEST = ROOT / "tests" / "manifest" / "conformance_manifest.json"
 ROW = re.compile(r"^\| (CT-[A-Z]+-\d+) \| ([A-Z_]+) \| [^|]* \| .* \| ([^|]+) \| ([^|]+) \| (PR-0[2-6]|-) \|$")
 DELIVERY_PRS = {"PR-02", "PR-03", "PR-04", "PR-05", "PR-06"}
+# IDs this matrix left OUT_OF_SCOPE "(candidate KOS-MOTION-004)" that KOS-MOTION-004 has delivered; its own
+# ID_MATRIX.md and tests/gate/test_id_matrix_004.py carry them. Each KOS-MOTION-004 pull request adds its IDs.
+DELIVERED_BY_004 = {"CT-BE-01"}
 
 
 def matrix_rows():
@@ -52,7 +55,8 @@ class TestIdMatrix005(unittest.TestCase):
     def test_an_id_that_is_in_scope_now_is_a_target_of_a_delivery_pr(self):
         rows, _ = matrix_rows()
         wrong = sorted(i for i, s in manifest_status().items()
-                       if i in rows and s == "IN_SCOPE" and rows[i]["delivery"] not in DELIVERY_PRS)
+                       if i in rows and s == "IN_SCOPE" and rows[i]["delivery"] not in DELIVERY_PRS
+                       and i not in DELIVERED_BY_004)
         self.assertEqual(wrong, [])
 
     def test_the_targets_are_at_most_nineteen_and_at_least_eighteen(self):
