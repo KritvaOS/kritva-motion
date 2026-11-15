@@ -87,7 +87,7 @@ class TestTransitionMatrix(unittest.TestCase):
 
     # IDs this matrix classified "OUT_OF_SCOPE/DEFERRED" that KOS-MOTION-004 has delivered; each of its pull
     # requests adds its IDs here (its own ID_MATRIX.md lists them with the pull request).
-    DELIVERED_BY_004 = {"CT-BE-01"}
+    DELIVERED_BY_004 = {"CT-BE-01", "CT-BE-02", "CT-BE-04", "CT-BE-07"}
 
     def test_id_matrix_decisions_against_the_manifest(self):
         """ID_MATRIX.md (the owner-confirmed classification) and the manifest agree for every ID: a target is

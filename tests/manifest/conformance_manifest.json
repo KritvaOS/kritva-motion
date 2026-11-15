@@ -493,9 +493,10 @@
     },
     {
       "id": "CT-BE-02",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "17.3",
-      "reason": "Needs dispatch to a backend; admission-time refusal of an undeclared capability (BACKEND_CAPABILITY_UNSUPPORTED) is tested but is not reported as this ID."
+      "test": "test_driver.TestCapabilityCheckBeforeDispatch.test_CT_BE_02",
+      "note": "The driver reads the current declaration at the moment of sending and never dispatches an operation the backend does not declare (target type, mode, joint type, hold, concurrency); the refused command ends FAILED(BACKEND_REJECTED_DISPATCH) naming the capability (I-41) and nothing reaches the backend. Admission keeps its own earlier check (BACKEND_CAPABILITY_UNSUPPORTED)."
     },
     {
       "id": "CT-BE-03",
@@ -505,9 +506,10 @@
     },
     {
       "id": "CT-BE-04",
-      "status": "OUT_OF_SCOPE",
+      "status": "IN_SCOPE",
       "contract_sections": "17.4",
-      "reason": "Execution Backend Interface implementation or a simulator, out of scope for KOS-MOTION-002 (task record section 2)."
+      "test": "test_driver.TestReportsDriveTheLifecycle.test_CT_BE_04",
+      "note": "Every report kind (start, rejection, feedback, health, fault, fault cleared, hold confirmed, hold released or failed, termination confirmed) drives the engine through the driver in the order produced and is applied once; the backend-side events BACKEND_HEALTH_CHANGED and FEEDBACK_STATUS_CHANGED are emitted by the engine (finding F-8 closed). Simulated backend, software evidence only."
     },
     {
       "id": "CT-BE-05",
@@ -665,9 +667,10 @@
     },
     {
       "id": "CT-BE-07",
-      "status": "OUT_OF_SCOPE",
+      "status": "IN_SCOPE",
       "contract_sections": "17.5",
-      "reason": "Execution Backend Interface implementation or a simulator, out of scope for KOS-MOTION-002 (task record section 2)."
+      "test": "test_driver.TestTerminationSemantics.test_CT_BE_07",
+      "note": "Termination request accepted is not confirmation; confirmation is bound to the backend reference and the target; a partial or unknown outcome is no confirmation and the bound decides TERMINATION_UNCONFIRMED (decided by Motion, joint FAULTED, control UNKNOWN); a late confirmation or start changes nothing. Backend confirmation is software-interface evidence, not proof of physical stopping."
     },
     {
       "id": "CT-EV-05",

@@ -15,7 +15,8 @@ import copy
 INPUT_METHODS = ("install_configuration", "submit", "dispatch", "execution_started", "feedback", "status_report",
                  "tick", "terminate", "termination_request_accepted", "termination_confirmed",
                  "termination_refused", "hold_confirmed", "hold_released", "hold_release_failed",
-                 "backend_health", "joint_fault", "backend_fault", "backend_fault_cleared")
+                 "backend_health", "joint_fault", "backend_fault", "backend_fault_cleared",
+                 "execution_rejected", "update_backend_description")
 
 
 class ReplayMismatch(Exception):
