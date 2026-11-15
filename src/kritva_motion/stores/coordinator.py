@@ -1,14 +1,15 @@
 """Coordinator (KOS-MOTION-005): wires the stores around one engine for a submission. It holds no
-lifecycle logic. PR-03 wired the idempotency store, PR-04 adds the command history; the event
-publisher joins in PR-05. Software evidence only."""
+lifecycle logic. PR-03 wired the idempotency store, PR-04 the command history and PR-05 adds the
+event publisher. Software evidence only."""
 import copy
 
 
 class Coordinator:
-    def __init__(self, engine, idempotency, history=None):
+    def __init__(self, engine, idempotency, history=None, publisher=None):
         self._engine = engine
         self._idem = idempotency
         self._history = history
+        self._publisher = publisher
 
     def submit(self, client_id, command, now_ms, utc=None, **kwargs):
         """Admit one submission for a client. An identical resubmission inside the retention period
@@ -26,17 +27,35 @@ class Coordinator:
                 self._history.append_replay(seq, utc, now_ms)
             return res
         seq = self._record_history(client_id, command, res, now_ms, utc, kwargs)
+        if adm.accepted and self._publisher is not None:
+            self._publisher.bind_client(res.command_id, client_id)
         if lookup["status"] == "NEW" and (adm.accepted or adm.step is None or adm.step >= 4):
             self._idem.record(client_id, req, command, self._decision(res, seq), now_ms)
         self.observe(res)
         return res
 
     def observe(self, result):
-        """Append the command events of any engine Result to the history: one lifecycle entry per state
-        change or phase change, and a reference for every fault named by a termination cause. Callers
-        pass the Result of every engine call they make; entries are only ever appended."""
-        if self._history is None:
+        """Take the Result of any engine call: append its command events to the history (one lifecycle
+        entry per state or phase change, a reference for every fault a termination cause names) and
+        publish all its events. A Result is taken once; a second call with the same Result does nothing.
+        Callers pass the Result of every engine call they make; entries are only ever appended."""
+        if getattr(result, "_observed", False):
             return
+        result._observed = True
+        if self._history is not None:
+            self._to_history(result)
+        if self._publisher is not None:
+            self._publisher.publish(result.events)
+
+    def command_status(self, command_id):
+        """GET_COMMAND_STATUS (14.1): the engine's authoritative view plus `last_sequence_number` of the
+        command's event stream."""
+        view = self._engine.command(command_id)
+        if view is not None and self._publisher is not None:
+            view["last_sequence_number"] = self._publisher.last_sequence_number("command", command_id)
+        return view
+
+    def _to_history(self, result):
         for ev in result.events:
             st = ev["stream"]
             if st["kind"] != "command" or self._history.sequence_of(st["id"]) is None:

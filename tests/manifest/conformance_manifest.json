@@ -427,27 +427,31 @@
     },
     {
       "id": "CT-EV-01",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "14.4",
-      "reason": "Needs an event stream and publisher (contract section 14); none is built."
+      "test": "test_events.TestEventConformance.test_CT_EV_01",
+      "note": "Per-stream counters starting at 1; event_id is kind:stream id:number (I-39); every published event is validated against contract/motion-event.schema.json; gaps are found by a reference consumer in the tests."
     },
     {
       "id": "CT-EV-02",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "14.4",
-      "reason": "Needs an event stream and publisher (contract section 14); none is built."
+      "test": "test_events.TestEventConformance.test_CT_EV_02",
+      "note": "The reference consumer lives in the tests, not in src; the status query (coordinator command_status with last_sequence_number) stays authoritative after loss."
     },
     {
       "id": "CT-EV-03",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "14.2",
-      "reason": "Needs an event stream and publisher (contract section 14); none is built."
+      "test": "test_events.TestEventConformance.test_CT_EV_03",
+      "note": "A sink that raises is recorded and never reaches the engine; execution and numbering are identical with no sink, a failing sink and a healthy one. No transport exists in src."
     },
     {
       "id": "CT-EV-04",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "14.3",
-      "reason": "Needs an event stream and publisher (contract section 14); none is built."
+      "test": "test_events.TestEventConformance.test_CT_EV_04",
+      "note": "Stream kind comes from the engine event; joint and backend events never appear in a command stream. Finding F-8: the engine emits no BACKEND_HEALTH_CHANGED or FEEDBACK_STATUS_CHANGED event, nothing changed."
     },
     {
       "id": "CT-HIS-01",
@@ -665,9 +669,10 @@
     },
     {
       "id": "CT-EV-05",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "14.4",
-      "reason": "Needs an event stream and publisher (contract section 14); none is built."
+      "test": "test_events.TestEventConformance.test_CT_EV_05",
+      "note": "A best-effort sink is modelled by a lossy test sink; a middle loss is a visible gap, a loss at the end is found by comparing last_sequence_number from the status query, and the query recovers the state."
     },
     {
       "id": "CT-FLT-14",
