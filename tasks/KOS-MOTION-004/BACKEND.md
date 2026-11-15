@@ -47,7 +47,7 @@ The port is pull-based and transport-independent. All time is the caller's monot
 |---|---|---|
 | `describe_capabilities()` | `describe_capabilities() -> dict` | the declaration of section 3, current at the call |
 | `dispatch(execution_request)` | `dispatch(request, now_ms) -> DispatchAnswer` | `accepted` with a `backend_reference`, or `rejected` with a backend reason; the start itself arrives later as a report |
-| `request_termination(backend_reference, cause)` | `request_termination(ref, cause, now_ms) -> TerminationAnswer` | `termination_request_accepted` or `refused`; never a confirmation |
+| `request_termination(backend_reference, cause)` | `request_termination(ref, cause, now_ms, target=None) -> TerminationAnswer` (I-44: `target` names the joint the confirmation is bound to) | `termination_request_accepted` or `refused`; never a confirmation |
 | `confirm_termination` | a report from `poll` | `termination_confirmed`, bound to a `backend_reference` and a target |
 | `request_hold(joint_id)` / `release_hold` | `request_hold(ref, joint_id, now_ms)`, `release_hold(ref, joint_id, now_ms)` | answer as for dispatch; confirmation arrives as `hold_confirmed` or `hold_released` |
 | `feedback` | a report from `poll` | feedback records (11.1) with the backend timestamp |
@@ -95,6 +95,8 @@ Nothing in the simulator models a physical joint. A completed simulated move sho
 | `LifecycleEngine.execution_rejected(command_id, backend_reference, reason, now_ms, utc=None)` (Q-5): a backend rejection of a dispatch ends the command `FAILED(BACKEND_REJECTED_DISPATCH)` from `ACCEPTED` with phase `DISPATCH_PENDING`; guards as `execution_started` | 17.4 and 17.5 name `execution_rejected`; the engine has no input for it, and the driver also uses it for the failed capability check of section 4 | the 113 IN_SCOPE tests; new tests for the guards |
 | Engine emits `BACKEND_HEALTH_CHANGED` and `FEEDBACK_STATUS_CHANGED` (Q-6, finding F-8) | 14.3 lists them; the `backend` stream has no health producer without it | the 113 tests; an event-order test |
 | `LifecycleEngine.update_backend_description(description)` | the declaration can change after admission; admission and the engine must read the same current one | the 113 tests; a test that a changed declaration affects later admissions only |
+| `LifecycleEngine.joint_type(joint_id)`: a read-only view of the configured joint type, added during PR-04 because the capability check of section 4 needs it and the driver must not read engine internals | the driver's own check | tests in `tests/runtime/test_engine_hooks.py` |
+| `RecordingEngine` journals the two new input methods (`execution_rejected`, `update_backend_description`) | replay stays complete (CT-DET-02) | the journal tests |
 | Adapted earlier matrix tests: `test_id_matrix_005.py` and the lifecycle matrix test pin the earlier classification of the six backend IDs, so they record the IDs this task delivers (as KOS-MOTION-005 did with `DELIVERED_BY_005`) | their assertions otherwise fail when the manifest status changes | the same tests, assertions kept |
 
 No lifecycle semantics change: no new transition, state, phase or reason code. If a hook proves larger than described, the PR stops and returns to the owner.
@@ -118,7 +120,8 @@ No lifecycle semantics change: no new transition, state, phase or reason code. I
 | I-41 | A dispatch refused by the capability check ends the command `FAILED(BACKEND_REJECTED_DISPATCH)` with the capability named in the record detail; `BACKEND_CAPABILITY_UNSUPPORTED` stays an admission code |
 | I-42 | The simulator is S1 only and scripted; "simulated" appears in every output |
 | I-43 | Pull model: the backend produces reports, the driver collects them with `poll`; 17.4 allows event or poll |
-| F-8 (carried) | The engine emits neither `BACKEND_HEALTH_CHANGED` nor `FEEDBACK_STATUS_CHANGED`; proposed to close in PR-04 (Q-6) |
+| I-44 | A termination request names its target (`request_termination(..., target=)`), because a STOP with nothing running opens an attempt of its own whose reference no dispatch created; a simulator then stops the named joint. Additive: a backend that has the reference ignores the target. `release_hold` echoes the reference of the movement that asks for the release (the engine's request), so a backend does not look it up |
+| F-8 (closed in PR-04) | The engine now emits `BACKEND_HEALTH_CHANGED` (after the joint events of the same call, only on a change) and `FEEDBACK_STATUS_CHANGED` (when a joint's feedback status changes; data `{joint_id, from, to}`); the one earlier test that counted all events of a tick was adapted to ignore the new event, its assertion otherwise kept |
 
 Open points of KOS-MOTION-003 (I-27, I-32, I-34, I-35) and the contract findings Q-2, Q-9 and Q-10 of KOS-MOTION-005 are reviewed in PR-01 for any effect on this task: none is expected to change here.
 

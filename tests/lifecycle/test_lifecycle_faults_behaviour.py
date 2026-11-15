@@ -300,8 +300,9 @@ class TestFeedbackLoss(unittest.TestCase):
         running(e, 1)
         first = e.tick(300)
         again = e.tick(310)
-        self.assertEqual(len(first.events), 1)
-        self.assertEqual(again.events, [])
+        # FEEDBACK_STATUS_CHANGED (KOS-MOTION-004, F-8) is a separate event; the degradation itself is one event
+        self.assertEqual(len([ev for ev in first.events if ev["event_type"] != "FEEDBACK_STATUS_CHANGED"]), 1)
+        self.assertEqual([ev for ev in again.events if ev["event_type"] != "FEEDBACK_STATUS_CHANGED"], [])
         self.assertEqual(e.joint_state("joint-1", 310)["degradation_reasons"], ["FEEDBACK_OPTIONAL_UNAVAILABLE"])
         e.backend_health("DEGRADED", 311)                                    # a second reason
         self.assertEqual(e.joint_state("joint-1", 311)["degradation_reasons"],

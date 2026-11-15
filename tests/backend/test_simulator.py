@@ -188,7 +188,7 @@ class TestOutcomes(unittest.TestCase):
         s.release_hold("h1", "j1", 0)
         (r,) = s.poll(1)
         self.assertEqual((r.kind, r.reason), ("hold_release_failed", "STUCK"))
-        self.assertEqual(s.release_hold("zzz", "j1", 2).reason, "UNKNOWN_REFERENCE")
+        self.assertEqual(s.release_hold("zzz", "j2", 2).reason, "NOT_SCRIPTED")
 
     def test_feedback_samples_are_reported_once_in_order(self):
         s = self.sim(**FULL)

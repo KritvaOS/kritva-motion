@@ -19,6 +19,7 @@ Script (plain data; all delays are milliseconds of the caller's clock, counted f
          "termination": {"answer": "accept"} or {"answer": "refuse", "reason": text},
                         optional "confirm": None (never) | {"after_ms": n, "reference": other, "target": other_joint},
          "hold":        {"answer": "accept"} or {"answer": "refuse", "reason": text},
+                        optional "start": None | {"after_ms": n},       # the HOLD's execution_started
                         optional "confirm": None | {"after_ms": n},
                         optional "release": {"answer": "accept" | "refuse", "reason": text,
                                              "confirm": None | {"after_ms": n} | {"after_ms": n, "fail": True, "reason": text}},
@@ -148,8 +149,9 @@ def _check_script(script, declaration):
             if caps.get("position_hold") is not True:
                 out.append(Problem(f"{base}.hold", "is scripted but the declaration has no position hold"))
             if _check_answer(h, f"{base}.hold", out):
-                if h.get("confirm") is not None:
-                    _check_after(h["confirm"], f"{base}.hold.confirm", out)
+                for key in ("start", "confirm"):
+                    if h.get(key) is not None:
+                        _check_after(h[key], f"{base}.hold.{key}", out)
                 r = h.get("release")
                 if r is not None and _check_answer(r, f"{base}.hold.release", out):
                     rc = r.get("confirm")
@@ -298,10 +300,13 @@ class Simulator:
             self._schedule(now_ms + start["after_ms"], "report", ("execution_started", ref, {}))
         return DispatchAnswer(True, backend_reference=ref, simulated=True)
 
-    def request_termination(self, backend_reference, cause, now_ms):
+    def request_termination(self, backend_reference, cause, now_ms, target=None):
         self._advance(now_ms)
         ex = self._exec.get(backend_reference)
-        if ex is None or ex["kind"] != "dispatch":
+        if ex is None and isinstance(target, dict) and target.get("type") == "joint" and isinstance(target.get("id"), str):
+            # an attempt that no dispatch created (a STOP with nothing running): the target names the joint
+            ex = self._exec[backend_reference] = {"joint": target["id"], "kind": "dispatch", "state": "dispatched"}
+        if ex is None:
             return TerminationAnswer(False, reason="UNKNOWN_REFERENCE", simulated=True)
         spec = self._spec(ex["joint"], "termination")
         if spec is None:
@@ -332,6 +337,9 @@ class Simulator:
         if spec["answer"] == "refuse":
             return self._rejected(spec["reason"])
         self._exec[backend_reference] = {"joint": joint_id, "kind": "hold", "state": "holding_requested"}
+        st = spec.get("start")
+        if isinstance(st, dict):
+            self._schedule(now_ms + st["after_ms"], "report", ("execution_started", backend_reference, {}))
         c = spec.get("confirm")
         if isinstance(c, dict):
             self._schedule(now_ms + c["after_ms"], "report", ("hold_confirmed", backend_reference, {"joint": joint_id}))
@@ -339,9 +347,10 @@ class Simulator:
 
     def release_hold(self, backend_reference, joint_id, now_ms):
         self._advance(now_ms)
-        ex = self._exec.get(backend_reference)
-        if ex is None or ex["kind"] != "hold" or ex["joint"] != joint_id:
-            return self._rejected("UNKNOWN_REFERENCE")
+        # the reference is the one of the movement that asks for the release (the engine's release_hold request),
+        # so it is echoed in the report and never looked up
+        if not _text(backend_reference) or not isinstance(joint_id, str):
+            return self._rejected("MALFORMED_REQUEST")
         spec = self._spec(joint_id, "hold")
         rel = spec.get("release") if spec else None
         if rel is None:

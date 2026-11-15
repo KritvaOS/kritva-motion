@@ -9,7 +9,7 @@ owns no command-level policy (17.6).
 `kritva_motion.lifecycle.port.ExecutionPort` keeps its four methods for the engine's request vocabulary; this
 port is the complete interface of 17.4 and is what the driver (a later PR) calls. Pure, standard library only.
 """
-from typing import Protocol, runtime_checkable
+from typing import Optional, Protocol, runtime_checkable
 
 from kritva_motion.backend.reports import DispatchAnswer, Report, TerminationAnswer
 
@@ -25,8 +25,11 @@ class ExecutionBackend(Protocol):
         """Start execution of a validated command (17.4). Accepted or rejected with a backend reason; the start is
         reported later by `execution_started` or `execution_rejected`."""
 
-    def request_termination(self, backend_reference: str, cause: str, now_ms: float) -> TerminationAnswer:
-        """Request controlled termination (17.5). Never a confirmation."""
+    def request_termination(self, backend_reference: str, cause: str, now_ms: float,
+                            target: Optional[dict] = None) -> TerminationAnswer:
+        """Request controlled termination (17.5). Never a confirmation. `target` is the logical target
+        {"type": "joint", "id": ...} the confirmation will be bound to; it is what lets a backend stop a joint when
+        the reference names an attempt that no dispatch created (a STOP with nothing running, interpretation I-44)."""
 
     def request_hold(self, backend_reference: str, joint_id: str, now_ms: float) -> DispatchAnswer:
         """Request a position hold, if supported (17.4)."""

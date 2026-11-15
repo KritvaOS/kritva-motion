@@ -98,12 +98,14 @@ class _Command:
     permission_granted: bool = True
     human_attested: bool = False
     fault_mark: int = 0                        # CLEAR_FAULT: the fault counter when it was accepted
+    detail: Optional[str] = None               # why a dispatch was rejected (KOS-MOTION-004: backend reason or the undeclared capability)
 
 
 @dataclass
 class _Joint:
     control_state: str = "UNKNOWN"   # contract 13.9: UNKNOWN until the backend confirms a state
     health_state: str = "READY"
+    fb_status_seen: str = "MISSING"       # the feedback status last published (FEEDBACK_STATUS_CHANGED, 14.3)
     active_command_id: Optional[str] = None
     feedback: Optional[dict] = None       # the latest feedback record (valid or not)
     last_valid: Optional[dict] = None     # the latest record with validity VALID
@@ -173,6 +175,22 @@ class LifecycleEngine:
     def active_configuration_version(self):
         return None if self._config is None else self._config["config_version"]
 
+    def update_backend_description(self, description):
+        """Replace the backend description that admission reads (the declaration of contract 17.2 can change after
+        admission). The health value is not taken from it: health changes only through backend_health, which has
+        consequences. Commands already admitted are unaffected; later admissions see the new description
+        (KOS-MOTION-004, BACKEND.md section 8)."""
+        if not isinstance(description, dict):
+            raise ValueError("the backend description must be an object")
+        new = copy.deepcopy(description)
+        new["health"] = self._backend["health"]
+        self._backend = new
+
+    def joint_type(self, joint_id):
+        """The configured joint type of a joint (a read-only view for the driver's capability check), or None."""
+        j = self._joint_cfg.get(joint_id)
+        return None if j is None else j.get("joint_type")
+
     def open_commands(self):
         """Copies of the bindings of every command that is not in a terminal state, for the
         compatibility check of an activation (contract 3.4)."""
@@ -193,7 +211,8 @@ class LifecycleEngine:
                 "config_version": c.config_version, "config_digest": c.config_digest, "accepted_at": c.accepted_at,
                 "deadline_ms": c.deadline_ms, "execution_timeout_ms": c.execution_timeout_ms,
                 "backend_reference": c.backend_reference, "transitions": copy.deepcopy(c.transitions),
-                "termination": copy.deepcopy(c.term), "references": c.ref_id}
+                "termination": copy.deepcopy(c.term), "references": c.ref_id,
+                **({"detail": c.detail} if c.detail is not None else {})}
 
     def faults(self, joint_id):
         """Copies of the fault records of one joint, oldest first."""
@@ -446,6 +465,40 @@ class LifecycleEngine:
             res.events.append(self._joint_event(c.joint_id, utc, now_ms))
         return res
 
+    def execution_rejected(self, command_id, backend_reference, reason, now_ms, utc=None):
+        """The backend rejected the dispatch (contract 17.4, 17.5), or the driver's capability check refused to send it
+        (interpretation I-41). A command waiting for its start (ACCEPTED, phase DISPATCH_PENDING) ends
+        FAILED(BACKEND_REJECTED_DISPATCH) with `reason` kept in the record detail. A rejection that arrives for an
+        unknown, terminal, started, terminating or not dispatched command, or for another backend reference, is
+        ignored and recorded: a start that was reported cannot be taken back."""
+        self._advance(now_ms)
+        res = Result(command_id=command_id)
+        c = self._commands.get(command_id)
+        if c is None:
+            self._ignore(res, "execution_rejected", command_id, "unknown_command", now_ms)
+        elif backend_reference != c.backend_reference:
+            self._ignore(res, "execution_rejected", command_id, "reference_mismatch", now_ms)
+        elif c.state in m.TERMINAL_STATES:
+            self._ignore(res, "execution_rejected", command_id, "terminal", now_ms)
+        elif c.state == "RUNNING":
+            self._ignore(res, "execution_rejected", command_id, "already_started", now_ms)
+        elif c.phase == "TERMINATING":
+            self._ignore(res, "execution_rejected", command_id, "terminating", now_ms)
+        elif c.phase != "DISPATCH_PENDING":
+            self._ignore(res, "execution_rejected", command_id, "not_dispatched", now_ms)
+        else:
+            c.detail = reason if isinstance(reason, str) and reason else None
+            self._move(c, "FAILED", "BACKEND_REJECTED_DISPATCH", now_ms, utc, "EXECUTION_REJECTED", res)
+        return res
+
+    def _note_feedback_status(self, jid, now_ms, utc, res):
+        """FEEDBACK_STATUS_CHANGED (14.3): one event when the feedback status of a joint changes (KOS-MOTION-004, F-8)."""
+        j, now = self._joints[jid], self._feedback_status(jid, now_ms)
+        if now != j.fb_status_seen:
+            res.events.append(self._event("joint", jid, "FEEDBACK_STATUS_CHANGED", utc,
+                                          {"joint_id": jid, "from": j.fb_status_seen, "to": now}))
+            j.fb_status_seen = now
+
     def feedback(self, joint_id, record, now_ms, utc=None):
         """One feedback record (contract 11.1): measured_position, optional measured_velocity,
         validity ("VALID" or "INVALID"), backend_timestamp, clock_domain, clock_synchronized.
@@ -474,6 +527,7 @@ class LifecycleEngine:
         if c is not None and c.state == "RUNNING" and c.operation == "SET_POSITION" and c.term is None:
             self._settle(c, rec, prev, now_ms, utc, res)
         self._check_feedback(joint_id, now_ms, utc, res)
+        self._note_feedback_status(joint_id, now_ms, utc, res)
         return res
 
     def _settle(self, c, rec, prev, now_ms, utc, res):
@@ -557,6 +611,7 @@ class LifecycleEngine:
                 self._complete(c, "DURATION_ELAPSED", now_ms, utc, res)
         for jid in self._joints:    # feedback lost or back during execution (11.5, interpretation I-30)
             self._check_feedback(jid, now_ms, utc, res)
+            self._note_feedback_status(jid, now_ms, utc, res)
         return res
 
     # ------------------------------------------------------------------ cancellation and termination
@@ -891,7 +946,7 @@ class LifecycleEngine:
         if health == self._backend["health"]:
             self._ignore(res, "backend_health", None, "unchanged", now_ms)
             return res
-        self._backend["health"] = health
+        before, self._backend["health"] = self._backend["health"], health
         if health in ("UNAVAILABLE", "FAULTED"):
             for jid, j in self._joints.items():
                 pending = any(x.joint_id == jid and x.state not in m.TERMINAL_STATES
@@ -910,6 +965,7 @@ class LifecycleEngine:
                 continue
             self._recompute_health(jid, "BACKEND_HEALTH", now_ms)
             res.events.append(self._joint_event(jid, utc, now_ms))
+        res.events.append(self._event("backend", "backend", "BACKEND_HEALTH_CHANGED", utc, {"from": before, "to": health}))
         return res
 
     def _complete(self, c, reason, now_ms, utc, res):

@@ -65,7 +65,19 @@ class TestImportDirection(unittest.TestCase):
                     self.assertFalse(name.startswith(("kritva_motion.lifecycle", "kritva_motion.stores", "kritva_motion.runtime",
                                                       "kritva_motion.admission", "kritva_motion.config_validation")), name)
 
+    def test_the_runtime_package_uses_only_the_standard_library_and_this_package(self):
+        stdlib = sys.stdlib_module_names
+        for path in sources("runtime"):
+            for name in imports(path):
+                top = name.split(".")[0]
+                with self.subTest(file=path.name, name=name):
+                    self.assertTrue(top in stdlib or top == "kritva_motion", f"{path.name} imports {name}")
+                    self.assertNotIn(top, FORBIDDEN_IN_BACKEND)
+                    self.assertFalse(name.startswith(("kritva_motion.admission", "kritva_motion.config_validation",
+                                                      "kritva_motion.stores")), name)
+
     def test_the_check_sees_the_files(self):
+        self.assertGreaterEqual(len(sources("runtime")), 2)
         self.assertGreaterEqual(len(sources("backend")), 4)
         self.assertGreaterEqual(len(sources("lifecycle")), 3)
 
