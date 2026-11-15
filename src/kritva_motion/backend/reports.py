@@ -115,6 +115,7 @@ class DispatchAnswer:
     accepted: bool
     backend_reference: Optional[str] = None
     reason: Optional[str] = None
+    simulated: bool = False                   # true for a simulator's output (contract 17.7)
 
     def __post_init__(self):
         problems = []
@@ -141,6 +142,7 @@ class TerminationAnswer:
     """
     accepted: bool
     reason: Optional[str] = None
+    simulated: bool = False                   # true for a simulator's output (contract 17.7)
 
     def __post_init__(self):
         problems = []

@@ -85,6 +85,10 @@ class TestTransitionMatrix(unittest.TestCase):
                         "CT-LC-05", "CT-HIS-01", "CT-FB-03",
                         "CT-EV-01", "CT-EV-02", "CT-EV-03", "CT-EV-04", "CT-EV-05", "CT-DET-02"}
 
+    # IDs this matrix classified "OUT_OF_SCOPE/DEFERRED" that KOS-MOTION-004 has delivered; each of its pull
+    # requests adds its IDs here (its own ID_MATRIX.md lists them with the pull request).
+    DELIVERED_BY_004 = {"CT-BE-01"}
+
     def test_id_matrix_decisions_against_the_manifest(self):
         """ID_MATRIX.md (the owner-confirmed classification) and the manifest agree for every ID: a target is
         IN_SCOPE with a test, a 'stays DEFERRED' ID is DEFERRED, a 'stays OUT_OF_SCOPE' ID is OUT_OF_SCOPE."""
@@ -102,10 +106,13 @@ class TestTransitionMatrix(unittest.TestCase):
             if ident in self.DELIVERED_BY_005:
                 self.assertEqual((expected, status[ident]), ("DEFERRED", "IN_SCOPE"), f"{ident}: {decision}")
                 continue
+            if ident in self.DELIVERED_BY_004:
+                self.assertEqual(status[ident], "IN_SCOPE", f"{ident}: {decision}")
+                continue
             self.assertEqual(status[ident], expected, f"{ident}: {decision}")
         self.assertEqual(targets, 55)
         self.assertEqual(sum(v == "IN_SCOPE" for v in status.values()),
-                         39 + 55 + len(self.DELIVERED_BY_005))   # KOS-MOTION-002's 39, this task's 55, KOS-MOTION-005's so far
+                         39 + 55 + len(self.DELIVERED_BY_005) + len(self.DELIVERED_BY_004))   # 002's 39, this task's 55, 005's and 004's so far
 
     def test_scenario_list_in_the_document(self):
         """The fault-injection scenario set of CT-TMO-07 is listed in LIFECYCLE.md in the order of the code."""

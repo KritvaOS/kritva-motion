@@ -486,9 +486,10 @@
     },
     {
       "id": "CT-BE-01",
-      "status": "OUT_OF_SCOPE",
+      "status": "IN_SCOPE",
       "contract_sections": "17.2",
-      "reason": "Execution Backend Interface implementation or a simulator, out of scope for KOS-MOTION-002 (task record section 2)."
+      "test": "test_simulator.TestConformanceIds.test_CT_BE_01",
+      "note": "A backend declares every capability item of 17.2 (capability declaration shape, interpretation I-40); the S1 simulator's declaration validates, and omitting any one of the twelve items makes the validator fail. Simulated, software evidence only (17.7)."
     },
     {
       "id": "CT-BE-02",
