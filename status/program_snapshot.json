@@ -1,13 +1,13 @@
 {
   "baseline_tasks": {
-    "accepted_tasks": 4,
-    "baseline_tasks": 4,
+    "accepted_tasks": 5,
+    "baseline_tasks": 5,
     "rows": 2
   },
   "evidence_notes": [],
   "execution": {
-    "complete": 4,
-    "tasks": 4
+    "complete": 5,
+    "tasks": 5
   },
   "foundation": {
     "accepted_tasks": 0,
@@ -29,8 +29,8 @@
       "rows": 0
     },
     "M2": {
-      "accepted": 13,
-      "baseline": 13,
+      "accepted": 19,
+      "baseline": 19,
       "point": 0,
       "rows": 0
     },
@@ -49,9 +49,9 @@
   },
   "program": {
     "baseline_approved": true,
-    "baseline_version": 12,
-    "generated_at": "2026-11-09T11:19:37Z",
-    "release_state": "NOT_READY",
+    "baseline_version": 14,
+    "generated_at": "2026-11-15T09:01:58Z",
+    "release_state": "READY",
     "view": "https://github.com/KritvaOS/kritva-program/blob/main/v2/tracking/STATUS_VIEW.md"
   },
   "repo": "Motion",
@@ -84,6 +84,15 @@
       "milestone": "M2",
       "title": "Motion lifecycle, termination and fault state machine",
       "weight": 8
+    },
+    {
+      "accepted": true,
+      "execution": "COMPLETE",
+      "id": "KOS-MOTION-005",
+      "kind": "baselined",
+      "milestone": "M2",
+      "title": "Motion stores, configuration activation and event publisher",
+      "weight": 6
     },
     {
       "accepted": true,
