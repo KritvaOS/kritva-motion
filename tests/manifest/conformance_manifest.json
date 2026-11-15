@@ -82,9 +82,10 @@
     },
     {
       "id": "CT-LC-05",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "7.3, 15",
-      "reason": "Needs the runtime lifecycle, termination and fault state machine (candidate KOS-MOTION-003, not registered)."
+      "test": "test_history.TestHistoryConformance.test_CT_LC_05",
+      "note": "Rejected submissions get a history record with no command_id and no lifecycle; a replayed rejection returns the same rejection and adds a replay marker, not a record (I-38)."
     },
     {
       "id": "CT-LC-06",
@@ -341,9 +342,10 @@
     },
     {
       "id": "CT-FB-03",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "11.2, 11.3",
-      "reason": "Needs feedback status reporting; admission rejects FEEDBACK_UNAVAILABLE and FEEDBACK_STALE distinctly, which is not reported as this ID."
+      "test": "test_feedback_status.TestFeedbackStatus.test_CT_FB_03",
+      "note": "Closed by mapping (question Q-8): the engine of KOS-MOTION-003 already reports VALID, STALE, INVALID and MISSING; no new feedback code."
     },
     {
       "id": "CT-FB-04",
@@ -449,9 +451,10 @@
     },
     {
       "id": "CT-HIS-01",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "15",
-      "reason": "Needs command history storage (contract section 15); none is built."
+      "test": "test_history.TestHistoryConformance.test_CT_HIS_01",
+      "note": "Every field of 15.1 is present; fields that depend on a supplied result (authorization outcome, identity) are recorded as supplied; the store has no overwrite operation and retention is a parameter. In memory only, no durability claim (15.2)."
     },
     {
       "id": "CT-AUTH-01",
