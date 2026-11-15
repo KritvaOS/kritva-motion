@@ -528,9 +528,10 @@
     },
     {
       "id": "CT-DET-02",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "3.3, 15",
-      "reason": "Needs the runtime and a simulated monotonic clock; admission determinism is tested separately and is not reported as this ID."
+      "test": "test_journal.TestReplay.test_CT_DET_02",
+      "note": "Question Q-4, owner decision of 2026-11-15: an input journal kept as an implementation aid (not a contract or history field) records every engine input in order; replay applies it to a fresh engine and reproduces command outcomes, the version and digest each command was bound to, and the fault records. In memory only, no durability claim."
     },
     {
       "id": "CT-LC-07",

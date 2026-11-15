@@ -11,3 +11,4 @@ from kritva_motion.stores.coordinator import Coordinator  # noqa: F401
 from kritva_motion.stores.idempotency import IdempotencyStore, content_key, minimum_retention_ms  # noqa: F401
 from kritva_motion.stores.history import CommandHistory  # noqa: F401
 from kritva_motion.stores.events import EventPublisher, EventSink  # noqa: F401
+from kritva_motion.stores.journal import InputJournal, RecordingEngine, ReplayMismatch, replay  # noqa: F401
