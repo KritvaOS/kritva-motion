@@ -162,9 +162,10 @@
     },
     {
       "id": "CT-CFG-01",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "3.2",
-      "reason": "Needs a configuration activation runtime (version and digest binding, update and rollback); none is built in KOS-MOTION-002. Only the admission rejection CONFIG_NOT_ACTIVE for an absent configuration is tested; that is not reported as this ID."
+      "test": "test_config_registry.TestConfigurationConformance.test_CT_CFG_01",
+      "note": "Registry level: before the first valid activation the engine has no configuration and every submission is rejected CONFIG_NOT_ACTIVE (admission step 5); an invalid configuration is refused and activates nothing."
     },
     {
       "id": "CT-CFG-02",
@@ -175,27 +176,31 @@
     },
     {
       "id": "CT-CFG-03",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "3.3",
-      "reason": "Needs a configuration activation runtime (version and digest binding, update and rollback); none is built in KOS-MOTION-002."
+      "test": "test_config_registry.TestConfigurationConformance.test_CT_CFG_03",
+      "note": "Version and digest are bound at admission; the digest is SHA-256 over canonical JSON (interpretation Q-10, a contract finding)."
     },
     {
       "id": "CT-CFG-04",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "3.3, 3.4",
-      "reason": "Needs a configuration activation runtime (version and digest binding, update and rollback); none is built in KOS-MOTION-002."
+      "test": "test_config_registry.TestConfigurationConformance.test_CT_CFG_04",
+      "note": "Per-command configuration binding in the engine (KOS-MOTION-005 PR-02): an activation applies to later commands only; settling and termination parameters of an earlier command come from its own version. Joint-level feedback monitoring reads the active version (interpretation I-36)."
     },
     {
       "id": "CT-CFG-05",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "3.4",
-      "reason": "Needs a configuration activation runtime (version and digest binding, update and rollback); none is built in KOS-MOTION-002."
+      "test": "test_config_registry.TestConfigurationConformance.test_CT_CFG_05",
+      "note": "Compatibility rule of STORES.md Q-9 (joint removed, mode dropped, limit narrowed below an open command's request); anything beyond it is an open contract finding."
     },
     {
       "id": "CT-CFG-06",
-      "status": "DEFERRED",
+      "status": "IN_SCOPE",
       "contract_sections": "3.4",
-      "reason": "Needs a configuration activation runtime (version and digest binding, update and rollback); none is built in KOS-MOTION-002."
+      "test": "test_config_registry.TestConfigurationConformance.test_CT_CFG_06",
+      "note": "The authorization result is a supplied input (Q-1); no authentication or authorization is implemented."
     },
     {
       "id": "CT-ID-01",

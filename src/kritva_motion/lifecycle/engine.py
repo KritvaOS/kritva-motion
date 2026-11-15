@@ -121,11 +121,14 @@ class LifecycleEngine:
         """config: the validated active configuration (plain data); backend: the backend description
         used by admission (health, capabilities, joint_limits); config_digest: supplied by whoever
         activated the configuration (activation is not built here)."""
-        self._config = copy.deepcopy(config)
         self._backend = copy.deepcopy(backend)
-        self._digest = config_digest
-        self._joint_cfg = {j["joint_id"]: j for j in self._config["joints"]}
-        self._joints = {jid: _Joint() for jid in self._joint_cfg}
+        self._config = None             # the active configuration; None until one is installed (contract 3.2)
+        self._digest = None
+        self._configs = {}              # config_version -> (configuration, digest, per-joint table): the binding table
+        self._joint_cfg = {}            # joint-level view of the active configuration, kept for joints it dropped
+        self._joints = {}
+        if config is not None:
+            self.install_configuration(config, config_digest)
         self._commands = {}
         self._counter = 0
         self._fault_counter = 0
@@ -141,6 +144,41 @@ class LifecycleEngine:
         if self._last_now is not None and now_ms < self._last_now:
             raise ClockError(f"the monotonic reading went backwards ({now_ms} < {self._last_now})")
         self._last_now = now_ms
+
+    # ------------------------------------------------------------------ configuration binding
+
+    def install_configuration(self, config, config_digest):
+        """Make a configuration active for commands accepted from now on (contract 3.3, 3.4). The
+        configuration is assumed validated and activated by the caller (stores/config_registry.py).
+        Every accepted command keeps the version it was admitted under and reads its own per-joint
+        parameters from that version (KOS-MOTION-005, tasks/KOS-MOTION-005/STORES.md section 7).
+        Installing a version that exists again is allowed only with the same digest."""
+        version = config["config_version"]
+        known = self._configs.get(version)
+        if known is not None and known[1] != config_digest:
+            raise ValueError(f"configuration version {version!r} is already installed with a different digest")
+        cfg = copy.deepcopy(config)
+        table = {j["joint_id"]: j for j in cfg["joints"]}
+        self._configs[version] = (cfg, config_digest, table)
+        self._config, self._digest = cfg, config_digest
+        self._joint_cfg.update(table)
+        for jid in table:
+            self._joints.setdefault(jid, _Joint())
+
+    def _cfg_of(self, c):
+        """The per-joint parameters of the configuration version a command was admitted under."""
+        return self._configs[c.config_version][2][c.joint_id]
+
+    def active_configuration_version(self):
+        return None if self._config is None else self._config["config_version"]
+
+    def open_commands(self):
+        """Copies of the bindings of every command that is not in a terminal state, for the
+        compatibility check of an activation (contract 3.4)."""
+        return [{"command_id": c.command_id, "operation": c.operation, "joint_id": c.joint_id,
+                 "config_version": c.config_version, "parameters": copy.deepcopy(c.parameters),
+                 "state": c.state}
+                for c in self._commands.values() if c.state not in m.TERMINAL_STATES]
 
     # ------------------------------------------------------------------ views
 
@@ -304,7 +342,7 @@ class LifecycleEngine:
         cid = f"cmd-{self._counter}"
         if op == "CANCEL":
             target = self._commands[command["parameters"]["command_id"]]
-            jid, cfg = target.joint_id, self._joint_cfg[target.joint_id]
+            jid, cfg = target.joint_id, self._cfg_of(target)
         else:
             jid = command["target"]["id"]
             cfg = self._joint_cfg[jid]
@@ -439,7 +477,7 @@ class LifecycleEngine:
         max_feedback_age_ms since the previous sample restarts it. The command completes when a valid
         sample arrives at least settling_duration_ms after the window start. Only RUNNING commands
         count: samples before the confirmed start are not evidence."""
-        cfg = self._joint_cfg[c.joint_id]
+        cfg = self._cfg_of(c)
         inside = (rec["validity"] == "VALID"
                   and abs(rec["measured_position"] - c.parameters["target_position"]) <= cfg["position_tolerance"])
         if not inside:
@@ -556,7 +594,7 @@ class LifecycleEngine:
             self._begin_termination(c, cause, now_ms, utc, res)
 
     def _begin_termination(self, c, cause, now_ms, utc, res, fault=None):
-        bound = self._joint_cfg[c.joint_id]["termination_confirm_timeout_ms"]
+        bound = self._cfg_of(c)["termination_confirm_timeout_ms"]
         c.term = {"causes": [], "requested_ms": now_ms, "requested_at": utc, "bound_ms": bound,
                   "outcome": "PENDING", "backend_accepted_ms": None}
         self._append_cause(c, cause, now_ms, utc, res, fault)

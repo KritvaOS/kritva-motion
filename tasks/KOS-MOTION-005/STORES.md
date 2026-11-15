@@ -102,6 +102,10 @@ The open interpretation points I-27, I-32, I-34 and I-35 of KOS-MOTION-003 are r
 
 No other engine change is planned. A needed third change goes to the owner first.
 
+Delivered in PR-02 (revision 2): `install_configuration(config, digest)` (the engine can start with no configuration, installs versions into a binding table and refuses the same version with another digest), `open_commands()` for the compatibility check, and `_cfg_of(command)` for the reads of a command's own settling window (`position_tolerance`, `max_feedback_age_ms`, `settling_duration_ms`), default deadline and timeout, and termination bound. The binding stayed a hook: the per-command reads are four lines, so PR-02 did not stop. The `idempotency` keyword (item 1) comes with PR-03.
+
+**I-36 (interpretation, new).** Joint-level monitoring that is not a command parameter (the age after which feedback counts as stale, `feedback_required`, the loss check of 11.5 and a status report's age limit) reads the active version, because it describes the joint and not one command. A later version may change these for a command already running; the compatibility rule of Q-9 does not cover them. If the owner wants them bound to the command too, that is a contract clarification, not a code change here.
+
 ## 8. Layout and gate
 
 `src/kritva_motion/stores/` (`__init__.py`, `config_registry.py`, `idempotency.py`, `history.py`, `events.py`, `coordinator.py`), tests in `tests/stores/`, and `tests/stores` is added to `UNIT_TEST_DIRS` in `scripts/test_gate.py` by the first implementation PR that adds a test there. Each PR updates `tests/manifest/conformance_manifest.json` for the IDs it covers. The Python used for the gate is 3.11 or newer (`make test-unit PYTHON=python3.12`).
