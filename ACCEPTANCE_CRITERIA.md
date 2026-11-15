@@ -87,7 +87,7 @@ The contract defines inputs, outputs, error handling, versioning and lifecycle, 
 | Gate | Command | Required result | State |
 |---|---|---|---|
 | Unit | `make test-unit` | all pass | implemented by KOS-MOTION-002 (`scripts/test_gate.py`: unit tests and conformance manifest check); software evidence only |
-| Integration | `make test-integration` | all pass, real dependency boundaries | NOT_IMPLEMENTED |
+| Integration | `make test-integration` | all pass, real dependency boundaries | implemented by KOS-MOTION-004 PR-05 (`scripts/integration_gate.py`: scenarios through the driver, stores, engine and a backend); software evidence only |
 | Regression | `make test-regression` | all pass, suite unchanged by the change | NOT_IMPLEMENTED |
 | Structure | `make check` | planning files present, commit checker self-test passes | implemented |
 

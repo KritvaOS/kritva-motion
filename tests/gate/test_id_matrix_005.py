@@ -18,7 +18,7 @@ ROW = re.compile(r"^\| (CT-[A-Z]+-\d+) \| ([A-Z_]+) \| [^|]* \| .* \| ([^|]+) \|
 DELIVERY_PRS = {"PR-02", "PR-03", "PR-04", "PR-05", "PR-06"}
 # IDs this matrix left OUT_OF_SCOPE "(candidate KOS-MOTION-004)" that KOS-MOTION-004 has delivered; its own
 # ID_MATRIX.md and tests/gate/test_id_matrix_004.py carry them. Each KOS-MOTION-004 pull request adds its IDs.
-DELIVERED_BY_004 = {"CT-BE-01", "CT-BE-02", "CT-BE-04", "CT-BE-07"}
+DELIVERED_BY_004 = {"CT-BE-01", "CT-BE-02", "CT-BE-03", "CT-BE-04", "CT-BE-06", "CT-BE-07"}
 
 
 def matrix_rows():

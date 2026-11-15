@@ -40,8 +40,8 @@ lint: ## Static analysis and lint (NOT_IMPLEMENTED: exits 3)
 	$(call not_implemented,lint)
 test-unit: ## Unit tests and conformance manifest gate (PYTHON=... selects the interpreter)
 	@$(PYTHON) scripts/test_gate.py
-test-integration: ## Integration tests (NOT_IMPLEMENTED: exits 3)
-	$(call not_implemented,test-integration)
+test-integration: ## Integration tests: scenarios through the driver, stores, engine and a backend (PYTHON=... selects the interpreter)
+	@$(PYTHON) scripts/integration_gate.py
 test-regression: ## Regression tests (NOT_IMPLEMENTED: exits 3)
 	$(call not_implemented,test-regression)
 test: ## All tests (NOT_IMPLEMENTED: exits 3)
