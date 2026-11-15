@@ -500,9 +500,10 @@
     },
     {
       "id": "CT-BE-03",
-      "status": "OUT_OF_SCOPE",
+      "status": "IN_SCOPE",
       "contract_sections": "4.1, 17",
-      "reason": "Execution Backend Interface implementation or a simulator, out of scope for KOS-MOTION-002 (task record section 2)."
+      "test": "test_integration.TestNoBackendIdentifierInPublicOutput.test_CT_BE_03",
+      "note": "Every public string (events, command records, status, history, joint snapshots, faults, admission messages) of twelve scenarios on two backends is scanned for vendor, device, bus and address spellings; the backends' own words stay in the driver log, so a backend rejection reason reaches the record only as BACKEND_REFUSED. The scan is shown to find planted leaks, and a driver that passed the text on is caught. A fixed spelling list, not a proof that no identifier can ever appear."
     },
     {
       "id": "CT-BE-04",
@@ -519,9 +520,10 @@
     },
     {
       "id": "CT-BE-06",
-      "status": "OUT_OF_SCOPE",
+      "status": "IN_SCOPE",
       "contract_sections": "17.1",
-      "reason": "Execution Backend Interface implementation or a simulator, out of scope for KOS-MOTION-002 (task record section 2)."
+      "test": "test_integration.TestSwapInvariance.test_CT_BE_06",
+      "note": "Twelve scenarios run on the scripted S1 simulator and on a second, differently built backend (LoopbackBackend, under tests/) with equivalent behaviour give identical public output: events with sequence numbers, command records, status, history, joint snapshots, faults and admission answers. Simulated backends, software evidence only."
     },
     {
       "id": "CT-DET-01",

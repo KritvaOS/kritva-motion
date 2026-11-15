@@ -7,7 +7,9 @@ through the port of `kritva_motion.backend`:
   `request_termination`), after checking each against the backend's current declaration (17.3). A request the
   declaration does not allow is never sent; the engine is told through `execution_rejected` (a dispatch or a
   hold: the command ends FAILED(BACKEND_REJECTED_DISPATCH) with the undeclared capability named in the record
-  detail), `hold_release_failed` or `termination_refused`;
+  detail), `hold_release_failed` or `termination_refused`. A rejection by the backend keeps the backend's own
+  words in the driver log only: the record detail says BACKEND_REFUSED, so no device, bus or vendor name that a
+  backend supplies reaches public output (contract 4.1, CT-BE-03);
 - `poll(now_ms)` pulls the backend's reports in order, applies each to the engine once, then runs the engine's
   `tick`; a report for an unknown reference, with another target than the execution's, or not well formed is
   ignored and recorded in the driver log, never applied;
@@ -158,6 +160,13 @@ class Driver:
                 return "capabilities." + need
         return None
 
+    def _rejected(self, cid, ref, backend_text, now_ms, utc):
+        """A backend rejection. The backend's own words are free text that may name a device, a bus or a vendor, so they
+        stay in the driver log (a diagnostic, not public output) and the record detail says only BACKEND_REFUSED
+        (contract 4.1, CT-BE-03)."""
+        self._ignored("execution_rejected", ref, f"backend reason: {backend_text}", now_ms)
+        return self._engine.execution_rejected(cid, ref, "BACKEND_REFUSED", now_ms, utc)
+
     def _target_of(self, command_id):
         return {"type": "joint", "id": self._engine.command(command_id)["target"]["id"]}
 
@@ -201,7 +210,7 @@ class Driver:
         if ans.accepted:
             self._inflight.add(cid)
             return []
-        return [self._engine.execution_rejected(cid, ref, ans.reason, now_ms, utc)]
+        return [self._rejected(cid, ref, ans.reason, now_ms, utc)]
 
     def _apply(self, report, now_ms, utc):
         """Apply one report to the engine; None when it was ignored (and logged)."""
@@ -235,7 +244,7 @@ class Driver:
         if k == "execution_started":
             return e.execution_started(cid, ref, now_ms, utc)
         if k == "execution_rejected":
-            return e.execution_rejected(cid, ref, report.reason, now_ms, utc)
+            return self._rejected(cid, ref, report.reason, now_ms, utc)
         if k == "hold_confirmed":
             return e.hold_confirmed(cid, ref, now_ms, utc)
         if k == "hold_released":

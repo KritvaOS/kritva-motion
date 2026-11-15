@@ -117,14 +117,16 @@ class TestReportsDriveTheLifecycle(unittest.TestCase):
             cid = submit(d, S.vel_cmd(0.1))
             d.poll(13)
             self.assertEqual(view(e, cid)[0::2], ("FAILED", "BACKEND_REJECTED_DISPATCH"))
-            self.assertEqual(e.command(cid)["detail"], "SERVO_OFF")
+            self.assertEqual(e.command(cid)["detail"], "BACKEND_REFUSED")          # the backend's words stay in the log
+            self.assertTrue(any("SERVO_OFF" in x["reason"] for x in d.log))
 
         with self.subTest(report="execution_rejected as the answer to dispatch"):
             e, co, pub, sink, sim, d = build({"joints": {J1: joint_script(
                 dispatch={"answer": "reject", "reason": "JOINT_BUSY"})}})
             cid = submit(d, S.vel_cmd(0.1))
             self.assertEqual(view(e, cid)[0::2], ("FAILED", "BACKEND_REJECTED_DISPATCH"))
-            self.assertEqual(e.command(cid)["detail"], "JOINT_BUSY")
+            self.assertEqual(e.command(cid)["detail"], "BACKEND_REFUSED")
+            self.assertTrue(any("JOINT_BUSY" in x["reason"] for x in d.log))
 
         with self.subTest(report="feedback completes a position command from valid fresh samples"):
             fb = [{"at_ms": t, "position": 0.5, "velocity": 0.0, "validity": "VALID"} for t in (20, 60, 100, 140)]
