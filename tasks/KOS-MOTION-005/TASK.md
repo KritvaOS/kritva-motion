@@ -1,6 +1,6 @@
 # KOS-MOTION-005: Motion stores, configuration activation and event publisher
 
-Status (revision 4): IN_PROGRESS. PR-01 (design record), PR-02 (configuration activation and rollback) and PR-03 (idempotency store) merged; PR-04 (command history and feedback status, CT-HIS-01, CT-LC-05, CT-FB-03) implemented on 2026-11-15. Started 2026-11-15 with the PR-01 design record (this file, `STORES.md`, `ID_MATRIX.md` and criteria AC-501 to AC-507); implementation started after the owner approved PR-01 by merging it. The task was approved in kritva-program decision D-129 (proposal `v2/planning/KOS_MOTION_005_PROPOSAL.md`) and baselined in v14 at weight 6 under the repo milestone V2-M2-MOTION-003 (D-130).
+Status (revision 5): IN_PROGRESS. PR-01 to PR-04 merged (design record, configuration activation, idempotency store, command history and feedback status); PR-05 (event streams and the abstract sink, CT-EV-01 to 05) implemented on 2026-11-15. Started 2026-11-15 with the PR-01 design record (this file, `STORES.md`, `ID_MATRIX.md` and criteria AC-501 to AC-507); implementation started after the owner approved PR-01 by merging it. The task was approved in kritva-program decision D-129 (proposal `v2/planning/KOS_MOTION_005_PROPOSAL.md`) and baselined in v14 at weight 6 under the repo milestone V2-M2-MOTION-003 (D-130).
 Task owner: Dinesh (repository owner). Architecture and safety reviewer roles: Dinesh, interim (D-047); the review is not independent and every acceptance record says so.
 The task earns credit only through a central approval with passing evidence. Motion reports facts only.
 
@@ -43,7 +43,7 @@ Order follows the dependencies between the pieces: replay needs history and conf
 | PR-02 | Configuration activation and rollback (done, revision 2) | CT-CFG-01, 03, 04, 05, 06 (5) |
 | PR-03 | Idempotency store and replay of results and rejections (done, revision 3) | CT-ID-01 to 05 (5) |
 | PR-04 | Command history, rejection records and feedback status (done, revision 4) | CT-HIS-01, CT-LC-05, CT-FB-03 (3) |
-| PR-05 | Event streams, sequence numbers and the abstract event sink | CT-EV-01 to 05 (5) |
+| PR-05 | Event streams, sequence numbers and the abstract event sink (done, revision 5) | CT-EV-01 to 05 (5) |
 | PR-06 | Replay from history, fixed-seed property test, manifest update, final documents and the review record | CT-DET-02 (1) |
 
 Targets add up to 19. Each implementation PR ships its own tests and updates the manifest for the IDs it covers, so the gate stays green at every step. The split is a delivery order; the task is accepted as a whole.
