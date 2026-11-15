@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- KOS-MOTION-004 design record, PR-01 (Tasks: None, the task is registered by this change): `tasks/KOS-MOTION-004/TASK.md`, `BACKEND.md` (the backend port, the capability declaration, the driver, the scripted S1 simulator, the integration and regression gates, the hooks to existing code, questions Q-1 to Q-10 and interpretations I-40 to I-43) and `ID_MATRIX.md` (6 target IDs, 5 CT-AUTH IDs stay DEFERRED) with a test that compares the matrix with the manifest, criteria AC-401 to AC-407 in `ACCEPTANCE_CRITERIA.md` section 3D, and the `planning/TASKS.md` row (IN_PROGRESS, design awaiting owner review). Planning only: no code, no manifest change; the integration and regression gates still exit 3. The task is not in a baseline; the proposal is in kritva-program.
+
 - Removed stash conflict markers that pull request 57 committed by mistake into `ACCEPTANCE_CRITERIA.md`, `planning/CHANGELOG.md` and `planning/TASKS.md` (Tasks: None; no content change): the three files are restored to their state on main at the merge of pull request 56 (commit 2a6fd5b); the progress snapshot files from pull request 57 are kept. The cause was a stash pop of an old, unrelated stash in a snapshot command.
 
 - Closed milestone V2-M2-MOTION-003 (owner, 2026-11-15; program decision D-133; Tasks: None, a closure record that changes no code): a third record in `COMPLETION_RECORD.md` for the stores, configuration activation and event publisher (KOS-MOTION-005, evidence commit 1d4f433, run 43695411353), and `planning/MILESTONE_STATUS.md` shows the milestone CLOSED. Software evidence only; the integration and regression gates, the backend and simulator work and the Core security interface stay open; no tag is created.
