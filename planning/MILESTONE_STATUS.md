@@ -8,6 +8,6 @@ V2-M2-MOTION-001 and V2-M2-MOTION-002 are closed by [COMPLETION_RECORD.md](../CO
 | V2-M1-MOTION-001 | KOS-MOTION-001 ACCEPTED by the owner 2026-11-05 (interim, not independent); contract draft and untagged | tasks/KOS-MOTION-001/REVIEW.md, EVIDENCE.json |
 | V2-M2-MOTION-001 | CLOSED (owner, 2026-11-06; outcome narrowed by D-105; interim review, not independent) | COMPLETION_RECORD.md, tasks/KOS-MOTION-002/REVIEW.md, EVIDENCE.json |
 | V2-M2-MOTION-002 | CLOSED (owner, 2026-11-09; D-122; interim review, not independent) | COMPLETION_RECORD.md, tasks/KOS-MOTION-003/REVIEW.md, EVIDENCE.json |
-| V2-M2-MOTION-003 | PROPOSED (KOS-MOTION-005 approved D-129 and baselined in v14, D-130; PR-01 design record under owner review; not closed) | tasks/KOS-MOTION-005/TASK.md, STORES.md |
+| V2-M2-MOTION-003 | PROPOSED (KOS-MOTION-005 approved D-129 and baselined in v14, D-130; task accepted by the owner 2026-11-15, central approval pending; not closed) | tasks/KOS-MOTION-005/TASK.md, STORES.md, REVIEW.md, EVIDENCE.json |
 | V2-M5-MOTION-001 | PROPOSED | none |
 | V2-M8-MOTION-001 | PROPOSED | none |
