@@ -9,5 +9,6 @@ V2-M2-MOTION-001, V2-M2-MOTION-002 and V2-M2-MOTION-003 are closed by [COMPLETIO
 | V2-M2-MOTION-001 | CLOSED (owner, 2026-11-06; outcome narrowed by D-105; interim review, not independent) | COMPLETION_RECORD.md, tasks/KOS-MOTION-002/REVIEW.md, EVIDENCE.json |
 | V2-M2-MOTION-002 | CLOSED (owner, 2026-11-09; D-122; interim review, not independent) | COMPLETION_RECORD.md, tasks/KOS-MOTION-003/REVIEW.md, EVIDENCE.json |
 | V2-M2-MOTION-003 | CLOSED (owner, 2026-11-15; D-133; KOS-MOTION-005 credited by D-132; interim review, not independent) | COMPLETION_RECORD.md, tasks/KOS-MOTION-005/REVIEW.md, EVIDENCE.json |
+| V2-M2-MOTION-004 | PROPOSED (KOS-MOTION-004 approved D-134 and baselined in v15, D-135; task accepted by the owner 2026-11-15, central approval pending; not closed) | tasks/KOS-MOTION-004/TASK.md, BACKEND.md, REVIEW.md, EVIDENCE.json |
 | V2-M5-MOTION-001 | PROPOSED | none |
 | V2-M8-MOTION-001 | PROPOSED | none |
