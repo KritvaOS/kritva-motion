@@ -32,7 +32,9 @@
     "pr-acceptance-gate",
     "unit-tests",
     "readme-check",
-    "progress-check"
+    "progress-check",
+    "integration-tests",
+    "regression-tests"
   ],
   "task_prefix": "KOS-MOTION",
   "task_registry": {
