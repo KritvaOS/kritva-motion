@@ -77,6 +77,11 @@ class TestTransitionMatrix(unittest.TestCase):
     def test_the_script_checks_the_repository_document(self):
         self.assertEqual(matrix.main(["--check"]), 0)
 
+    # IDs that this matrix classified "Stays DEFERRED (candidate KOS-MOTION-005)" and that KOS-MOTION-005
+    # has since delivered (its ID_MATRIX.md lists them with their pull request). Each KOS-MOTION-005 pull
+    # request adds its IDs here; the KOS-MOTION-003 decisions themselves are unchanged.
+    DELIVERED_BY_005 = {"CT-CFG-01", "CT-CFG-03", "CT-CFG-04", "CT-CFG-05", "CT-CFG-06"}
+
     def test_id_matrix_decisions_against_the_manifest(self):
         """ID_MATRIX.md (the owner-confirmed classification) and the manifest agree for every ID: a target is
         IN_SCOPE with a test, a 'stays DEFERRED' ID is DEFERRED, a 'stays OUT_OF_SCOPE' ID is OUT_OF_SCOPE."""
@@ -91,9 +96,13 @@ class TestTransitionMatrix(unittest.TestCase):
             expected = ("IN_SCOPE" if decision.startswith("Target of KOS-MOTION-003")
                         else "OUT_OF_SCOPE" if decision.startswith("Stays OUT_OF_SCOPE") else "DEFERRED")
             targets += expected == "IN_SCOPE"
+            if ident in self.DELIVERED_BY_005:
+                self.assertEqual((expected, status[ident]), ("DEFERRED", "IN_SCOPE"), f"{ident}: {decision}")
+                continue
             self.assertEqual(status[ident], expected, f"{ident}: {decision}")
         self.assertEqual(targets, 55)
-        self.assertEqual(sum(v == "IN_SCOPE" for v in status.values()), 39 + 55)   # KOS-MOTION-002's 39 plus 55
+        self.assertEqual(sum(v == "IN_SCOPE" for v in status.values()),
+                         39 + 55 + len(self.DELIVERED_BY_005))   # KOS-MOTION-002's 39, this task's 55, KOS-MOTION-005's so far
 
     def test_scenario_list_in_the_document(self):
         """The fault-injection scenario set of CT-TMO-07 is listed in LIFECYCLE.md in the order of the code."""
