@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Closed milestone V2-M2-MOTION-003 (owner, 2026-11-15; program decision D-133; Tasks: None, a closure record that changes no code): a third record in `COMPLETION_RECORD.md` for the stores, configuration activation and event publisher (KOS-MOTION-005, evidence commit 1d4f433, run 43695411353), and `planning/MILESTONE_STATUS.md` shows the milestone CLOSED. Software evidence only; the integration and regression gates, the backend and simulator work and the Core security interface stay open; no tag is created.
+
 - KOS-MOTION-005 added to the status report (Tasks: None; the task is already ACCEPTED and closed in `planning/TASKS.md`): `REPORTED_TASKS` in `scripts/status/gen_status.py` now includes it (with its test fixture), and `status/status.json` is regenerated so the task reports execution COMPLETE with the four passing CI runs of `tasks/KOS-MOTION-005/EVIDENCE.json` on commit 1d4f433. Facts only; central credit is a separate approval in kritva-program.
 
 - KOS-MOTION-005 accepted by the owner on 2026-11-15 (Tasks: None; this change records the acceptance and adds no code): `tasks/KOS-MOTION-005/REVIEW.md` records the decision on commit 1d4f433 against AC-501 to AC-507, `EVIDENCE.json` lists four passing CI runs on it (unit-tests, secret-scan, readme-check, progress-check), `planning/TASKS.md` moves the task to ACCEPTED and `planning/MILESTONE_STATUS.md` notes it for V2-M2-MOTION-003 (not closed). The review is interim and not independent (D-047); central credit is a separate approval in kritva-program. Software evidence only.
