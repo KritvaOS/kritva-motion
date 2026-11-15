@@ -7,3 +7,5 @@ tasks/KOS-MOTION-005/STORES.md. Software evidence only: passing tests is never p
 validation (contract 2.2).
 """
 from kritva_motion.stores.config_registry import ConfigurationRegistry, config_digest  # noqa: F401
+from kritva_motion.stores.coordinator import Coordinator  # noqa: F401
+from kritva_motion.stores.idempotency import IdempotencyStore, content_key, minimum_retention_ms  # noqa: F401

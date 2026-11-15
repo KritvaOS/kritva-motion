@@ -62,8 +62,9 @@ class ConfigurationRegistry:
     active_configuration_version). Before the first successful activation there is no active
     configuration and every submission is rejected CONFIG_NOT_ACTIVE (contract 3.2)."""
 
-    def __init__(self, engine, capabilities):
+    def __init__(self, engine, capabilities, idempotency=None):
         self._engine = engine
+        self._idempotency = idempotency   # optional: its retention is checked at activation (7.4)
         self._capabilities = copy.deepcopy(capabilities)
         self._versions = {}      # version -> (configuration, digest); never removed, never replaced
         self._log = []           # activation records, oldest first, append-only
@@ -93,6 +94,10 @@ class ConfigurationRegistry:
         digest = config_digest(config)
         if version in self._versions:
             return self._refuse("ACTIVATE", version, digest, "VERSION_ALREADY_KNOWN", now_ms, permission_granted)
+        problem = self._retention_problem(config)
+        if problem:
+            return self._refuse("ACTIVATE", version, digest, "RETENTION_TOO_SHORT", now_ms, permission_granted,
+                                detail=problem)
         clash = incompatibilities(config, self._engine.open_commands())
         if clash:
             return self._refuse("ACTIVATE", version, digest, "INCOMPATIBLE_WITH_OPEN_COMMANDS", now_ms,
@@ -112,11 +117,18 @@ class ConfigurationRegistry:
             return self._refuse("ROLLBACK", version, self.digest_of(version), "ALREADY_ACTIVE", now_ms,
                                 permission_granted)
         config, digest = self._versions[version]
+        problem = self._retention_problem(config)
+        if problem:
+            return self._refuse("ROLLBACK", version, digest, "RETENTION_TOO_SHORT", now_ms, permission_granted,
+                                detail=problem)
         clash = incompatibilities(config, self._engine.open_commands())
         if clash:
             return self._refuse("ROLLBACK", version, digest, "INCOMPATIBLE_WITH_OPEN_COMMANDS", now_ms,
                                 permission_granted, detail=clash)
         return self._install("ROLLBACK", version, digest, now_ms, permission_granted)
+
+    def _retention_problem(self, config):
+        return None if self._idempotency is None else self._idempotency.retention_problem(config)
 
     # -- internals -------------------------------------------------------------------------------
     def _install(self, kind, version, digest, now_ms, permission_granted):

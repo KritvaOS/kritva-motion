@@ -38,6 +38,7 @@ supplied by the caller and recorded as given. Software evidence only: nothing he
 joint moved, stopped or settled physically (contract 2.2).
 """
 import copy
+import dataclasses
 import math
 from dataclasses import dataclass, field
 from typing import Any, Optional
@@ -323,17 +324,21 @@ class LifecycleEngine:
             human_operator_attested=human_operator_attested)
 
     def submit(self, command, now_ms, utc=None, identity="VALID", permission_granted=True,
-               human_operator_attested=False, defer_dispatch=False):
+               human_operator_attested=False, defer_dispatch=False, idempotency=None):
         """Admit one command. An accepted SET_POSITION or SET_VELOCITY becomes ACCEPTED with phase
         DISPATCH_PENDING and a dispatch request is returned; it stays ACCEPTED until the backend
         confirms the start (contract 7.2). A rejection creates no command and no lifecycle (7.3).
         With defer_dispatch=True no dispatch request is issued: the command stays ACCEPTED with phase
         NONE ("not dispatched", contract 7.6) until dispatch() is called (interpretation I-15). For a
         CLEAR_FAULT the same flag defers its application: it is accepted, and dispatch() applies it
-        (interpretation I-33)."""
+        (interpretation I-33). `idempotency` is the supplied lookup result of contract 7.4, as admission step 4
+        reads it ({"status": "NEW" | "IDENTICAL" | "DIFFERENT", "stored_decision": ...}); None means NEW
+        (KOS-MOTION-005 PR-03, stores/idempotency.py)."""
         self._advance(now_ms)
         res = Result()
         ctx = self._admission_context(command, now_ms, identity, permission_granted, human_operator_attested)
+        if idempotency is not None:
+            ctx = dataclasses.replace(ctx, idempotency=copy.deepcopy(idempotency))
         res.admission = ad.admit(ctx)
         if not res.admission.accepted or res.admission.replay:
             return res

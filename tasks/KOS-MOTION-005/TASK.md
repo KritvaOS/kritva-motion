@@ -1,6 +1,6 @@
 # KOS-MOTION-005: Motion stores, configuration activation and event publisher
 
-Status (revision 2): IN_PROGRESS. PR-01 (design record) merged; PR-02 (configuration activation and rollback, CT-CFG-01, 03, 04, 05, 06) implemented on 2026-11-15. Started 2026-11-15 with the PR-01 design record (this file, `STORES.md`, `ID_MATRIX.md` and criteria AC-501 to AC-507); implementation started after the owner approved PR-01 by merging it. The task was approved in kritva-program decision D-129 (proposal `v2/planning/KOS_MOTION_005_PROPOSAL.md`) and baselined in v14 at weight 6 under the repo milestone V2-M2-MOTION-003 (D-130).
+Status (revision 3): IN_PROGRESS. PR-01 (design record) and PR-02 (configuration activation and rollback) merged; PR-03 (idempotency store, CT-ID-01 to 05) implemented on 2026-11-15. Started 2026-11-15 with the PR-01 design record (this file, `STORES.md`, `ID_MATRIX.md` and criteria AC-501 to AC-507); implementation started after the owner approved PR-01 by merging it. The task was approved in kritva-program decision D-129 (proposal `v2/planning/KOS_MOTION_005_PROPOSAL.md`) and baselined in v14 at weight 6 under the repo milestone V2-M2-MOTION-003 (D-130).
 Task owner: Dinesh (repository owner). Architecture and safety reviewer roles: Dinesh, interim (D-047); the review is not independent and every acceptance record says so.
 The task earns credit only through a central approval with passing evidence. Motion reports facts only.
 
@@ -41,7 +41,7 @@ Order follows the dependencies between the pieces: replay needs history and conf
 |---|---|---|
 | PR-01 | Design record: `STORES.md` (ports, record shapes, invariants, questions Q-1 to Q-10 answered), the confirmed ID matrix with a test that compares it with the manifest, criteria AC-501..AC-507, TASKS.md row. Protected path (criteria): owner merge. Hard owner review stop | none |
 | PR-02 | Configuration activation and rollback (done, revision 2) | CT-CFG-01, 03, 04, 05, 06 (5) |
-| PR-03 | Idempotency store and replay of results and rejections | CT-ID-01 to 05 (5) |
+| PR-03 | Idempotency store and replay of results and rejections (done, revision 3) | CT-ID-01 to 05 (5) |
 | PR-04 | Command history, rejection records and feedback status | CT-HIS-01, CT-LC-05, CT-FB-03 (3) |
 | PR-05 | Event streams, sequence numbers and the abstract event sink | CT-EV-01 to 05 (5) |
 | PR-06 | Replay from history, fixed-seed property test, manifest update, final documents and the review record | CT-DET-02 (1) |
