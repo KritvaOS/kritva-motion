@@ -1,0 +1,53 @@
+{
+  "boundary_trace": [],
+  "public": {
+    "admissions": [
+      {
+        "accepted": false,
+        "code": "UNIT_MISMATCH",
+        "field": "parameters.unit",
+        "key": "bad",
+        "message": "a revolute joint uses rad/s",
+        "replay": false,
+        "step": 7
+      }
+    ],
+    "commands": {},
+    "events": [],
+    "faults": {
+      "joint-1": [],
+      "joint-p": []
+    },
+    "history": {},
+    "joints": {
+      "joint-1": {
+        "backend_clock_domain": "backend-clock",
+        "backend_clock_synchronized": true,
+        "backend_status": "AVAILABLE",
+        "backend_timestamp": "2026-11-08T00:00:00Z",
+        "config_version": "1",
+        "control_state": "IDLE",
+        "feedback_status": "VALID",
+        "health_state": "READY",
+        "is_current": true,
+        "joint_id": "joint-1",
+        "measured_position": 0.0
+      },
+      "joint-p": {
+        "backend_clock_domain": "backend-clock",
+        "backend_clock_synchronized": true,
+        "backend_status": "AVAILABLE",
+        "backend_timestamp": "2026-11-08T00:00:00Z",
+        "config_version": "1",
+        "control_state": "IDLE",
+        "feedback_status": "VALID",
+        "health_state": "READY",
+        "is_current": true,
+        "joint_id": "joint-p",
+        "measured_position": 0.0
+      }
+    },
+    "status": {}
+  },
+  "scenario": "admission_rejection"
+}

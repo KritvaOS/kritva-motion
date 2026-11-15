@@ -45,6 +45,7 @@ class Driver:
             raise DriverError("the backend declaration does not conform: " + "; ".join(str(p) for p in problems))
         self._engine, self._co, self._backend = engine, coordinator, backend
         self._refs = {}            # backend_reference -> command_id, from the requests that were issued
+        self._advisory = set()     # references of stops the driver sent for no command (interpretation I-29)
         self._inflight = set()     # command ids whose dispatch or hold the backend accepted
         self.log = []              # inputs the driver ignored or could not apply, with the reason
         self.trace = []            # what crossed the backend boundary, in order
@@ -66,6 +67,12 @@ class Driver:
 
     def dispatch(self, command_id, now_ms, utc=None):
         res = self._engine.dispatch(command_id, now_ms, utc)
+        self._run([res], now_ms, utc)
+        return res
+
+    def joint_fault(self, joint_id, code, now_ms, utc=None):
+        """A joint fault input (contract 13.4). It can ask for a stop that no command carries, which the driver sends."""
+        res = self._engine.joint_fault(joint_id, code, now_ms, utc)
         self._run([res], now_ms, utc)
         return res
 
@@ -170,7 +177,30 @@ class Driver:
     def _target_of(self, command_id):
         return {"type": "joint", "id": self._engine.command(command_id)["target"]["id"]}
 
+    def _advisory_stop(self, req, now_ms, utc):
+        """The engine asks for a stop that no command carries (a fault on a joint that is not idle, I-29). The driver
+        gives it a reference of its own, sends it when controlled stop is declared, and has no engine input for the
+        answer: the joint stays as the engine records it. The answer and any confirmation are logged only."""
+        ref = f"advisory-{req['fault_id']}"
+        missing = self.missing_capability(req)
+        if missing is not None:
+            self._ignored("advisory_stop", ref, f"capability not declared: {missing}", now_ms)
+            return []
+        self._advisory.add(ref)
+        self.trace.append({"at_ms": now_ms, "direction": "to_backend", "op": "request_termination", "command_id": None,
+                           "backend_reference": ref})
+        try:
+            ans = self._backend.request_termination(ref, req["cause"], now_ms, target=copy.deepcopy(req["target"]))
+        except Exception as exc:
+            return [self._lost("request_termination", type(exc).__name__, now_ms, utc)]
+        if not isinstance(ans, TerminationAnswer):
+            return [self._lost("request_termination", "answer is not a TerminationAnswer", now_ms, utc)]
+        self._ignored("advisory_stop", ref, "accepted" if ans.accepted else "refused", now_ms)
+        return []
+
     def _execute(self, req, now_ms, utc):
+        if req["command_id"] is None:
+            return self._advisory_stop(req, now_ms, utc)
         op, ref, cid = req["op"], req["backend_reference"], req["command_id"]
         self._refs[ref] = cid
         missing = self.missing_capability(req)
@@ -231,6 +261,9 @@ class Driver:
         if k == "fault_cleared":
             return e.backend_fault_cleared(now_ms, utc, report.code)
         ref = report.backend_reference
+        if ref in self._advisory:
+            self._ignored(k, ref, "advisory_stop_report", now_ms)      # no command to apply it to
+            return None
         cid = self._refs.get(ref)
         if cid is None:
             self._ignored(k, ref, "unknown_reference", now_ms)

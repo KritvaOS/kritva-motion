@@ -113,7 +113,7 @@ def run_scenario(kind, scenario):
             r = d.submit(A, cmd, t, utc(t))
             adm = r.admission
             admissions.append({"key": key, "accepted": adm.accepted, "code": adm.code, "step": adm.step,
-                               "field": adm.field, "message": adm.message})
+                               "field": adm.field, "message": adm.message, "replay": adm.replay})
             if adm.accepted:
                 ids[key] = r.command_id
             last = t
@@ -206,6 +206,8 @@ def scenarios():
             ("submit", "a", vel("r1"), 10), ("poll", 15), ("poll", 30), ("poll", 40), ("poll", 50)]},
         "admission_rejection": {"profile": {"joints": {J1: base}}, "steps": [
             ("submit", "bad", vel("r1", unit="m/s"), 10), ("poll", 20)]},
+        "idempotent_resubmission": {"profile": {"joints": {J1: base}}, "steps": [
+            ("submit", "a", vel("r1"), 10), ("submit", "again", vel("r1"), 11), ("poll", 15)]},
         "concurrency_limit": {"caps": {"max_concurrent_executions": 1},
                               "profile": {"joints": {J1: base, JP: base}}, "steps": [
             ("submit", "a", vel("r1"), 10), ("submit", "b", vel("r2", JP, "m/s", 0.05), 11), ("poll", 20)]},

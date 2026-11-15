@@ -1,0 +1,688 @@
+{
+  "boundary_trace": [
+    {
+      "at_ms": 10,
+      "backend_reference": "ref-cmd-1",
+      "command_id": "cmd-1",
+      "direction": "to_backend",
+      "op": "request_hold"
+    },
+    {
+      "at_ms": 12,
+      "backend_reference": "ref-cmd-1",
+      "direction": "from_backend",
+      "kind": "execution_started",
+      "simulated": true
+    },
+    {
+      "at_ms": 12,
+      "backend_reference": "ref-cmd-1",
+      "direction": "from_backend",
+      "kind": "hold_confirmed",
+      "simulated": true
+    },
+    {
+      "at_ms": 20,
+      "backend_reference": "ref-cmd-2",
+      "command_id": "cmd-2",
+      "direction": "to_backend",
+      "op": "dispatch"
+    },
+    {
+      "at_ms": 25,
+      "backend_reference": "ref-cmd-2",
+      "direction": "from_backend",
+      "kind": "execution_started",
+      "simulated": true
+    },
+    {
+      "at_ms": 25,
+      "backend_reference": "ref-cmd-2",
+      "command_id": "cmd-2",
+      "direction": "to_backend",
+      "op": "release_hold"
+    },
+    {
+      "at_ms": 27,
+      "backend_reference": "ref-cmd-2",
+      "direction": "from_backend",
+      "kind": "hold_release_failed",
+      "simulated": true
+    }
+  ],
+  "public": {
+    "admissions": [
+      {
+        "accepted": true,
+        "code": null,
+        "field": null,
+        "key": "h",
+        "message": null,
+        "replay": false,
+        "step": null
+      },
+      {
+        "accepted": true,
+        "code": null,
+        "field": null,
+        "key": "m",
+        "message": null,
+        "replay": false,
+        "step": null
+      }
+    ],
+    "commands": {
+      "h": {
+        "accepted_at": "2026-11-15T00:00:10Z",
+        "backend_reference": "ref-cmd-1",
+        "command_id": "cmd-1",
+        "config_digest": "a52910d32b358dfb97d044314228e394c038aa5737e6b0a7d06828aa3be102c2",
+        "config_version": "1",
+        "deadline_ms": 10000,
+        "execution_timeout_ms": 5000,
+        "operation": "HOLD",
+        "phase": "NONE",
+        "reason_code": "HOLD_ENGAGED",
+        "references": null,
+        "state": "COMPLETED",
+        "target": {
+          "id": "joint-1",
+          "type": "joint"
+        },
+        "termination": null,
+        "transitions": [
+          {
+            "at": "2026-11-15T00:00:10Z",
+            "from": null,
+            "monotonic_ms": 10,
+            "reason_code": null,
+            "to": "ACCEPTED",
+            "trigger": "ADMISSION"
+          },
+          {
+            "at": "2026-11-15T00:00:12Z",
+            "from": "ACCEPTED",
+            "monotonic_ms": 12,
+            "reason_code": null,
+            "to": "RUNNING",
+            "trigger": "EXECUTION_STARTED"
+          },
+          {
+            "at": "2026-11-15T00:00:12Z",
+            "from": "RUNNING",
+            "monotonic_ms": 12,
+            "reason_code": "HOLD_ENGAGED",
+            "to": "COMPLETED",
+            "trigger": "HOLD_CONFIRMED"
+          }
+        ]
+      },
+      "m": {
+        "accepted_at": "2026-11-15T00:00:20Z",
+        "backend_reference": "ref-cmd-2",
+        "command_id": "cmd-2",
+        "config_digest": "a52910d32b358dfb97d044314228e394c038aa5737e6b0a7d06828aa3be102c2",
+        "config_version": "1",
+        "deadline_ms": 10000,
+        "execution_timeout_ms": 5000,
+        "operation": "SET_VELOCITY",
+        "phase": "NONE",
+        "reason_code": "BACKEND_REJECTED_DISPATCH",
+        "references": null,
+        "state": "FAILED",
+        "target": {
+          "id": "joint-1",
+          "type": "joint"
+        },
+        "termination": null,
+        "transitions": [
+          {
+            "at": "2026-11-15T00:00:20Z",
+            "from": null,
+            "monotonic_ms": 20,
+            "reason_code": null,
+            "to": "ACCEPTED",
+            "trigger": "ADMISSION"
+          },
+          {
+            "at": "2026-11-15T00:00:25Z",
+            "from": "ACCEPTED",
+            "monotonic_ms": 25,
+            "reason_code": null,
+            "to": "RUNNING",
+            "trigger": "EXECUTION_STARTED"
+          },
+          {
+            "at": "2026-11-15T00:00:27Z",
+            "from": "RUNNING",
+            "monotonic_ms": 27,
+            "reason_code": "BACKEND_REJECTED_DISPATCH",
+            "to": "FAILED",
+            "trigger": "HOLD_RELEASE_FAILED"
+          }
+        ]
+      }
+    },
+    "events": [
+      {
+        "client_id": "client-A",
+        "data": {
+          "from": null,
+          "phase": "NONE",
+          "reason_code": null,
+          "to": "ACCEPTED"
+        },
+        "event_id": "command:cmd-1:1",
+        "event_type": "COMMAND_STATE_CHANGED",
+        "occurred_at": "2026-11-15T00:00:10Z",
+        "sequence_number": 1,
+        "stream": {
+          "id": "cmd-1",
+          "kind": "command"
+        }
+      },
+      {
+        "client_id": "client-A",
+        "data": {
+          "phase": "DISPATCH_PENDING"
+        },
+        "event_id": "command:cmd-1:2",
+        "event_type": "COMMAND_PHASE_CHANGED",
+        "occurred_at": "2026-11-15T00:00:10Z",
+        "sequence_number": 2,
+        "stream": {
+          "id": "cmd-1",
+          "kind": "command"
+        }
+      },
+      {
+        "client_id": "client-A",
+        "data": {
+          "from": "ACCEPTED",
+          "phase": "NONE",
+          "reason_code": null,
+          "to": "RUNNING"
+        },
+        "event_id": "command:cmd-1:3",
+        "event_type": "COMMAND_STATE_CHANGED",
+        "occurred_at": "2026-11-15T00:00:12Z",
+        "sequence_number": 3,
+        "stream": {
+          "id": "cmd-1",
+          "kind": "command"
+        }
+      },
+      {
+        "client_id": "client-A",
+        "data": {
+          "phase": "NONE"
+        },
+        "event_id": "command:cmd-1:4",
+        "event_type": "COMMAND_PHASE_CHANGED",
+        "occurred_at": "2026-11-15T00:00:12Z",
+        "sequence_number": 4,
+        "stream": {
+          "id": "cmd-1",
+          "kind": "command"
+        }
+      },
+      {
+        "data": {
+          "active_command_id": "cmd-1",
+          "backend_clock_domain": "backend-clock",
+          "backend_clock_synchronized": true,
+          "backend_status": "AVAILABLE",
+          "backend_timestamp": "2026-11-08T00:00:00Z",
+          "config_version": "1",
+          "control_state": "IDLE",
+          "feedback_status": "VALID",
+          "health_state": "READY",
+          "is_current": true,
+          "joint_id": "joint-1",
+          "measured_position": 0.0
+        },
+        "event_id": "joint:joint-1:1",
+        "event_type": "JOINT_STATE_CHANGED",
+        "occurred_at": "2026-11-15T00:00:12Z",
+        "sequence_number": 1,
+        "stream": {
+          "id": "joint-1",
+          "kind": "joint"
+        }
+      },
+      {
+        "client_id": "client-A",
+        "data": {
+          "from": "RUNNING",
+          "phase": "NONE",
+          "reason_code": "HOLD_ENGAGED",
+          "to": "COMPLETED"
+        },
+        "event_id": "command:cmd-1:5",
+        "event_type": "COMMAND_STATE_CHANGED",
+        "occurred_at": "2026-11-15T00:00:12Z",
+        "sequence_number": 5,
+        "stream": {
+          "id": "cmd-1",
+          "kind": "command"
+        }
+      },
+      {
+        "data": {
+          "backend_clock_domain": "backend-clock",
+          "backend_clock_synchronized": true,
+          "backend_status": "AVAILABLE",
+          "backend_timestamp": "2026-11-08T00:00:00Z",
+          "config_version": "1",
+          "control_state": "HOLDING",
+          "feedback_status": "VALID",
+          "health_state": "READY",
+          "is_current": true,
+          "joint_id": "joint-1",
+          "measured_position": 0.0
+        },
+        "event_id": "joint:joint-1:2",
+        "event_type": "JOINT_STATE_CHANGED",
+        "occurred_at": "2026-11-15T00:00:12Z",
+        "sequence_number": 2,
+        "stream": {
+          "id": "joint-1",
+          "kind": "joint"
+        }
+      },
+      {
+        "client_id": "client-A",
+        "data": {
+          "from": null,
+          "phase": "NONE",
+          "reason_code": null,
+          "to": "ACCEPTED"
+        },
+        "event_id": "command:cmd-2:1",
+        "event_type": "COMMAND_STATE_CHANGED",
+        "occurred_at": "2026-11-15T00:00:20Z",
+        "sequence_number": 1,
+        "stream": {
+          "id": "cmd-2",
+          "kind": "command"
+        }
+      },
+      {
+        "client_id": "client-A",
+        "data": {
+          "phase": "DISPATCH_PENDING"
+        },
+        "event_id": "command:cmd-2:2",
+        "event_type": "COMMAND_PHASE_CHANGED",
+        "occurred_at": "2026-11-15T00:00:20Z",
+        "sequence_number": 2,
+        "stream": {
+          "id": "cmd-2",
+          "kind": "command"
+        }
+      },
+      {
+        "client_id": "client-A",
+        "data": {
+          "from": "ACCEPTED",
+          "phase": "NONE",
+          "reason_code": null,
+          "to": "RUNNING"
+        },
+        "event_id": "command:cmd-2:3",
+        "event_type": "COMMAND_STATE_CHANGED",
+        "occurred_at": "2026-11-15T00:00:25Z",
+        "sequence_number": 3,
+        "stream": {
+          "id": "cmd-2",
+          "kind": "command"
+        }
+      },
+      {
+        "client_id": "client-A",
+        "data": {
+          "phase": "NONE"
+        },
+        "event_id": "command:cmd-2:4",
+        "event_type": "COMMAND_PHASE_CHANGED",
+        "occurred_at": "2026-11-15T00:00:25Z",
+        "sequence_number": 4,
+        "stream": {
+          "id": "cmd-2",
+          "kind": "command"
+        }
+      },
+      {
+        "data": {
+          "active_command_id": "cmd-2",
+          "backend_clock_domain": "backend-clock",
+          "backend_clock_synchronized": true,
+          "backend_status": "AVAILABLE",
+          "backend_timestamp": "2026-11-08T00:00:00Z",
+          "config_version": "1",
+          "control_state": "ACTIVE",
+          "feedback_status": "VALID",
+          "health_state": "READY",
+          "is_current": true,
+          "joint_id": "joint-1",
+          "measured_position": 0.0
+        },
+        "event_id": "joint:joint-1:3",
+        "event_type": "JOINT_STATE_CHANGED",
+        "occurred_at": "2026-11-15T00:00:25Z",
+        "sequence_number": 3,
+        "stream": {
+          "id": "joint-1",
+          "kind": "joint"
+        }
+      },
+      {
+        "client_id": "client-A",
+        "data": {
+          "from": "RUNNING",
+          "phase": "NONE",
+          "reason_code": "BACKEND_REJECTED_DISPATCH",
+          "to": "FAILED"
+        },
+        "event_id": "command:cmd-2:5",
+        "event_type": "COMMAND_STATE_CHANGED",
+        "occurred_at": "2026-11-15T00:00:27Z",
+        "sequence_number": 5,
+        "stream": {
+          "id": "cmd-2",
+          "kind": "command"
+        }
+      },
+      {
+        "data": {
+          "backend_clock_domain": "backend-clock",
+          "backend_clock_synchronized": true,
+          "backend_status": "AVAILABLE",
+          "backend_timestamp": "2026-11-08T00:00:00Z",
+          "config_version": "1",
+          "control_state": "UNKNOWN",
+          "feedback_status": "VALID",
+          "health_state": "READY",
+          "is_current": true,
+          "joint_id": "joint-1",
+          "measured_position": 0.0
+        },
+        "event_id": "joint:joint-1:4",
+        "event_type": "JOINT_STATE_CHANGED",
+        "occurred_at": "2026-11-15T00:00:27Z",
+        "sequence_number": 4,
+        "stream": {
+          "id": "joint-1",
+          "kind": "joint"
+        }
+      }
+    ],
+    "faults": {
+      "joint-1": [],
+      "joint-p": []
+    },
+    "history": {
+      "h": {
+        "accepted_at": "2026-11-15T00:00:10Z",
+        "authorization_outcome": {
+          "identity": "VALID",
+          "permission_granted": true
+        },
+        "backend_reference": "ref-cmd-1",
+        "client_id": "client-A",
+        "client_request_id": "r1",
+        "command_id": "cmd-1",
+        "completed_at": "2026-11-15T00:00:12Z",
+        "config_digest": "a52910d32b358dfb97d044314228e394c038aa5737e6b0a7d06828aa3be102c2",
+        "config_version": "1",
+        "deadline_ms": 10000,
+        "execution_started_at": "2026-11-15T00:00:12Z",
+        "execution_timeout_ms": 5000,
+        "fault_references": [],
+        "lifecycle_history": [
+          {
+            "at": "2026-11-15T00:00:10Z",
+            "phase": "NONE",
+            "reason_code": null,
+            "state": "ACCEPTED"
+          },
+          {
+            "at": "2026-11-15T00:00:10Z",
+            "phase": "DISPATCH_PENDING",
+            "reason_code": null,
+            "state": "ACCEPTED"
+          },
+          {
+            "at": "2026-11-15T00:00:12Z",
+            "phase": "NONE",
+            "reason_code": null,
+            "state": "RUNNING"
+          },
+          {
+            "at": "2026-11-15T00:00:12Z",
+            "phase": "NONE",
+            "reason_code": null,
+            "state": "RUNNING"
+          },
+          {
+            "at": "2026-11-15T00:00:12Z",
+            "phase": "NONE",
+            "reason_code": "HOLD_ENGAGED",
+            "state": "COMPLETED"
+          }
+        ],
+        "operation": "HOLD",
+        "replays": [],
+        "result": {
+          "reason_code": "HOLD_ENGAGED",
+          "state": "COMPLETED"
+        },
+        "sequence": 1,
+        "submission_result": "ACCEPTED",
+        "submitted_at": "2026-11-15T00:00:10Z",
+        "target": {
+          "id": "joint-1",
+          "type": "joint"
+        },
+        "validation_result": {
+          "accepted": true,
+          "code": null,
+          "field": null,
+          "step": null
+        }
+      },
+      "m": {
+        "accepted_at": "2026-11-15T00:00:20Z",
+        "authorization_outcome": {
+          "identity": "VALID",
+          "permission_granted": true
+        },
+        "backend_reference": "ref-cmd-2",
+        "client_id": "client-A",
+        "client_request_id": "r2",
+        "command_id": "cmd-2",
+        "completed_at": "2026-11-15T00:00:27Z",
+        "config_digest": "a52910d32b358dfb97d044314228e394c038aa5737e6b0a7d06828aa3be102c2",
+        "config_version": "1",
+        "deadline_ms": 10000,
+        "execution_started_at": "2026-11-15T00:00:25Z",
+        "execution_timeout_ms": 5000,
+        "fault_references": [],
+        "lifecycle_history": [
+          {
+            "at": "2026-11-15T00:00:20Z",
+            "phase": "NONE",
+            "reason_code": null,
+            "state": "ACCEPTED"
+          },
+          {
+            "at": "2026-11-15T00:00:20Z",
+            "phase": "DISPATCH_PENDING",
+            "reason_code": null,
+            "state": "ACCEPTED"
+          },
+          {
+            "at": "2026-11-15T00:00:25Z",
+            "phase": "NONE",
+            "reason_code": null,
+            "state": "RUNNING"
+          },
+          {
+            "at": "2026-11-15T00:00:25Z",
+            "phase": "NONE",
+            "reason_code": null,
+            "state": "RUNNING"
+          },
+          {
+            "at": "2026-11-15T00:00:27Z",
+            "phase": "NONE",
+            "reason_code": "BACKEND_REJECTED_DISPATCH",
+            "state": "FAILED"
+          }
+        ],
+        "operation": "SET_VELOCITY",
+        "replays": [],
+        "result": {
+          "reason_code": "BACKEND_REJECTED_DISPATCH",
+          "state": "FAILED"
+        },
+        "sequence": 2,
+        "submission_result": "ACCEPTED",
+        "submitted_at": "2026-11-15T00:00:20Z",
+        "target": {
+          "id": "joint-1",
+          "type": "joint"
+        },
+        "validation_result": {
+          "accepted": true,
+          "code": null,
+          "field": null,
+          "step": null
+        }
+      }
+    },
+    "joints": {
+      "joint-1": {
+        "backend_clock_domain": "backend-clock",
+        "backend_clock_synchronized": true,
+        "backend_status": "AVAILABLE",
+        "backend_timestamp": "2026-11-08T00:00:00Z",
+        "config_version": "1",
+        "control_state": "UNKNOWN",
+        "feedback_status": "VALID",
+        "health_state": "READY",
+        "is_current": true,
+        "joint_id": "joint-1",
+        "measured_position": 0.0
+      },
+      "joint-p": {
+        "backend_clock_domain": "backend-clock",
+        "backend_clock_synchronized": true,
+        "backend_status": "AVAILABLE",
+        "backend_timestamp": "2026-11-08T00:00:00Z",
+        "config_version": "1",
+        "control_state": "IDLE",
+        "feedback_status": "VALID",
+        "health_state": "READY",
+        "is_current": true,
+        "joint_id": "joint-p",
+        "measured_position": 0.0
+      }
+    },
+    "status": {
+      "h": {
+        "accepted_at": "2026-11-15T00:00:10Z",
+        "backend_reference": "ref-cmd-1",
+        "command_id": "cmd-1",
+        "config_digest": "a52910d32b358dfb97d044314228e394c038aa5737e6b0a7d06828aa3be102c2",
+        "config_version": "1",
+        "deadline_ms": 10000,
+        "execution_timeout_ms": 5000,
+        "last_sequence_number": 5,
+        "operation": "HOLD",
+        "phase": "NONE",
+        "reason_code": "HOLD_ENGAGED",
+        "references": null,
+        "state": "COMPLETED",
+        "target": {
+          "id": "joint-1",
+          "type": "joint"
+        },
+        "termination": null,
+        "transitions": [
+          {
+            "at": "2026-11-15T00:00:10Z",
+            "from": null,
+            "monotonic_ms": 10,
+            "reason_code": null,
+            "to": "ACCEPTED",
+            "trigger": "ADMISSION"
+          },
+          {
+            "at": "2026-11-15T00:00:12Z",
+            "from": "ACCEPTED",
+            "monotonic_ms": 12,
+            "reason_code": null,
+            "to": "RUNNING",
+            "trigger": "EXECUTION_STARTED"
+          },
+          {
+            "at": "2026-11-15T00:00:12Z",
+            "from": "RUNNING",
+            "monotonic_ms": 12,
+            "reason_code": "HOLD_ENGAGED",
+            "to": "COMPLETED",
+            "trigger": "HOLD_CONFIRMED"
+          }
+        ]
+      },
+      "m": {
+        "accepted_at": "2026-11-15T00:00:20Z",
+        "backend_reference": "ref-cmd-2",
+        "command_id": "cmd-2",
+        "config_digest": "a52910d32b358dfb97d044314228e394c038aa5737e6b0a7d06828aa3be102c2",
+        "config_version": "1",
+        "deadline_ms": 10000,
+        "execution_timeout_ms": 5000,
+        "last_sequence_number": 5,
+        "operation": "SET_VELOCITY",
+        "phase": "NONE",
+        "reason_code": "BACKEND_REJECTED_DISPATCH",
+        "references": null,
+        "state": "FAILED",
+        "target": {
+          "id": "joint-1",
+          "type": "joint"
+        },
+        "termination": null,
+        "transitions": [
+          {
+            "at": "2026-11-15T00:00:20Z",
+            "from": null,
+            "monotonic_ms": 20,
+            "reason_code": null,
+            "to": "ACCEPTED",
+            "trigger": "ADMISSION"
+          },
+          {
+            "at": "2026-11-15T00:00:25Z",
+            "from": "ACCEPTED",
+            "monotonic_ms": 25,
+            "reason_code": null,
+            "to": "RUNNING",
+            "trigger": "EXECUTION_STARTED"
+          },
+          {
+            "at": "2026-11-15T00:00:27Z",
+            "from": "RUNNING",
+            "monotonic_ms": 27,
+            "reason_code": "BACKEND_REJECTED_DISPATCH",
+            "to": "FAILED",
+            "trigger": "HOLD_RELEASE_FAILED"
+          }
+        ]
+      }
+    }
+  },
+  "scenario": "hold_release_fails"
+}

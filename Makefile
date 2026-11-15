@@ -42,10 +42,10 @@ test-unit: ## Unit tests and conformance manifest gate (PYTHON=... selects the i
 	@$(PYTHON) scripts/test_gate.py
 test-integration: ## Integration tests: scenarios through the driver, stores, engine and a backend (PYTHON=... selects the interpreter)
 	@$(PYTHON) scripts/integration_gate.py
-test-regression: ## Regression tests (NOT_IMPLEMENTED: exits 3)
-	$(call not_implemented,test-regression)
-test: ## All tests (NOT_IMPLEMENTED: exits 3)
-	$(call not_implemented,test)
+test-regression: ## Regression gate: golden traces compared byte for byte
+	@$(PYTHON) scripts/regression_gate.py
+test: ## All tests: unit, integration and regression
+	@$(MAKE) --no-print-directory test-unit test-integration test-regression
 acceptance: ## Acceptance gate (NOT_IMPLEMENTED: exits 3)
 	$(call not_implemented,acceptance)
 

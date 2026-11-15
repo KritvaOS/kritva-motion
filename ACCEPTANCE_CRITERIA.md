@@ -88,7 +88,8 @@ The contract defines inputs, outputs, error handling, versioning and lifecycle, 
 |---|---|---|---|
 | Unit | `make test-unit` | all pass | implemented by KOS-MOTION-002 (`scripts/test_gate.py`: unit tests and conformance manifest check); software evidence only |
 | Integration | `make test-integration` | all pass, real dependency boundaries | implemented by KOS-MOTION-004 PR-05 (`scripts/integration_gate.py`: scenarios through the driver, stores, engine and a backend); software evidence only |
-| Regression | `make test-regression` | all pass, suite unchanged by the change | NOT_IMPLEMENTED |
+| Regression | `make test-regression` | all pass, suite unchanged by the change | implemented by KOS-MOTION-004 PR-06 (`scripts/regression_gate.py`: committed golden traces compared byte for byte; they change only through `scripts/regression_update.py`); software evidence only |
+| All | `make test` | unit, integration and regression all pass | implemented by KOS-MOTION-004 PR-06 (runs the three gates in order); `make acceptance` and `make lint` stay NOT_IMPLEMENTED |
 | Structure | `make check` | planning files present, commit checker self-test passes | implemented |
 
 An unimplemented gate is reported as NOT_IMPLEMENTED and is never counted as a pass. No coverage threshold is set; one needs an approved decision.
