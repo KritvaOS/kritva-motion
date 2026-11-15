@@ -4,7 +4,7 @@
   "repo": "KritvaOS/kritva-motion",
   "source": {
     "branch": "main",
-    "commit": "1acb437abc1a9c0934a0626d7b39a163947b325c",
+    "commit": "8d8d4d71de573e16df7cf709a9ec5f19e682472e",
     "tag": null
   },
   "tasks": [
@@ -156,7 +156,51 @@
           "result": "PASS"
         }
       ]
+    },
+    {
+      "task_id": "KOS-MOTION-005",
+      "execution": "COMPLETE",
+      "git_sync": "NOT_COMMITTED",
+      "readiness": "IMPLEMENTABLE",
+      "evidence": [
+        {
+          "type": "software",
+          "uri": "https://github.com/KritvaOS/kritva-motion/actions/runs/43695411353",
+          "description": "unit-tests: PASS on main commit 1d4f433f (KOS-MOTION-005 PR-06 merged, pull request 53; the stores, the input journal and the property test are on main)",
+          "commit": "1d4f433fa83ef05db6c14e92bd23903a5bac7dfd",
+          "ci_run": "https://github.com/KritvaOS/kritva-motion/actions/runs/43695411353",
+          "report_sha256": null,
+          "result": "PASS"
+        },
+        {
+          "type": "software",
+          "uri": "https://github.com/KritvaOS/kritva-motion/actions/runs/43695411283",
+          "description": "secret-scan: PASS on main commit 1d4f433f (KOS-MOTION-005 PR-06 merged, pull request 53; the stores, the input journal and the property test are on main)",
+          "commit": "1d4f433fa83ef05db6c14e92bd23903a5bac7dfd",
+          "ci_run": "https://github.com/KritvaOS/kritva-motion/actions/runs/43695411283",
+          "report_sha256": null,
+          "result": "PASS"
+        },
+        {
+          "type": "software",
+          "uri": "https://github.com/KritvaOS/kritva-motion/actions/runs/43695411326",
+          "description": "readme-check: PASS on main commit 1d4f433f (KOS-MOTION-005 PR-06 merged, pull request 53; the stores, the input journal and the property test are on main)",
+          "commit": "1d4f433fa83ef05db6c14e92bd23903a5bac7dfd",
+          "ci_run": "https://github.com/KritvaOS/kritva-motion/actions/runs/43695411326",
+          "report_sha256": null,
+          "result": "PASS"
+        },
+        {
+          "type": "software",
+          "uri": "https://github.com/KritvaOS/kritva-motion/actions/runs/43695411342",
+          "description": "progress-check: PASS on main commit 1d4f433f (KOS-MOTION-005 PR-06 merged, pull request 53; the stores, the input journal and the property test are on main)",
+          "commit": "1d4f433fa83ef05db6c14e92bd23903a5bac7dfd",
+          "ci_run": "https://github.com/KritvaOS/kritva-motion/actions/runs/43695411342",
+          "report_sha256": null,
+          "result": "PASS"
+        }
+      ]
     }
   ],
-  "updated_at": "2026-11-09T16:34:05+05:30"
+  "updated_at": "2026-11-15T14:12:48+05:30"
 }
