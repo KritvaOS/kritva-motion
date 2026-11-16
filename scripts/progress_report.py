@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #==============================================================================
-# Copyright (c) 2026 KritvaOS
+# Copyright (c) 2026 Kritva Robotics Private Limited.
 # SPDX-License-Identifier: Apache-2.0
 #
 # File        : progress_report.py
