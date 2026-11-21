@@ -29,6 +29,8 @@ Never commit credentials, tokens, keys or production data. If one is committed b
 
 `make check`, `make test-unit`, `make test-integration`, `make test-regression`, `make docs-check`. An unimplemented target exits 3 (NOT_IMPLEMENTED); do not edit a target to exit 0 to make a gate pass. A fixed defect adds a regression test.
 
+Before you push, run `git fetch origin` and `make preflight`. It runs `make check`, `make docs-check`, `make check-readme` and the README checker tests, `make progress-check`, the commit checks and the static PR gate over your branch commits, and `make test-unit`, `make test-integration` and `make test-regression` (they need `pip install -r requirements-test.txt`), keeps going after a failure and lists every failed step. `make hooks-install` (once per clone) makes `git push` run it; `make preflight-hook-off` turns that off in a clone and `git push --no-verify` skips it once. It does not run `secret-scan` or the PR gate's remote rules, and it does not replace CI. Do not claim a check passed unless you ran it.
+
 ## 6. Tags and milestones
 
 Release tags are annotated SemVer (`vMAJOR.MINOR.PATCH`), created only after the approved merge. A milestone closes only through an approved `COMPLETION_RECORD.md`; a tag or a merge does not close it.
